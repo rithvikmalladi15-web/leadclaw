@@ -162,7 +162,7 @@
         outputBox.innerText = "Generating dispute statement...";
 
         try {
-            const response = await fetch('/api/generate', {
+            const response = await fetch('https://leadclaw-api.onrender.com/api/generate', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ platform: activePlatform, transcript, notes })
