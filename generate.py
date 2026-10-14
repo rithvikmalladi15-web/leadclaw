@@ -8,6 +8,7 @@ from groq import Groq
 
 app = FastAPI()
 
+# Enable CORS for Cloudflare Pages frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -16,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize clients for both providers
+# Initialize clients
 gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
@@ -24,6 +25,10 @@ class DisputeRequest(BaseModel):
     platform: str
     notes: str
     context: str = ""
+
+@app.get("/")
+def health_check():
+    return {"status": "LeadClaw Engine Active"}
 
 @app.post("/api/dispute")
 async def process_dispute(data: DisputeRequest):
@@ -55,7 +60,7 @@ If VALID:
 }}
 """
 
-    # Attempt 1: Gemini (Primary Engine)
+    # Attempt 1: Primary Engine (Gemini 2.5 Flash)
     try:
         response = gemini_client.models.generate_content(
             model='gemini-2.5-flash',
@@ -67,10 +72,10 @@ If VALID:
         return json.loads(response.text)
 
     except Exception as gemini_error:
-        # Attempt 2: Groq Qwen (Backup Engine)
+        # Attempt 2: Backup Engine (Groq Qwen)
         try:
             fallback_response = groq_client.chat.completions.create(
-                model="qwen-2.5-32b",
+                model="qwen/qwen3.8-27b",
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"}
             )
@@ -79,5 +84,5 @@ If VALID:
         except Exception as groq_error:
             raise HTTPException(
                 status_code=500, 
-                detail=f"Primary and backup AI engines failed. Gemini error: {str(gemini_error)} | Groq error: {str(groq_error)}"
+                detail=f"Both primary and backup engines failed. Gemini Error: {str(gemini_error)} | Groq Error: {str(groq_error)}"
             )
