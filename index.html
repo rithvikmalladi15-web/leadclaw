@@ -44,19 +44,51 @@
       align-items: center;
       padding-bottom: 20px;
       margin-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
     }
 
-    .brand {
+    .brand-container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-top {
       display: flex;
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      font-size: 1.2rem;
+      font-size: 1.3rem;
       letter-spacing: 0.5px;
       color: #ffffff;
     }
 
     .brand-icon { color: var(--accent-blue); font-size: 1.2rem; }
+
+    .brand-desc {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      margin-top: 2px;
+      font-weight: 400;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-tutorial {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .btn-tutorial:hover { border-color: var(--accent-blue); }
 
     .status-badge {
       background: rgba(34, 197, 94, 0.1);
@@ -128,7 +160,6 @@
       border-color: var(--accent-blue);
     }
 
-    /* Quick Options Chips */
     .chips-group {
       display: flex;
       flex-wrap: wrap;
@@ -202,6 +233,37 @@
       white-space: pre-wrap;
       font-family: var(--font-mono);
       margin-bottom: 16px;
+      position: relative;
+    }
+
+    /* Loading Bar Styles */
+    .progress-wrapper {
+      display: none;
+      margin-bottom: 12px;
+    }
+
+    .progress-status {
+      font-size: 0.78rem;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+      margin-bottom: 6px;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: var(--bg-card);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
+      border-radius: 3px;
+      transition: width 0.3s ease;
     }
 
     .warning-box {
@@ -225,20 +287,94 @@
       font-weight: 600;
       cursor: pointer;
     }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 15, 25, 0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 500px;
+      padding: 24px;
+    }
+
+    .modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+
+    .modal-body {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .modal-body ol {
+      padding-left: 20px;
+      margin-top: 8px;
+    }
+
+    .modal-body li {
+      margin-bottom: 6px;
+    }
+
+    .btn-close-modal {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border: none;
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
+  <div class="modal-overlay" id="tutorialModal">
+    <div class="modal-card">
+      <div class="modal-title">How LeadClaw Works</div>
+      <div class="modal-body">
+        LeadClaw evaluates contractor lead disputes against official platform policy criteria in real-time.
+        <ol>
+          <li><strong>Select Platform:</strong> Choose Angi, Thumbtack, Porch, or Networx.</li>
+          <li><strong>Input Call Notes:</strong> Type details or click a quick option chip for common issues like disconnected numbers.</li>
+          <li><strong>Generate Claim:</strong> The AI engine checks policy compliance and generates a formal dispute statement or flags non-refundable claims.</li>
+        </ol>
+      </div>
+      <button class="btn-close-modal" onclick="toggleTutorial(false)">Got It</button>
+    </div>
+  </div>
+
   <div class="container">
     <header>
-      <div class="brand">
-        <span class="brand-icon">彡</span>
-        <span>LEADCLAW</span>
+      <div class="brand-container">
+        <div class="brand-top">
+          <span class="brand-icon">彡</span>
+          <span>LEADCLAW</span>
+        </div>
+        <div class="brand-desc">AI-Powered Contractor Lead Dispute Automation</div>
       </div>
-      <div class="status-badge">Engine Active</div>
+      <div class="header-actions">
+        <button class="btn-tutorial" onclick="toggleTutorial(true)">Tutorial</button>
+        <div class="status-badge">Engine Active</div>
+      </div>
     </header>
 
-    <!-- Cash Recovered Calculator / Stat Tracker -->
     <div class="card">
       <div class="stat-row">
         <div class="stat-title">Total Cash Recovered</div>
@@ -256,7 +392,6 @@
         <button class="btn-platform" onclick="setPlatform(this, 'Networx')">Networx</button>
       </div>
 
-      <!-- Quick Options Chips -->
       <label class="field-label">Quick Options:</label>
       <div class="chips-group">
         <div class="chip" onclick="applyQuickOption('Disconnected phone number / number invalid')">Disconnected Phone</div>
@@ -277,6 +412,15 @@
     <div class="card">
       <div class="card-title">2. Generated Statement</div>
       <div class="warning-box" id="warningBox"></div>
+      
+      <!-- Progress Bar Container -->
+      <div class="progress-wrapper" id="progressWrapper">
+        <div class="progress-status" id="progressStatus">Connecting to API...</div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progressBarFill"></div>
+        </div>
+      </div>
+
       <div class="output-box" id="outputBox">Awaiting input...</div>
       <button class="btn-copy" onclick="copyStatement()" id="copyBtn">Copy Statement</button>
     </div>
@@ -285,10 +429,10 @@
   <script>
     let selectedPlatform = 'Angi';
     let totalRecovered = 0.00;
-    const avgLeadCost = 45.00; // Estimated calculator value per successful claim
+    const avgLeadCost = 45.00; 
 
-    // Replace URL below with your Render Python API deployment URL
-    const API_URL = 'https://leadclaw-api.onrender.com'; 
+    // Replace URL below with your exact Render backend URL
+    const API_URL = 'https://your-api-url.onrender.com/api/dispute'; 
 
     function setPlatform(btn, name) {
       document.querySelectorAll('.btn-platform').forEach(b => b.classList.remove('active'));
@@ -300,12 +444,19 @@
       document.getElementById('notesInput').value = text;
     }
 
+    function toggleTutorial(show) {
+      document.getElementById('tutorialModal').style.display = show ? 'flex' : 'none';
+    }
+
     async function generateDispute() {
       const notes = document.getElementById('notesInput').value.trim();
       const context = document.getElementById('contextInput').value.trim();
       const warningBox = document.getElementById('warningBox');
       const outputBox = document.getElementById('outputBox');
       const submitBtn = document.getElementById('submitBtn');
+      const progressWrapper = document.getElementById('progressWrapper');
+      const progressBarFill = document.getElementById('progressBarFill');
+      const progressStatus = document.getElementById('progressStatus');
 
       if (!notes) {
         alert('Please enter call notes or select a quick option.');
@@ -314,6 +465,26 @@
 
       submitBtn.innerText = 'Evaluating Policy Criteria...';
       submitBtn.disabled = true;
+      warningBox.style.display = 'none';
+      outputBox.innerText = '';
+      
+      // Show progress bar
+      progressWrapper.style.display = 'block';
+      progressBarFill.style.width = '20%';
+      progressStatus.innerText = 'Connecting to AI Engine...';
+
+      let step = 1;
+      const progressInterval = setInterval(() => {
+        if (step === 1) {
+          progressBarFill.style.width = '55%';
+          progressStatus.innerText = 'Evaluating platform dispute guidelines...';
+          step++;
+        } else if (step === 2) {
+          progressBarFill.style.width = '85%';
+          progressStatus.innerText = 'Formatting official claim statement...';
+          step++;
+        }
+      }, 800);
 
       try {
         const response = await fetch(API_URL, {
@@ -322,25 +493,43 @@
           body: JSON.stringify({ platform: selectedPlatform, notes: notes, context: context })
         });
 
+        clearInterval(progressInterval);
+        progressBarFill.style.width = '100%';
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `Server status ${response.status}`);
+        }
+
         const data = await response.json();
+
+        // Safely extract statement or fallback
+        const resultStatement = data.statement || data.dispute_statement || data.claim || data.result;
 
         if (data.valid === false) {
           warningBox.style.display = 'block';
-          warningBox.innerHTML = `<strong>NON-REFUNDABLE REASON DETECTED (${selectedPlatform.toUpperCase()})</strong><br>${data.reason}`;
+          warningBox.innerHTML = `<strong>NON-REFUNDABLE REASON DETECTED (${selectedPlatform.toUpperCase()})</strong><br>${data.reason || 'This claim does not meet refund criteria.'}`;
           outputBox.innerText = `[DISPUTE BLOCKED]\nReason: Input does not satisfy ${selectedPlatform}'s official refund requirements.`;
-        } else {
+        } else if (resultStatement) {
           warningBox.style.display = 'none';
-          outputBox.innerText = data.statement;
+          outputBox.innerText = resultStatement;
 
-          // Increment calculator / total cash recovered on valid claims
           totalRecovered += avgLeadCost;
           document.getElementById('cashDisplay').innerText = '$' + totalRecovered.toFixed(2);
+        } else {
+          outputBox.innerText = JSON.stringify(data, null, 2);
         }
       } catch (err) {
-        alert('Error connecting to engine API.');
+        clearInterval(progressInterval);
+        alert('API Error: ' + err.message);
+        outputBox.innerText = 'Error processing request.';
       } finally {
         submitBtn.innerText = 'Generate Claim';
         submitBtn.disabled = false;
+        setTimeout(() => {
+          progressWrapper.style.display = 'none';
+          progressBarFill.style.width = '0%';
+        }, 500);
       }
     }
 
