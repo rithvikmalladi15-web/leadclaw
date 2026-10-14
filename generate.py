@@ -19,40 +19,35 @@ app.add_middleware(
 gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-STRICT_SYSTEM_PROMPT = """
-You are LeadClaw's Dispute Validation Engine. Your task is to rigorously validate contractor lead disputes against official platform credit policies.
+# Autonomous AI Policy Evaluation Prompt
+AUTONOMOUS_POLICY_PROMPT = """
+You are LeadClaw's Autonomous Lead Dispute Evaluation Engine. 
+Target Platform: {platform}
 
-CRITICAL REFUND POLICY RULES:
-- VALID CLAIMS (ALLOW & FORMAT STATEMENT):
-  * Phone number disconnected, invalid, fax machine, or non-working number.
-  * Homeowner address/zip code is outside the contractor's explicit service radius.
-  * Duplicate lead received within the platform's re-bill window.
-  * Spam, bot, or automated test submission.
-  * Wrong service category requested.
+Your job is to analyze the provided contractor call notes, transcripts, or uploaded files and autonomously decide whether the dispute complies with standard platform refund and credit policies.
 
-- NON-REFUNDABLE CLAIMS (STRICTLY BLOCK):
-  * Homeowner changed their mind or decided not to do the project.
-  * Homeowner hired a competitor or already completed the job.
-  * Homeowner rejected contractor's price or quote.
-  * Contractor called once and got no answer.
+Evaluate the core circumstances:
+1. Does the situation describe a true platform failure or ineligible lead delivery (e.g., dead/invalid contact info, out-of-service area, confirmed duplicate lead, spam/bot activity, or incorrect service category)? If so, the AI should deem it VALID.
+2. Does the situation describe normal customer behavior or contractor execution issues after lead delivery (e.g., price disputes, customer changing their mind, hiring a competitor, or lack of persistent contact attempts)? If so, the AI should deem it INVALID.
 
 Return JSON ONLY with this exact structure:
-If NON-REFUNDABLE:
-{
-  "valid": false,
-  "reason": "Explicit explanation of why support will reject this claim based on policy rules."
-}
 
-If VALID:
-{
+If the AI decides it is INVALID / NON-REFUNDABLE:
+{{
+  "valid": false,
+  "reason": "Autonomous AI analysis: Explain precisely why support will reject this claim based on policy principles."
+}}
+
+If the AI decides it is VALID:
+{{
   "valid": true,
-  "statement": "Formal claim statement formatted specifically for submission."
-}
+  "statement": "Professional, formal dispute claim statement formulated for official support submission."
+}}
 """
 
 @app.get("/")
 def health_check():
-    return {"status": "LeadClaw Multimodal Engine Active"}
+    return {"status": "LeadClaw Autonomous Engine Active"}
 
 @app.post("/api/dispute")
 @app.post("/api/dispute/")
@@ -66,7 +61,8 @@ async def process_dispute(
         raise HTTPException(status_code=400, detail="Please provide either notes or attach an audio/PDF file.")
 
     contents = []
-    text_prompt = f"Target Platform: {platform}\nContractor Notes: {notes or 'N/A'}\nAdditional Context: {context or 'None'}\n\n" + STRICT_SYSTEM_PROMPT
+    formatted_prompt = AUTONOMOUS_POLICY_PROMPT.format(platform=platform)
+    text_prompt = f"Contractor Notes: {notes or 'N/A'}\nAdditional Context: {context or 'None'}\n\n" + formatted_prompt
 
     if file:
         file_bytes = await file.read()
@@ -75,19 +71,21 @@ async def process_dispute(
 
     contents.append(text_prompt)
 
+    # Attempt 1: Gemini 3.5 Flash Autonomous Analysis
     try:
         response = gemini_client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-3.5-flash',
             contents=contents,
             config={'response_mime_type': 'application/json'}
         )
         return json.loads(response.text)
 
     except Exception as gemini_error:
+        # Fallback to Groq Qwen3-4b if no file attachment is present
         if not file:
             try:
                 fallback_response = groq_client.chat.completions.create(
-                    model="qwen-2.5-32b",
+                    model="qwen-3-4b",
                     messages=[{"role": "user", "content": text_prompt}],
                     response_format={"type": "json_object"}
                 )
