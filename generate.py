@@ -3,6 +3,7 @@ import json
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from google import genai
 from groq import Groq
 
 app = FastAPI()
@@ -15,7 +16,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
+# Initialize clients for both providers
+gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
 class DisputeRequest(BaseModel):
     platform: str
@@ -52,15 +55,29 @@ If VALID:
 }}
 """
 
+    # Attempt 1: Gemini (Primary Engine)
     try:
-        response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
+        response = gemini_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=prompt,
+            config={
+                'response_mime_type': 'application/json'
+            }
         )
-        
-        result = json.loads(response.choices[0].message.content)
-        return result
+        return json.loads(response.text)
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as gemini_error:
+        # Attempt 2: Groq Qwen (Backup Engine)
+        try:
+            fallback_response = groq_client.chat.completions.create(
+                model="qwen-2.5-32b",
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"}
+            )
+            return json.loads(fallback_response.choices[0].message.content)
+
+        except Exception as groq_error:
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Primary and backup AI engines failed. Gemini error: {str(gemini_error)} | Groq error: {str(groq_error)}"
+            )
