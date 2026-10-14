@@ -1,430 +1,98 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LeadClaw | Contractor Lead Dispute Generator</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2318181b%22/><text x=%2250%22 y=%2268%22 font-size=%2255%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22 font-family=%22sans-serif%22>彡</text></svg>">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  
-  <style>
-    :root {
-      --bg-base: #0b0f19;
-      --bg-surface: #111827;
-      --bg-card: #151d30;
-      --border-color: #1f293d;
-      --border-light: #2d3b55;
-      --text-main: #f3f4f6;
-      --text-sub: #9ca3af;
-      --accent-blue: #3b82f6;
-      --accent-blue-hover: #2563eb;
-      --accent-green: #22c55e;
-      --font-main: 'Inter', sans-serif;
-      --font-mono: 'JetBrains Mono', monospace;
-    }
+import os
+import json
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
+from google import genai
+from groq import Groq
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+app = FastAPI()
 
-    body {
-      background-color: var(--bg-base);
-      color: var(--text-main);
-      font-family: var(--font-main);
-      line-height: 1.5;
-      -webkit-font-smoothing: antialiased;
-      padding: 32px 16px;
-    }
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    .container { max-width: 800px; margin: 0 auto; }
+gemini_client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 20px;
-      margin-bottom: 24px;
-      border-bottom: 1px solid var(--border-color);
-    }
+STRICT_SYSTEM_PROMPT = """
+You are LeadClaw's Dispute Validation Engine. Your task is to rigorously validate contractor lead disputes against official platform credit policies.
 
-    .brand-container { display: flex; flex-direction: column; }
-    .brand-top { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.3rem; color: #ffffff; }
-    .brand-icon { color: var(--accent-blue); font-size: 1.2rem; }
-    .brand-desc { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
+CRITICAL REFUND POLICY RULES:
+- VALID CLAIMS (ALLOW & FORMAT STATEMENT):
+  * Phone number disconnected, invalid, fax machine, or non-working number.
+  * Homeowner address/zip code is outside the contractor's explicit service radius.
+  * Duplicate lead received within the platform's re-bill window.
+  * Spam, bot, or automated test submission.
+  * Wrong service category requested.
 
-    .header-actions { display: flex; gap: 10px; align-items: center; }
+- NON-REFUNDABLE CLAIMS (STRICTLY BLOCK):
+  * Homeowner changed their mind or decided not to do the project.
+  * Homeowner hired a competitor or already completed the job.
+  * Homeowner rejected contractor's price or quote.
+  * Contractor called once and got no answer.
 
-    .btn-tutorial {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-light);
-      color: var(--text-main);
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
+Return JSON ONLY with this exact structure:
+If NON-REFUNDABLE:
+{
+  "valid": false,
+  "reason": "Explicit explanation of why support will reject this claim based on policy rules."
+}
 
-    .status-badge {
-      background: rgba(34, 197, 94, 0.1);
-      color: var(--accent-green);
-      border: 1px solid rgba(34, 197, 94, 0.25);
-      padding: 4px 12px;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
+If VALID:
+{
+  "valid": true,
+  "statement": "Formal claim statement formatted specifically for submission."
+}
+"""
 
-    .card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 20px;
-    }
+@app.get("/")
+def health_check():
+    return {"status": "LeadClaw Multimodal Engine Active"}
 
-    .stat-row { display: flex; justify-content: space-between; align-items: center; }
-    .stat-title { font-size: 0.85rem; color: var(--text-sub); text-transform: uppercase; font-weight: 600; }
-    .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--accent-green); font-family: var(--font-mono); }
+@app.post("/api/dispute")
+@app.post("/api/dispute/")
+async def process_dispute(
+    platform: str = Form(...),
+    notes: Optional[str] = Form(None),
+    context: Optional[str] = Form(""),
+    file: Optional[UploadFile] = File(None)
+):
+    if not notes and not file:
+        raise HTTPException(status_code=400, detail="Please provide either notes or attach an audio/PDF file.")
 
-    .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 16px; color: #ffffff; }
+    contents = []
+    text_prompt = f"Target Platform: {platform}\nContractor Notes: {notes or 'N/A'}\nAdditional Context: {context or 'None'}\n\n" + STRICT_SYSTEM_PROMPT
 
-    .platform-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+    if file:
+        file_bytes = await file.read()
+        mime_type = file.content_type or "application/octet-stream"
+        contents.append({"mime_type": mime_type, "data": file_bytes})
 
-    .btn-platform {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      color: var(--text-sub);
-      padding: 10px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
+    contents.append(text_prompt)
 
-    .btn-platform.active { background: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); }
+    try:
+        response = gemini_client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=contents,
+            config={'response_mime_type': 'application/json'}
+        )
+        return json.loads(response.text)
 
-    .chips-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-
-    .chip {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      color: var(--text-sub);
-      font-size: 0.78rem;
-      padding: 6px 12px;
-      border-radius: 16px;
-      cursor: pointer;
-    }
-
-    .chip:hover { border-color: var(--accent-blue); color: var(--text-main); }
-
-    label.field-label { display: block; font-size: 0.825rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
-
-    textarea, input[type="text"], input[type="file"] {
-      width: 100%;
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 12px;
-      color: var(--text-main);
-      font-family: var(--font-main);
-      font-size: 0.875rem;
-      margin-bottom: 16px;
-    }
-
-    .file-upload-box {
-      border: 1px dashed var(--border-light);
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 16px;
-      background: var(--bg-surface);
-    }
-
-    .btn-submit {
-      width: 100%;
-      background: var(--accent-blue);
-      color: #ffffff;
-      border: none;
-      padding: 12px;
-      border-radius: 6px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .btn-submit:hover { background: var(--accent-blue-hover); }
-
-    .output-box {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      padding: 16px;
-      min-height: 80px;
-      font-size: 0.875rem;
-      color: var(--text-sub);
-      white-space: pre-wrap;
-      font-family: var(--font-mono);
-      margin-bottom: 16px;
-    }
-
-    .progress-wrapper { display: none; margin-bottom: 12px; }
-    .progress-status { font-size: 0.78rem; color: var(--accent-blue); font-family: var(--font-mono); margin-bottom: 6px; }
-    .progress-bar-bg { width: 100%; height: 6px; background: var(--bg-card); border-radius: 3px; overflow: hidden; border: 1px solid var(--border-color); }
-    .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius: 3px; transition: width 0.3s ease; }
-
-    .warning-box {
-      background: rgba(239, 68, 68, 0.1);
-      border: 1px solid rgba(239, 68, 68, 0.3);
-      color: #fca5a5;
-      padding: 14px;
-      border-radius: 6px;
-      font-size: 0.85rem;
-      margin-bottom: 16px;
-      display: none;
-    }
-
-    .btn-copy {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-light);
-      color: var(--text-main);
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 0.825rem;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .modal-overlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 15, 25, 0.85); display: none;
-      justify-content: center; align-items: center; z-index: 1000; padding: 16px;
-    }
-
-    .modal-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; }
-    .modal-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 12px; }
-    .modal-body { font-size: 0.875rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 20px; }
-    .btn-close-modal { background: var(--accent-blue); color: #ffffff; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-  </style>
-</head>
-<body>
-
-  <div class="modal-overlay" id="tutorialModal">
-    <div class="modal-card">
-      <div class="modal-title">How LeadClaw Works</div>
-      <div class="modal-body">
-        LeadClaw validates lead disputes against official platform credit policies in real-time.
-        <br><br>
-        1. Select target platform.<br>
-        2. Paste call notes OR upload an audio recording / PDF transcript.<br>
-        3. Click Generate Claim to validate policy eligibility and auto-format your submission statement.
-      </div>
-      <button class="btn-close-modal" onclick="toggleTutorial(false)">Got It</button>
-    </div>
-  </div>
-
-  <div class="container">
-    <header>
-      <div class="brand-container">
-        <div class="brand-top">
-          <span class="brand-icon">彡</span>
-          <span>LEADCLAW</span>
-        </div>
-        <div class="brand-desc">AI-Powered Contractor Lead Dispute Automation</div>
-      </div>
-      <div class="header-actions">
-        <button class="btn-tutorial" onclick="toggleTutorial(true)">Tutorial</button>
-        <div class="status-badge">Engine Active</div>
-      </div>
-    </header>
-
-    <div class="card">
-      <div class="stat-row">
-        <div class="stat-title">Total Cash Recovered</div>
-        <div class="stat-value" id="cashDisplay">$0.00</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">1. Dispute Input</div>
-      
-      <div class="platform-selector">
-        <button class="btn-platform active" onclick="setPlatform(this, 'Angi')">Angi</button>
-        <button class="btn-platform" onclick="setPlatform(this, 'Thumbtack')">Thumbtack</button>
-        <button class="btn-platform" onclick="setPlatform(this, 'Porch')">Porch</button>
-        <button class="btn-platform" onclick="setPlatform(this, 'Networx')">Networx</button>
-      </div>
-
-      <label class="field-label">Quick Options:</label>
-      <div class="chips-group">
-        <div class="chip" onclick="applyQuickOption('Disconnected phone number / number invalid')">Disconnected Phone</div>
-        <div class="chip" onclick="applyQuickOption('Homeowner is outside my designated zip code area')">Out of Service Area</div>
-        <div class="chip" onclick="applyQuickOption('Duplicate lead received twice within 24 hours')">Duplicate Lead</div>
-        <div class="chip" onclick="applyQuickOption('Spam / bot lead with fake email and name')">Spam / Bot Lead</div>
-      </div>
-
-      <label class="field-label">Call Notes / Transcript</label>
-      <textarea id="notesInput" rows="3" placeholder="Paste call notes or transcript here..."></textarea>
-
-      <div class="file-upload-box">
-        <label class="field-label">Attach Recording or Transcript (Audio MP3/WAV/M4A or PDF)</label>
-        <input type="file" id="fileInput" accept="audio/*,.pdf">
-      </div>
-
-      <label class="field-label">Additional Context (Optional)</label>
-      <input type="text" id="contextInput" placeholder="e.g. Attempted contact within 5 minutes">
-
-      <button class="btn-submit" onclick="generateDispute()" id="submitBtn">Generate Claim</button>
-    </div>
-
-    <div class="card">
-      <div class="card-title">2. Generated Statement</div>
-      <div class="warning-box" id="warningBox"></div>
-      
-      <div class="progress-wrapper" id="progressWrapper">
-        <div class="progress-status" id="progressStatus">Connecting to Engine...</div>
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="progressBarFill"></div>
-        </div>
-      </div>
-
-      <div class="output-box" id="outputBox">Awaiting input...</div>
-      <button class="btn-copy" onclick="copyFormattedStatement()" id="copyBtn">Copy Formatted Claim</button>
-    </div>
-  </div>
-
-  <script>
-    let selectedPlatform = 'Angi';
-    let totalRecovered = 0.00;
-    const avgLeadCost = 45.00; 
-
-    // Update with your live Render backend URL:
-    const API_URL = 'https://leadclaw-api.onrender.com'; 
-
-    function setPlatform(btn, name) {
-      document.querySelectorAll('.btn-platform').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedPlatform = name;
-    }
-
-    function applyQuickOption(text) {
-      document.getElementById('notesInput').value = text;
-    }
-
-    function toggleTutorial(show) {
-      document.getElementById('tutorialModal').style.display = show ? 'flex' : 'none';
-    }
-
-    async function generateDispute() {
-      const notes = document.getElementById('notesInput').value.trim();
-      const context = document.getElementById('contextInput').value.trim();
-      const fileInput = document.getElementById('fileInput');
-      const warningBox = document.getElementById('warningBox');
-      const outputBox = document.getElementById('outputBox');
-      const submitBtn = document.getElementById('submitBtn');
-      const progressWrapper = document.getElementById('progressWrapper');
-      const progressBarFill = document.getElementById('progressBarFill');
-      const progressStatus = document.getElementById('progressStatus');
-
-      if (!notes && (!fileInput.files || fileInput.files.length === 0)) {
-        alert('Please enter call notes or attach an audio/PDF file.');
-        return;
-      }
-
-      submitBtn.innerText = 'Evaluating Policy Criteria...';
-      submitBtn.disabled = true;
-      warningBox.style.display = 'none';
-      outputBox.innerText = '';
-      
-      progressWrapper.style.display = 'block';
-      progressBarFill.style.width = '25%';
-      progressStatus.innerText = 'Analyzing lead media and policy rules...';
-
-      let step = 1;
-      const progressInterval = setInterval(() => {
-        if (step === 1) {
-          progressBarFill.style.width = '60%';
-          progressStatus.innerText = 'Checking platform credit eligibility...';
-          step++;
-        } else if (step === 2) {
-          progressBarFill.style.width = '85%';
-          progressStatus.innerText = 'Formatting official claim output...';
-          step++;
-        }
-      }, 900);
-
-      try {
-        const formData = new FormData();
-        formData.append('platform', selectedPlatform);
-        if (notes) formData.append('notes', notes);
-        if (context) formData.append('context', context);
-        if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
-
-        const response = await fetch(API_URL, {
-          method: 'POST',
-          body: formData
-        });
-
-        clearInterval(progressInterval);
-        progressBarFill.style.width = '100%';
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.detail || `Server status ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.valid === false) {
-          warningBox.style.display = 'block';
-          warningBox.innerHTML = `<strong>NON-REFUNDABLE REASON DETECTED (${selectedPlatform.toUpperCase()})</strong><br>${data.reason}`;
-          outputBox.innerText = `[DISPUTE REJECTED BY POLICY ENGINE]\nReason: Input does not satisfy official ${selectedPlatform} credit policy criteria.`;
-        } else if (data.statement) {
-          warningBox.style.display = 'none';
-          outputBox.innerText = data.statement;
-
-          totalRecovered += avgLeadCost;
-          document.getElementById('cashDisplay').innerText = '$' + totalRecovered.toFixed(2);
-        } else {
-          outputBox.innerText = JSON.stringify(data, null, 2);
-        }
-      } catch (err) {
-        clearInterval(progressInterval);
-        alert('API Error: ' + err.message);
-        outputBox.innerText = 'Error processing dispute.';
-      } finally {
-        submitBtn.innerText = 'Generate Claim';
-        submitBtn.disabled = false;
-        setTimeout(() => {
-          progressWrapper.style.display = 'none';
-          progressBarFill.style.width = '0%';
-        }, 500);
-      }
-    }
-
-    function copyFormattedStatement() {
-      const outputText = document.getElementById('outputBox').innerText;
-      if (!outputText || outputText === 'Awaiting input...' || outputText.includes('[DISPUTE REJECTED')) {
-        alert('No valid claim available to copy.');
-        return;
-      }
-
-      const today = new Date().toLocaleDateString();
-      const formattedClaim = `OFFICIAL LEAD CREDIT REQUEST
-Platform: ${selectedPlatform.toUpperCase()}
-Date Generated: ${today}
-Status: Policy Verified (LeadClaw Engine)
-----------------------------------------
-STATEMENT:
-${outputText}
-
-----------------------------------------
-Submitted via LeadClaw Dispute Automation`;
-
-      navigator.clipboard.writeText(formattedClaim);
-      const btn = document.getElementById('copyBtn');
-      btn.innerText = 'Copied to Clipboard!';
-      setTimeout(() => btn.innerText = 'Copy Formatted Claim', 2000);
-    }
-  </script>
-</body>
-</html>
+    except Exception as gemini_error:
+        if not file:
+            try:
+                fallback_response = groq_client.chat.completions.create(
+                    model="qwen-2.5-32b",
+                    messages=[{"role": "user", "content": text_prompt}],
+                    response_format={"type": "json_object"}
+                )
+                return json.loads(fallback_response.choices[0].message.content)
+            except Exception as groq_error:
+                raise HTTPException(status_code=500, detail=f"Gemini error: {str(gemini_error)} | Groq error: {str(groq_error)}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Gemini processing error: {str(gemini_error)}")
