@@ -47,35 +47,12 @@
       border-bottom: 1px solid var(--border-color);
     }
 
-    .brand-container {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .brand-top {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 700;
-      font-size: 1.3rem;
-      letter-spacing: 0.5px;
-      color: #ffffff;
-    }
-
+    .brand-container { display: flex; flex-direction: column; }
+    .brand-top { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.3rem; color: #ffffff; }
     .brand-icon { color: var(--accent-blue); font-size: 1.2rem; }
+    .brand-desc { font-size: 0.8rem; color: var(--text-sub); margin-top: 2px; }
 
-    .brand-desc {
-      font-size: 0.8rem;
-      color: var(--text-sub);
-      margin-top: 2px;
-      font-weight: 400;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
 
     .btn-tutorial {
       background: var(--bg-surface);
@@ -87,8 +64,6 @@
       font-weight: 600;
       cursor: pointer;
     }
-
-    .btn-tutorial:hover { border-color: var(--accent-blue); }
 
     .status-badge {
       background: rgba(34, 197, 94, 0.1);
@@ -109,38 +84,12 @@
     }
 
     .stat-row { display: flex; justify-content: space-between; align-items: center; }
+    .stat-title { font-size: 0.85rem; color: var(--text-sub); text-transform: uppercase; font-weight: 600; }
+    .stat-value { font-size: 1.8rem; font-weight: 700; color: var(--accent-green); font-family: var(--font-mono); }
 
-    .stat-title {
-      font-size: 0.85rem;
-      color: var(--text-sub);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-    }
+    .card-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 16px; color: #ffffff; }
 
-    .stat-value {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--accent-green);
-      font-family: var(--font-mono);
-    }
-
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-      margin-bottom: 16px;
-      color: #ffffff;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .platform-selector {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      margin-bottom: 20px;
-    }
+    .platform-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
 
     .btn-platform {
       background: var(--bg-surface);
@@ -151,21 +100,11 @@
       font-weight: 600;
       font-size: 0.85rem;
       cursor: pointer;
-      transition: all 0.15s ease;
     }
 
-    .btn-platform.active {
-      background: var(--accent-blue);
-      color: #ffffff;
-      border-color: var(--accent-blue);
-    }
+    .btn-platform.active { background: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); }
 
-    .chips-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
+    .chips-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 
     .chip {
       background: var(--bg-surface);
@@ -175,23 +114,13 @@
       padding: 6px 12px;
       border-radius: 16px;
       cursor: pointer;
-      transition: all 0.15s ease;
     }
 
-    .chip:hover {
-      border-color: var(--accent-blue);
-      color: var(--text-main);
-    }
+    .chip:hover { border-color: var(--accent-blue); color: var(--text-main); }
 
-    label.field-label {
-      display: block;
-      font-size: 0.825rem;
-      color: var(--text-sub);
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
+    label.field-label { display: block; font-size: 0.825rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
 
-    textarea, input[type="text"] {
+    textarea, input[type="text"], input[type="file"] {
       width: 100%;
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -203,9 +132,12 @@
       margin-bottom: 16px;
     }
 
-    textarea:focus, input[type="text"]:focus {
-      outline: none;
-      border-color: var(--accent-blue);
+    .file-upload-box {
+      border: 1px dashed var(--border-light);
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 16px;
+      background: var(--bg-surface);
     }
 
     .btn-submit {
@@ -233,38 +165,12 @@
       white-space: pre-wrap;
       font-family: var(--font-mono);
       margin-bottom: 16px;
-      position: relative;
     }
 
-    /* Loading Bar Styles */
-    .progress-wrapper {
-      display: none;
-      margin-bottom: 12px;
-    }
-
-    .progress-status {
-      font-size: 0.78rem;
-      color: var(--accent-blue);
-      font-family: var(--font-mono);
-      margin-bottom: 6px;
-    }
-
-    .progress-bar-bg {
-      width: 100%;
-      height: 6px;
-      background: var(--bg-card);
-      border-radius: 3px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent-blue), var(--accent-green));
-      border-radius: 3px;
-      transition: width 0.3s ease;
-    }
+    .progress-wrapper { display: none; margin-bottom: 12px; }
+    .progress-status { font-size: 0.78rem; color: var(--accent-blue); font-family: var(--font-mono); margin-bottom: 6px; }
+    .progress-bar-bg { width: 100%; height: 6px; background: var(--bg-card); border-radius: 3px; overflow: hidden; border: 1px solid var(--border-color); }
+    .progress-bar-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-green)); border-radius: 3px; transition: width 0.3s ease; }
 
     .warning-box {
       background: rgba(239, 68, 68, 0.1);
@@ -289,58 +195,15 @@
     }
 
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(11, 15, 25, 0.85);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-      padding: 16px;
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(11, 15, 25, 0.85); display: none;
+      justify-content: center; align-items: center; z-index: 1000; padding: 16px;
     }
 
-    .modal-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-light);
-      border-radius: 12px;
-      width: 100%;
-      max-width: 500px;
-      padding: 24px;
-    }
-
-    .modal-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 12px;
-    }
-
-    .modal-body {
-      font-size: 0.875rem;
-      color: var(--text-sub);
-      line-height: 1.6;
-      margin-bottom: 20px;
-    }
-
-    .modal-body ol {
-      padding-left: 20px;
-      margin-top: 8px;
-    }
-
-    .modal-body li {
-      margin-bottom: 6px;
-    }
-
-    .btn-close-modal {
-      background: var(--accent-blue);
-      color: #ffffff;
-      border: none;
-      width: 100%;
-      padding: 10px;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+    .modal-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 12px; width: 100%; max-width: 500px; padding: 24px; }
+    .modal-title { font-size: 1.1rem; font-weight: 700; color: #ffffff; margin-bottom: 12px; }
+    .modal-body { font-size: 0.875rem; color: var(--text-sub); line-height: 1.6; margin-bottom: 20px; }
+    .btn-close-modal { background: var(--accent-blue); color: #ffffff; border: none; width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -349,12 +212,11 @@
     <div class="modal-card">
       <div class="modal-title">How LeadClaw Works</div>
       <div class="modal-body">
-        LeadClaw evaluates contractor lead disputes against official platform policy criteria in real-time.
-        <ol>
-          <li><strong>Select Platform:</strong> Choose Angi, Thumbtack, Porch, or Networx.</li>
-          <li><strong>Input Call Notes:</strong> Type details or click a quick option chip for common issues like disconnected numbers.</li>
-          <li><strong>Generate Claim:</strong> The AI engine checks policy compliance and generates a formal dispute statement or flags non-refundable claims.</li>
-        </ol>
+        LeadClaw validates lead disputes against official platform credit policies in real-time.
+        <br><br>
+        1. Select target platform.<br>
+        2. Paste call notes OR upload an audio recording / PDF transcript.<br>
+        3. Click Generate Claim to validate policy eligibility and auto-format your submission statement.
       </div>
       <button class="btn-close-modal" onclick="toggleTutorial(false)">Got It</button>
     </div>
@@ -400,8 +262,13 @@
         <div class="chip" onclick="applyQuickOption('Spam / bot lead with fake email and name')">Spam / Bot Lead</div>
       </div>
 
-      <label class="field-label">Call Transcript / Recording Notes</label>
-      <textarea id="notesInput" rows="4" placeholder="Paste notes or details here (e.g. 'Disconnected phone number')..."></textarea>
+      <label class="field-label">Call Notes / Transcript</label>
+      <textarea id="notesInput" rows="3" placeholder="Paste call notes or transcript here..."></textarea>
+
+      <div class="file-upload-box">
+        <label class="field-label">Attach Recording or Transcript (Audio MP3/WAV/M4A or PDF)</label>
+        <input type="file" id="fileInput" accept="audio/*,.pdf">
+      </div>
 
       <label class="field-label">Additional Context (Optional)</label>
       <input type="text" id="contextInput" placeholder="e.g. Attempted contact within 5 minutes">
@@ -413,16 +280,15 @@
       <div class="card-title">2. Generated Statement</div>
       <div class="warning-box" id="warningBox"></div>
       
-      <!-- Progress Bar Container -->
       <div class="progress-wrapper" id="progressWrapper">
-        <div class="progress-status" id="progressStatus">Connecting to API...</div>
+        <div class="progress-status" id="progressStatus">Connecting to Engine...</div>
         <div class="progress-bar-bg">
           <div class="progress-bar-fill" id="progressBarFill"></div>
         </div>
       </div>
 
       <div class="output-box" id="outputBox">Awaiting input...</div>
-      <button class="btn-copy" onclick="copyStatement()" id="copyBtn">Copy Statement</button>
+      <button class="btn-copy" onclick="copyFormattedStatement()" id="copyBtn">Copy Formatted Claim</button>
     </div>
   </div>
 
@@ -431,8 +297,8 @@
     let totalRecovered = 0.00;
     const avgLeadCost = 45.00; 
 
-    // Replace URL below with your exact Render backend URL
-    const API_URL = 'https://leadclaw-api.onrender.com/'; 
+    // Update with your live Render backend URL:
+    const API_URL = 'https://your-api-url.onrender.com/api/dispute'; 
 
     function setPlatform(btn, name) {
       document.querySelectorAll('.btn-platform').forEach(b => b.classList.remove('active'));
@@ -451,6 +317,7 @@
     async function generateDispute() {
       const notes = document.getElementById('notesInput').value.trim();
       const context = document.getElementById('contextInput').value.trim();
+      const fileInput = document.getElementById('fileInput');
       const warningBox = document.getElementById('warningBox');
       const outputBox = document.getElementById('outputBox');
       const submitBtn = document.getElementById('submitBtn');
@@ -458,8 +325,8 @@
       const progressBarFill = document.getElementById('progressBarFill');
       const progressStatus = document.getElementById('progressStatus');
 
-      if (!notes) {
-        alert('Please enter call notes or select a quick option.');
+      if (!notes && (!fileInput.files || fileInput.files.length === 0)) {
+        alert('Please enter call notes or attach an audio/PDF file.');
         return;
       }
 
@@ -468,29 +335,33 @@
       warningBox.style.display = 'none';
       outputBox.innerText = '';
       
-      // Show progress bar
       progressWrapper.style.display = 'block';
-      progressBarFill.style.width = '20%';
-      progressStatus.innerText = 'Connecting to AI Engine...';
+      progressBarFill.style.width = '25%';
+      progressStatus.innerText = 'Analyzing lead media and policy rules...';
 
       let step = 1;
       const progressInterval = setInterval(() => {
         if (step === 1) {
-          progressBarFill.style.width = '55%';
-          progressStatus.innerText = 'Evaluating platform dispute guidelines...';
+          progressBarFill.style.width = '60%';
+          progressStatus.innerText = 'Checking platform credit eligibility...';
           step++;
         } else if (step === 2) {
           progressBarFill.style.width = '85%';
-          progressStatus.innerText = 'Formatting official claim statement...';
+          progressStatus.innerText = 'Formatting official claim output...';
           step++;
         }
-      }, 800);
+      }, 900);
 
       try {
+        const formData = new FormData();
+        formData.append('platform', selectedPlatform);
+        if (notes) formData.append('notes', notes);
+        if (context) formData.append('context', context);
+        if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
+
         const response = await fetch(API_URL, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ platform: selectedPlatform, notes: notes, context: context })
+          body: formData
         });
 
         clearInterval(progressInterval);
@@ -503,16 +374,13 @@
 
         const data = await response.json();
 
-        // Safely extract statement or fallback
-        const resultStatement = data.statement || data.dispute_statement || data.claim || data.result;
-
         if (data.valid === false) {
           warningBox.style.display = 'block';
-          warningBox.innerHTML = `<strong>NON-REFUNDABLE REASON DETECTED (${selectedPlatform.toUpperCase()})</strong><br>${data.reason || 'This claim does not meet refund criteria.'}`;
-          outputBox.innerText = `[DISPUTE BLOCKED]\nReason: Input does not satisfy ${selectedPlatform}'s official refund requirements.`;
-        } else if (resultStatement) {
+          warningBox.innerHTML = `<strong>NON-REFUNDABLE REASON DETECTED (${selectedPlatform.toUpperCase()})</strong><br>${data.reason}`;
+          outputBox.innerText = `[DISPUTE REJECTED BY POLICY ENGINE]\nReason: Input does not satisfy official ${selectedPlatform} credit policy criteria.`;
+        } else if (data.statement) {
           warningBox.style.display = 'none';
-          outputBox.innerText = resultStatement;
+          outputBox.innerText = data.statement;
 
           totalRecovered += avgLeadCost;
           document.getElementById('cashDisplay').innerText = '$' + totalRecovered.toFixed(2);
@@ -522,7 +390,7 @@
       } catch (err) {
         clearInterval(progressInterval);
         alert('API Error: ' + err.message);
-        outputBox.innerText = 'Error processing request.';
+        outputBox.innerText = 'Error processing dispute.';
       } finally {
         submitBtn.innerText = 'Generate Claim';
         submitBtn.disabled = false;
@@ -533,14 +401,29 @@
       }
     }
 
-    function copyStatement() {
-      const output = document.getElementById('outputBox').innerText;
-      if (output && output !== 'Awaiting input...' && !output.includes('[DISPUTE BLOCKED]')) {
-        navigator.clipboard.writeText(output);
-        const btn = document.getElementById('copyBtn');
-        btn.innerText = 'Copied';
-        setTimeout(() => btn.innerText = 'Copy Statement', 2000);
+    function copyFormattedStatement() {
+      const outputText = document.getElementById('outputBox').innerText;
+      if (!outputText || outputText === 'Awaiting input...' || outputText.includes('[DISPUTE REJECTED')) {
+        alert('No valid claim available to copy.');
+        return;
       }
+
+      const today = new Date().toLocaleDateString();
+      const formattedClaim = `OFFICIAL LEAD CREDIT REQUEST
+Platform: ${selectedPlatform.toUpperCase()}
+Date Generated: ${today}
+Status: Policy Verified (LeadClaw Engine)
+----------------------------------------
+STATEMENT:
+${outputText}
+
+----------------------------------------
+Submitted via LeadClaw Dispute Automation`;
+
+      navigator.clipboard.writeText(formattedClaim);
+      const btn = document.getElementById('copyBtn');
+      btn.innerText = 'Copied to Clipboard!';
+      setTimeout(() => btn.innerText = 'Copy Formatted Claim', 2000);
     }
   </script>
 </body>
