@@ -251,6 +251,8 @@ html[data-theme=dark] .tour{background:#121a2a;color:#e3e9f5;box-shadow:0 20px 5
 html[data-theme=dark] .tour-h,html[data-theme=dark] .tour p{color:#97a3bf}
 html[data-theme=dark] .tour-bar{background:#202b44}
 html[data-theme=dark] .t-back{background:#18223a;border-color:#2c3a5c;color:#e3e9f5}
+.result{transition:opacity .35s,transform .35s}
+.result.leaving{opacity:0;transform:translateY(6px)}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -414,7 +416,8 @@ async function copy(){const b=$('copy');
  try{await navigator.clipboard.writeText(st.claim)}catch(e){const t=document.createElement('textarea');t.value=st.claim;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(_){}t.remove()}
  b.classList.add('copied');b.textContent='Copied';toast('Claim copied to clipboard');
  setTimeout(()=>{b.classList.remove('copied');b.textContent='Copy formatted claim'},1800)}
-function recover(){const b=$('rec');if(b.disabled)return;const from=total;total+=st.amount;store.set('lc_total',total);showTotal(from,total);b.disabled=true;b.textContent='Added to your total';toast(money(st.amount)+' added to recovered')}
+function recover(){const b=$('rec');if(b.disabled)return;const from=total;total+=st.amount;store.set('lc_total',total);showTotal(from,total);b.disabled=true;b.textContent='Added to your total';toast(money(st.amount)+' added to recovered');
+ setTimeout(()=>{R.classList.add('leaving');setTimeout(()=>{empty();st.claim='';st.amount=0;R.classList.remove('leaving')},350)},1100)}
 
 // AI cost estimate (POST API_ENDPOINT + '/estimate' -> {amount, low?, high?, basis?}); demo fallback below
 const SERVICES=[['roofing',/roof|shingle|gutter/i,90],['plumbing',/plumb|leak|drain|water heater|pipe/i,60],['electrical',/electric|wiring|panel|outlet/i,55],['HVAC',/hvac|furnace|\bac\b|air condition|heating/i,70],['landscaping',/lawn|landscap|tree|fence/i,40]];
@@ -483,11 +486,13 @@ setTheme(root.getAttribute('data-theme')==='dark'?'dark':'light');
 
 // quick tour
 const TOUR=[
+ ['Welcome to LeadClaw',()=>$('h'),'Lead sites like Angi, Thumbtack, Porch and Networx charge you for every lead, even wrong numbers and duplicates. LeadClaw checks each lead against the platform\'s refund rules and writes the credit request for you, so you stop paying for leads that were never real.'],
  ['Choose the platform',()=>$('platforms').closest('.field'),'Pick where the lead came from. Each platform has its own refund rules, and we check against the right one.'],
  ['Describe what happened',()=>$('notes').closest('.field'),'Tap a reason to start your notes, then add details. You can also paste a call transcript below.'],
  ['Add your evidence',()=>$('drop').closest('.field'),'Drop a call recording (MP3 or WAV) or a PDF. Evidence makes a claim much harder to reject.'],
  ['Confirm the lead cost',()=>$('cost').closest('.field'),'Enter what you paid for the lead, or use Estimate with AI if you do not have the receipt handy.'],
- ['Review and copy your claim',()=>$('go'),'Run the check. If the lead qualifies, copy the claim into the platform support form, then mark it recovered to grow your total.'],
+ ['Review and copy your claim',()=>$('go'),'Run the check. If the lead qualifies, copy the claim into the platform support form.'],
+ ['Mark it as recovered',()=>$('result'),'Once the credit lands, press Mark as recovered. It is added to your total at the top, and the claim clears so you are ready for the next lead.'],
  ['Pick light or dark mode',()=>$('themeBtn'),'Use the sun and moon button in the top right to switch between light and dark. LeadClaw remembers your choice.']
 ];
 let ti=0,spot=null;
