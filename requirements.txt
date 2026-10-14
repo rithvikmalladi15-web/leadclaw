@@ -1,5 +1,6 @@
-Flask
-flask-cors
-google-genai
-requests
+fastapi
+uvicorn
 gunicorn
+google-genai
+groq
+pydantic
