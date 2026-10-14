@@ -120,7 +120,7 @@
 
     label.field-label { display: block; font-size: 0.825rem; color: var(--text-sub); margin-bottom: 6px; font-weight: 500; }
 
-    textarea, input[type="text"], input[type="file"] {
+    textarea, input[type="text"] {
       width: 100%;
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -132,13 +132,26 @@
       margin-bottom: 16px;
     }
 
-    .file-upload-box {
-      border: 1px dashed var(--border-light);
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 16px;
+    .file-drop-zone {
+      border: 2px dashed var(--border-light);
       background: var(--bg-surface);
+      border-radius: 8px;
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
     }
+
+    .file-drop-zone:hover, .file-drop-zone.dragover {
+      border-color: var(--accent-blue);
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .file-drop-title { font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+    .file-drop-subtitle { font-size: 0.75rem; color: var(--text-sub); }
+    .file-name-display { margin-top: 8px; font-size: 0.8rem; color: var(--accent-green); font-family: var(--font-mono); font-weight: 600; }
+    #fileInput { display: none; }
 
     .btn-submit {
       width: 100%;
@@ -215,7 +228,7 @@
         LeadClaw validates lead disputes against official platform credit policies in real-time.
         <br><br>
         1. Select target platform.<br>
-        2. Paste call notes OR upload an audio recording / PDF transcript.<br>
+        2. Paste call notes OR drop an audio recording / PDF transcript.<br>
         3. Click Generate Claim to validate policy eligibility and auto-format your submission statement.
       </div>
       <button class="btn-close-modal" onclick="toggleTutorial(false)">Got It</button>
@@ -262,12 +275,15 @@
         <div class="chip" onclick="applyQuickOption('Spam / bot lead with fake email and name')">Spam / Bot Lead</div>
       </div>
 
-      <label class="field-label">Call Notes / Transcript</label>
-      <textarea id="notesInput" rows="3" placeholder="Paste call notes or transcript here..."></textarea>
+      <label class="field-label">Call Transcript / Notes</label>
+      <textarea id="notesInput" rows="3" placeholder="Paste notes or call details here..."></textarea>
 
-      <div class="file-upload-box">
-        <label class="field-label">Attach Recording or Transcript (Audio MP3/WAV/M4A or PDF)</label>
-        <input type="file" id="fileInput" accept="audio/*,.pdf">
+      <label class="field-label">Attach Audio Recording or PDF Evidence</label>
+      <div class="file-drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="file-drop-title">Click or Drop Audio / PDF File Here</div>
+        <div class="file-drop-subtitle">Supports MP3, WAV, M4A audio calls or PDF transcripts</div>
+        <div class="file-name-display" id="fileNameDisplay"></div>
+        <input type="file" id="fileInput" accept="audio/*,.pdf" onchange="handleFileSelect(this.files[0])">
       </div>
 
       <label class="field-label">Additional Context (Optional)</label>
@@ -296,9 +312,10 @@
     let selectedPlatform = 'Angi';
     let totalRecovered = 0.00;
     const avgLeadCost = 45.00; 
+    let selectedFile = null;
 
-    // Update with your live Render backend URL:
-    const API_URL = 'https://leadclaw-api.onrender.com'; 
+    // Correct API endpoint URL
+    const API_URL = 'https://leadclaw-api.onrender.com/api/dispute';
 
     function setPlatform(btn, name) {
       document.querySelectorAll('.btn-platform').forEach(b => b.classList.remove('active'));
@@ -314,10 +331,39 @@
       document.getElementById('tutorialModal').style.display = show ? 'flex' : 'none';
     }
 
+    const dropZone = document.getElementById('dropZone');
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+      }, false);
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length) {
+        handleFileSelect(files[0]);
+      }
+    });
+
+    function handleFileSelect(file) {
+      if (file) {
+        selectedFile = file;
+        document.getElementById('fileNameDisplay').innerText = 'Attached: ' + file.name + ' (' + (file.size / 1024 / 1024).toFixed(2) + ' MB)';
+      }
+    }
+
     async function generateDispute() {
       const notes = document.getElementById('notesInput').value.trim();
       const context = document.getElementById('contextInput').value.trim();
-      const fileInput = document.getElementById('fileInput');
       const warningBox = document.getElementById('warningBox');
       const outputBox = document.getElementById('outputBox');
       const submitBtn = document.getElementById('submitBtn');
@@ -325,7 +371,7 @@
       const progressBarFill = document.getElementById('progressBarFill');
       const progressStatus = document.getElementById('progressStatus');
 
-      if (!notes && (!fileInput.files || fileInput.files.length === 0)) {
+      if (!notes && !selectedFile) {
         alert('Please enter call notes or attach an audio/PDF file.');
         return;
       }
@@ -337,17 +383,17 @@
       
       progressWrapper.style.display = 'block';
       progressBarFill.style.width = '25%';
-      progressStatus.innerText = 'Analyzing lead media and policy rules...';
+      progressStatus.innerText = 'Analyzing media & policy guidelines...';
 
       let step = 1;
       const progressInterval = setInterval(() => {
         if (step === 1) {
           progressBarFill.style.width = '60%';
-          progressStatus.innerText = 'Checking platform credit eligibility...';
+          progressStatus.innerText = 'Evaluating refund eligibility...';
           step++;
         } else if (step === 2) {
           progressBarFill.style.width = '85%';
-          progressStatus.innerText = 'Formatting official claim output...';
+          progressStatus.innerText = 'Formatting official claim...';
           step++;
         }
       }, 900);
@@ -357,7 +403,7 @@
         formData.append('platform', selectedPlatform);
         if (notes) formData.append('notes', notes);
         if (context) formData.append('context', context);
-        if (fileInput.files[0]) formData.append('file', fileInput.files[0]);
+        if (selectedFile) formData.append('file', selectedFile);
 
         const response = await fetch(API_URL, {
           method: 'POST',
