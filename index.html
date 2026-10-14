@@ -5,19 +5,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LeadClaw | Contractor Lead Dispute Generator</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2318181b%22/><text x=%2250%22 y=%2268%22 font-size=%2255%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22 font-family=%22sans-serif%22>彡</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  
   <style>
-    /* Shopify Polaris-Inspired Dark Theme Typography & Variables */
     :root {
-      --bg-base: #0f172a;
-      --bg-surface: #1e293b;
-      --bg-card: #0f172a;
-      --border-color: #334155;
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
+      --bg-base: #0b0f19;
+      --bg-surface: #111827;
+      --bg-card: #151d30;
+      --border-color: #1f293d;
+      --border-light: #2d3b55;
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
       --accent-blue: #3b82f6;
       --accent-blue-hover: #2563eb;
       --accent-green: #22c55e;
-      --font-shopify: -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      --font-main: 'Inter', sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
     }
 
     * {
@@ -29,24 +34,23 @@
     body {
       background-color: var(--bg-base);
       color: var(--text-main);
-      font-family: var(--font-shopify);
+      font-family: var(--font-main);
       line-height: 1.5;
       -webkit-font-smoothing: antialiased;
-      padding: 24px 16px;
+      padding: 32px 16px;
     }
 
     .container {
-      max-width: 900px;
+      max-width: 800px;
       margin: 0 auto;
     }
 
-    /* Top Nav / Header */
+    /* Header */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 24px;
-      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 20px;
       margin-bottom: 24px;
     }
 
@@ -55,39 +59,43 @@
       align-items: center;
       gap: 10px;
       font-weight: 700;
-      font-size: 1.25rem;
+      font-size: 1.2rem;
       letter-spacing: 0.5px;
+      color: #ffffff;
     }
 
     .brand-icon {
       color: var(--accent-blue);
-      font-size: 1.4rem;
+      font-size: 1.2rem;
     }
 
     .status-badge {
       background: rgba(34, 197, 94, 0.1);
       color: var(--accent-green);
-      border: 1px solid rgba(34, 197, 94, 0.3);
+      border: 1px solid rgba(34, 197, 94, 0.25);
       padding: 4px 12px;
-      border-radius: 9999px;
+      border-radius: 6px;
       font-size: 0.8rem;
       font-weight: 600;
     }
 
-    /* Banner Stats Widget */
-    .stat-card {
-      background: var(--bg-surface);
+    /* Cards */
+    .card {
+      background: var(--bg-card);
       border: 1px solid var(--border-color);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .stat-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
     }
 
     .stat-title {
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       color: var(--text-sub);
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -95,131 +103,112 @@
     }
 
     .stat-value {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: 700;
       color: var(--accent-green);
-    }
-
-    /* Section Cards */
-    .card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
+      font-family: var(--font-mono);
     }
 
     .card-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       margin-bottom: 16px;
-      color: var(--text-main);
-    }
-
-    /* Interactive Calculator Section */
-    .calc-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      margin-top: 12px;
-    }
-
-    @media (max-width: 600px) {
-      .calc-row { grid-template-columns: 1fr; }
-    }
-
-    .slider-group {
+      color: #ffffff;
       display: flex;
-      flex-direction: column;
+      align-items: center;
       gap: 8px;
     }
 
-    label {
-      font-size: 0.875rem;
+    /* Calculator */
+    .calc-sliders {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .calc-sliders { grid-template-columns: 1fr; }
+    }
+
+    .slider-group label {
+      display: block;
+      font-size: 0.825rem;
       color: var(--text-sub);
+      margin-bottom: 8px;
       font-weight: 500;
     }
 
     input[type="range"] {
       width: 100%;
+      height: 5px;
+      background: var(--border-color);
+      border-radius: 5px;
+      outline: none;
       accent-color: var(--accent-blue);
     }
 
-    .calc-output {
-      background: var(--bg-base);
-      border: 1px dashed var(--border-color);
+    .calc-banner {
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-light);
+      border-radius: 6px;
       padding: 12px;
-      border-radius: 8px;
       text-align: center;
-      font-size: 0.9rem;
+      font-size: 0.875rem;
+      color: var(--text-main);
     }
 
-    .calc-highlight {
+    .calc-banner strong {
       color: var(--accent-green);
       font-weight: 700;
+      font-family: var(--font-mono);
     }
 
-    /* Platform Button Selector */
+    /* Platform Selector */
     .platform-selector {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 20px;
     }
 
     .btn-platform {
-      background: var(--bg-base);
+      background: var(--bg-surface);
       border: 1px solid var(--border-color);
       color: var(--text-sub);
       padding: 10px;
-      border-radius: 8px;
+      border-radius: 6px;
       font-weight: 600;
-      font-size: 0.875rem;
+      font-size: 0.85rem;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.15s ease;
     }
 
     .btn-platform.active {
       background: var(--accent-blue);
-      color: white;
+      color: #ffffff;
       border-color: var(--accent-blue);
     }
 
-    /* Template Quick Chips */
-    .chips-group {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 16px;
-    }
-
-    .chip {
-      background: var(--bg-base);
-      border: 1px solid var(--border-color);
+    /* Form Fields */
+    label.field-label {
+      display: block;
+      font-size: 0.825rem;
       color: var(--text-sub);
-      font-size: 0.75rem;
-      padding: 6px 12px;
-      border-radius: 16px;
-      cursor: pointer;
+      margin-bottom: 6px;
+      font-weight: 500;
     }
 
-    .chip:hover {
-      border-color: var(--accent-blue);
-      color: var(--text-main);
-    }
-
-    /* Form Input Fields */
     textarea, input[type="text"] {
       width: 100%;
-      background: var(--bg-base);
+      background: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 6px;
       padding: 12px;
       color: var(--text-main);
-      font-family: var(--font-shopify);
-      font-size: 0.9rem;
+      font-family: var(--font-main);
+      font-size: 0.875rem;
       margin-bottom: 16px;
-      resize: vertical;
     }
 
     textarea:focus, input[type="text"]:focus {
@@ -227,59 +216,51 @@
       border-color: var(--accent-blue);
     }
 
-    .btn-primary {
+    .btn-submit {
       width: 100%;
       background: var(--accent-blue);
-      color: white;
+      color: #ffffff;
       border: none;
       padding: 12px;
-      border-radius: 8px;
-      font-size: 0.95rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s;
     }
 
-    .btn-primary:hover {
+    .btn-submit:hover {
       background: var(--accent-blue-hover);
     }
 
     /* Output Box */
     .output-box {
-      background: var(--bg-base);
+      background: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: 8px;
+      border-radius: 6px;
       padding: 16px;
-      min-height: 100px;
-      font-size: 0.9rem;
+      min-height: 80px;
+      font-size: 0.875rem;
       color: var(--text-sub);
       white-space: pre-wrap;
+      font-family: var(--font-mono);
       margin-bottom: 16px;
     }
 
     .btn-copy {
       background: var(--bg-surface);
-      border: 1px solid var(--border-color);
+      border: 1px solid var(--border-light);
       color: var(--text-main);
       padding: 8px 16px;
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: 0.825rem;
       font-weight: 600;
       cursor: pointer;
-    }
-
-    .usage-text {
-      font-size: 0.8rem;
-      color: var(--text-sub);
-      text-align: center;
-      margin-top: 12px;
     }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <!-- Top Nav -->
     <header>
       <div class="brand">
         <span class="brand-icon">彡</span>
@@ -288,16 +269,18 @@
       <div class="status-badge">Engine Active</div>
     </header>
 
-    <!-- Cash Recovered Widget -->
-    <div class="stat-card">
-      <div class="stat-title">Total Cash Recovered</div>
-      <div class="stat-value" id="cashDisplay">$0.00</div>
+    <!-- Cash Stats -->
+    <div class="card">
+      <div class="stat-row">
+        <div class="stat-title">Total Cash Recovered</div>
+        <div class="stat-value" id="cashDisplay">$0.00</div>
+      </div>
     </div>
 
     <!-- Savings Calculator -->
     <div class="card">
       <div class="card-title">💡 Monthly Dispute Savings Calculator</div>
-      <div class="calc-row">
+      <div class="calc-sliders">
         <div class="slider-group">
           <label>Monthly Lead Spend: $<span id="spendVal">2000</span></label>
           <input type="range" id="spendRange" min="500" max="10000" step="250" value="2000" oninput="updateCalc()">
@@ -307,16 +290,15 @@
           <input type="range" id="junkRange" min="5" max="50" step="5" value="20" oninput="updateCalc()">
         </div>
       </div>
-      <div class="calc-output" style="margin-top: 16px;">
-        LeadClaw could recover approximately <span class="calc-highlight" id="potentialSavings">$400.00 / month</span> in credits for your business.
+      <div class="calc-banner">
+        LeadClaw could recover approximately <strong id="potentialSavings">$400.00 / month</strong> in credits for your business.
       </div>
     </div>
 
-    <!-- Dispute Input Section -->
+    <!-- Input Section -->
     <div class="card">
       <div class="card-title">1. Dispute Input</div>
       
-      <!-- Platform Selector -->
       <div class="platform-selector">
         <button class="btn-platform active" onclick="setPlatform(this, 'Angi')">Angi</button>
         <button class="btn-platform" onclick="setPlatform(this, 'Thumbtack')">Thumbtack</button>
@@ -324,22 +306,13 @@
         <button class="btn-platform" onclick="setPlatform(this, 'Networx')">Networx</button>
       </div>
 
-      <!-- Template Chips -->
-      <label>Quick Reasons:</label>
-      <div class="chips-group">
-        <div class="chip" onclick="applyTemplate('Disconnected phone number on arrival')">Disconnected Number</div>
-        <div class="chip" onclick="applyTemplate('Homeowner is outside my designated zip code area')">Out of Area</div>
-        <div class="chip" onclick="applyTemplate('Duplicate lead received twice in 24 hours')">Duplicate Lead</div>
-        <div class="chip" onclick="applyTemplate('Spam / bot lead with fake email address')">Spam / Bot</div>
-      </div>
+      <label class="field-label">Call Transcript / Recording Notes</label>
+      <textarea id="notesInput" rows="4" placeholder="Paste notes or details here (e.g. 'Disconnected phone number')..."></textarea>
 
-      <label>Call Transcript / Recording Notes</label>
-      <textarea id="notesInput" rows="4" placeholder="Paste notes or details here (e.g. 'Customer said wrong number')..."></textarea>
+      <label class="field-label">Additional Context (Optional)</label>
+      <input type="text" id="contextInput" placeholder="e.g. Attempted contact within 5 minutes">
 
-      <label>Additional Context (Optional)</label>
-      <input type="text" id="contextInput" placeholder="e.g. Attempted contact 3 times within 5 minutes">
-
-      <button class="btn-primary" onclick="generateDispute()">Generate Claim Statement</button>
+      <button class="btn-submit" onclick="generateDispute()">Generate Claim</button>
     </div>
 
     <!-- Output Section -->
@@ -347,18 +320,11 @@
       <div class="card-title">2. Generated Statement</div>
       <div class="output-box" id="outputBox">Awaiting input...</div>
       <button class="btn-copy" onclick="copyStatement()" id="copyBtn">Copy Statement</button>
-      <div class="usage-text" id="usageText">3 Free Disputes Remaining</div>
     </div>
   </div>
 
   <script>
     let selectedPlatform = 'Angi';
-    let freeCredits = localStorage.getItem('leadclaw_credits') ? parseInt(localStorage.getItem('leadclaw_credits')) : 3;
-
-    function updateUsageDisplay() {
-      document.getElementById('usageText').innerText = freeCredits > 0 ? `${freeCredits} Free Disputes Remaining` : '0 Free Disputes Remaining — Upgrade to Unlimited';
-    }
-    updateUsageDisplay();
 
     function updateCalc() {
       const spend = document.getElementById('spendRange').value;
@@ -376,39 +342,18 @@
       selectedPlatform = name;
     }
 
-    function applyTemplate(text) {
-      document.getElementById('notesInput').value = text;
-    }
-
     function generateDispute() {
       const notes = document.getElementById('notesInput').value.trim();
       const context = document.getElementById('contextInput').value.trim();
 
       if (!notes) {
-        alert('Please enter call notes or select a reason.');
+        alert('Please enter call notes.');
         return;
       }
 
-      if (freeCredits <= 0) {
-        alert('You have used your 3 free dispute credits! Upgrade to LeadClaw Pro ($29/mo) for unlimited dispute generation.');
-        return;
-      }
-
-      // Generate Policy Text
-      const generatedText = `[${selectedPlatform.toUpperCase()} DISPUTE CLAIM]\nPolicy Category: Invalid Lead Refund Request\nSummary: ${notes}\n${context ? 'Additional Details: ' + context + '\n' : ''}Resolution Requested: Credit refund back to account per platform lead policy standards.`;
+      const generatedText = `[${selectedPlatform.toUpperCase()} DISPUTE CLAIM]\nCategory: Invalid Lead Refund Request\nSummary: ${notes}\n${context ? 'Context: ' + context + '\n' : ''}Resolution Requested: Credit refund back to account per platform guidelines.`;
 
       document.getElementById('outputBox').innerText = generatedText;
-      
-      // Update credits
-      freeCredits--;
-      localStorage.setItem('leadclaw_credits', freeCredits);
-      updateUsageDisplay();
-
-      // Bump cash recovered metric visually
-      let currentCash = parseFloat(localStorage.getItem('leadclaw_cash') || '0');
-      currentCash += 45.00; // Estimated lead credit average
-      localStorage.setItem('leadclaw_cash', currentCash);
-      document.getElementById('cashDisplay').innerText = `$${currentCash.toFixed(2)}`;
     }
 
     function copyStatement() {
@@ -416,7 +361,7 @@
       if (output && output !== 'Awaiting input...') {
         navigator.clipboard.writeText(output);
         const btn = document.getElementById('copyBtn');
-        btn.innerText = 'Copied to Clipboard! ✓';
+        btn.innerText = 'Copied! ✓';
         setTimeout(() => btn.innerText = 'Copy Statement', 2000);
       }
     }
