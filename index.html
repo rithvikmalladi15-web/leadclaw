@@ -1,202 +1,425 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2318181b%22/><text x=%2250%22 y=%2268%22 font-size=%2255%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22 font-family=%22sans-serif%22>彡</text></svg>">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LeadClaw</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            --font-mono: 'JetBrains Mono', monospace;
-            
-            --bg-body: #090a0f;
-            --bg-card: #12151e;
-            --bg-input: #0a0c12;
-            --border: #1e2330;
-            --border-focus: #3b82f6;
-            
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            
-            --accent-blue: #3b82f6;
-            --accent-blue-hover: #2563eb;
-            --accent-green: #10b981;
-        }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LeadClaw | Contractor Lead Dispute Generator</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2318181b%22/><text x=%2250%22 y=%2268%22 font-size=%2255%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22 font-family=%22sans-serif%22>彡</text></svg>">
+  <style>
+    /* Shopify Polaris-Inspired Dark Theme Typography & Variables */
+    :root {
+      --bg-base: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-card: #0f172a;
+      --border-color: #334155;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --accent-blue: #3b82f6;
+      --accent-blue-hover: #2563eb;
+      --accent-green: #22c55e;
+      --font-shopify: -apple-system, BlinkMacSystemFont, "San Francisco", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
-        body { background-color: var(--bg-body); color: var(--text-primary); padding: 40px 16px; min-height: 100vh; display: flex; justify-content: center; }
-        .container { width: 100%; max-width: 680px; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* Minimal Header */
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-        .brand { display: flex; align-items: center; gap: 10px; }
-        .brand-name { font-weight: 700; font-size: 16px; letter-spacing: -0.3px; color: var(--text-primary); }
-        .badge { background: #1e293b; color: var(--accent-blue); font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 6px; border: 1px solid #334155; }
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: var(--font-shopify);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      padding: 24px 16px;
+    }
 
-        /* Simple Metric Bar */
-        .metric-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .metric-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-        .metric-val { font-size: 28px; font-weight: 700; color: var(--accent-green); letter-spacing: -0.5px; }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
 
-        /* Card Panels */
-        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 24px; }
-        .card-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 16px; }
+    /* Top Nav / Header */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 24px;
+    }
 
-        /* Platform Selector Buttons */
-        .platforms { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
-        @media(max-width: 500px) { .platforms { grid-template-columns: repeat(2, 1fr); } }
-        .platform-btn { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 10px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--text-secondary); transition: all 0.15s ease; }
-        .platform-btn:hover { border-color: #334155; color: var(--text-primary); }
-        .platform-btn.selected { background: var(--accent-blue); border-color: var(--accent-blue); color: #ffffff; }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.25rem;
+      letter-spacing: 0.5px;
+    }
 
-        /* Inputs */
-        .group { margin-bottom: 16px; }
-        label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px; }
-        textarea, input[type="text"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; background: var(--bg-input); color: var(--text-primary); transition: border-color 0.15s ease; }
-        textarea:focus, input:focus { outline: none; border-color: var(--border-focus); }
+    .brand-icon {
+      color: var(--accent-blue);
+      font-size: 1.4rem;
+    }
 
-        /* Action Buttons */
-        .btn-primary { background: var(--accent-blue); color: #ffffff; border: none; border-radius: 8px; padding: 12px; font-size: 13px; font-weight: 600; width: 100%; cursor: pointer; transition: background 0.15s ease; }
-        .btn-primary:hover { background: var(--accent-blue-hover); }
-        
-        .btn-secondary { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 10px; font-size: 13px; font-weight: 600; width: 100%; cursor: pointer; margin-top: 12px; transition: all 0.15s ease; }
-        .btn-secondary:hover { border-color: #334155; color: var(--text-primary); }
+    .status-badge {
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--accent-green);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
 
-        /* Terminal Output */
-        .output-box { background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 12px; min-height: 140px; white-space: pre-wrap; line-height: 1.6; color: #38bdf8; }
+    /* Banner Stats Widget */
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
 
-        /* Simple Modal Overlay */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(4px); }
-        .modal { background: var(--bg-card); border: 1px solid var(--border); padding: 28px; border-radius: 12px; max-width: 400px; width: 90%; }
-        .modal h2 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-        .modal p { font-size: 13px; color: var(--text-secondary); margin-bottom: 20px; line-height: 1.5; }
-    </style>
+    .stat-title {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--accent-green);
+    }
+
+    /* Section Cards */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text-main);
+    }
+
+    /* Interactive Calculator Section */
+    .calc-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 600px) {
+      .calc-row { grid-template-columns: 1fr; }
+    }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    label {
+      font-size: 0.875rem;
+      color: var(--text-sub);
+      font-weight: 500;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent-blue);
+    }
+
+    .calc-output {
+      background: var(--bg-base);
+      border: 1px dashed var(--border-color);
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    .calc-highlight {
+      color: var(--accent-green);
+      font-weight: 700;
+    }
+
+    /* Platform Button Selector */
+    .platform-selector {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .btn-platform {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      padding: 10px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-platform.active {
+      background: var(--accent-blue);
+      color: white;
+      border-color: var(--accent-blue);
+    }
+
+    /* Template Quick Chips */
+    .chips-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .chip {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      color: var(--text-sub);
+      font-size: 0.75rem;
+      padding: 6px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+    }
+
+    .chip:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-main);
+    }
+
+    /* Form Input Fields */
+    textarea, input[type="text"] {
+      width: 100%;
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      color: var(--text-main);
+      font-family: var(--font-shopify);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      resize: vertical;
+    }
+
+    textarea:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--accent-blue);
+      color: white;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-blue-hover);
+    }
+
+    /* Output Box */
+    .output-box {
+      background: var(--bg-base);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 100px;
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      white-space: pre-wrap;
+      margin-bottom: 16px;
+    }
+
+    .btn-copy {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .usage-text {
+      font-size: 0.8rem;
+      color: var(--text-sub);
+      text-align: center;
+      margin-top: 12px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="modal-overlay" id="tutorialModal">
-    <div class="modal">
-        <h2>LeadClaw Setup</h2>
-        <p>1. Select platform<br>2. Paste call details<br>3. Copy dispute claim</p>
-        <button class="btn-primary" onclick="closeTutorial()">Got It</button>
-    </div>
-</div>
-
-<div class="container">
+  <div class="container">
+    <!-- Top Nav -->
     <header>
-        <div class="brand">
-            <svg width="22" height="22" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M25 90Q32 45 55 15Q45 50 35 88Z" fill="#3b82f6"/>
-                <path d="M50 95Q60 40 85 10Q75 48 65 92Z" fill="#3b82f6"/>
-                <path d="M78 98Q90 45 110 25Q98 52 90 95Z" fill="#3b82f6"/>
-            </svg>
-            <div class="brand-name">LEADCLAW</div>
-        </div>
-        <span class="badge">Engine Active</span>
+      <div class="brand">
+        <span class="brand-icon">彡</span>
+        <span>LEADCLAW</span>
+      </div>
+      <div class="status-badge">Engine Active</div>
     </header>
 
-    <div class="metric-box">
-        <div class="metric-label">Total Cash Recovered</div>
-        <div class="metric-val" id="totalRecovered">$0.00</div>
+    <!-- Cash Recovered Widget -->
+    <div class="stat-card">
+      <div class="stat-title">Total Cash Recovered</div>
+      <div class="stat-value" id="cashDisplay">$0.00</div>
     </div>
 
+    <!-- Savings Calculator -->
     <div class="card">
-        <div class="card-label">1. Dispute Input</div>
-        
-        <div class="platforms" id="platformSelector">
-            <div class="platform-btn selected" onclick="selectPlatform('Angi')">Angi</div>
-            <div class="platform-btn" onclick="selectPlatform('Thumbtack')">Thumbtack</div>
-            <div class="platform-btn" onclick="selectPlatform('Porch')">Porch</div>
-            <div class="platform-btn" onclick="selectPlatform('Networx')">Networx</div>
+      <div class="card-title">💡 Monthly Dispute Savings Calculator</div>
+      <div class="calc-row">
+        <div class="slider-group">
+          <label>Monthly Lead Spend: $<span id="spendVal">2000</span></label>
+          <input type="range" id="spendRange" min="500" max="10000" step="250" value="2000" oninput="updateCalc()">
         </div>
-
-        <div class="group">
-            <label>Call Transcript / Recording Notes</label>
-            <textarea id="leadTranscript" rows="4" placeholder="Paste notes or details here (e.g. 'Disconnected phone number')..."></textarea>
+        <div class="slider-group">
+          <label>Estimated Junk Leads: <span id="junkVal">20</span>%</label>
+          <input type="range" id="junkRange" min="5" max="50" step="5" value="20" oninput="updateCalc()">
         </div>
-
-        <div class="group">
-            <label>Additional Context (Optional)</label>
-            <input type="text" id="userNotes" placeholder="e.g. Attempted contact within 5 minutes">
-        </div>
-
-        <button class="btn-primary" onclick="generateDispute()">Generate Claim</button>
+      </div>
+      <div class="calc-output" style="margin-top: 16px;">
+        LeadClaw could recover approximately <span class="calc-highlight" id="potentialSavings">$400.00 / month</span> in credits for your business.
+      </div>
     </div>
 
+    <!-- Dispute Input Section -->
     <div class="card">
-        <div class="card-label">2. Generated Statement</div>
-        <div class="output-box" id="outputStatement">Awaiting input...</div>
-        <button class="btn-secondary" onclick="copyStatement()">Copy Statement</button>
+      <div class="card-title">1. Dispute Input</div>
+      
+      <!-- Platform Selector -->
+      <div class="platform-selector">
+        <button class="btn-platform active" onclick="setPlatform(this, 'Angi')">Angi</button>
+        <button class="btn-platform" onclick="setPlatform(this, 'Thumbtack')">Thumbtack</button>
+        <button class="btn-platform" onclick="setPlatform(this, 'Porch')">Porch</button>
+        <button class="btn-platform" onclick="setPlatform(this, 'Networx')">Networx</button>
+      </div>
+
+      <!-- Template Chips -->
+      <label>Quick Reasons:</label>
+      <div class="chips-group">
+        <div class="chip" onclick="applyTemplate('Disconnected phone number on arrival')">Disconnected Number</div>
+        <div class="chip" onclick="applyTemplate('Homeowner is outside my designated zip code area')">Out of Area</div>
+        <div class="chip" onclick="applyTemplate('Duplicate lead received twice in 24 hours')">Duplicate Lead</div>
+        <div class="chip" onclick="applyTemplate('Spam / bot lead with fake email address')">Spam / Bot</div>
+      </div>
+
+      <label>Call Transcript / Recording Notes</label>
+      <textarea id="notesInput" rows="4" placeholder="Paste notes or details here (e.g. 'Customer said wrong number')..."></textarea>
+
+      <label>Additional Context (Optional)</label>
+      <input type="text" id="contextInput" placeholder="e.g. Attempted contact 3 times within 5 minutes">
+
+      <button class="btn-primary" onclick="generateDispute()">Generate Claim Statement</button>
     </div>
-</div>
 
-<script>
-    let activePlatform = 'Angi';
+    <!-- Output Section -->
+    <div class="card">
+      <div class="card-title">2. Generated Statement</div>
+      <div class="output-box" id="outputBox">Awaiting input...</div>
+      <button class="btn-copy" onclick="copyStatement()" id="copyBtn">Copy Statement</button>
+      <div class="usage-text" id="usageText">3 Free Disputes Remaining</div>
+    </div>
+  </div>
 
-    function closeTutorial() {
-        document.getElementById('tutorialModal').style.display = 'none';
+  <script>
+    let selectedPlatform = 'Angi';
+    let freeCredits = localStorage.getItem('leadclaw_credits') ? parseInt(localStorage.getItem('leadclaw_credits')) : 3;
+
+    function updateUsageDisplay() {
+      document.getElementById('usageText').innerText = freeCredits > 0 ? `${freeCredits} Free Disputes Remaining` : '0 Free Disputes Remaining — Upgrade to Unlimited';
+    }
+    updateUsageDisplay();
+
+    function updateCalc() {
+      const spend = document.getElementById('spendRange').value;
+      const junk = document.getElementById('junkRange').value;
+      document.getElementById('spendVal').innerText = spend;
+      document.getElementById('junkVal').innerText = junk;
+      
+      const saved = (spend * (junk / 100)).toFixed(2);
+      document.getElementById('potentialSavings').innerText = `$${saved} / month`;
     }
 
-    function selectPlatform(platform) {
-        activePlatform = platform;
-        document.querySelectorAll('.platform-btn').forEach(btn => {
-            if(btn.innerText === platform) btn.classList.add('selected');
-            else btn.classList.remove('selected');
-        });
+    function setPlatform(btn, name) {
+      document.querySelectorAll('.btn-platform').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedPlatform = name;
     }
 
-    async function generateDispute() {
-        const transcript = document.getElementById('leadTranscript').value;
-        const notes = document.getElementById('userNotes').value;
-        const outputBox = document.getElementById('outputStatement');
+    function applyTemplate(text) {
+      document.getElementById('notesInput').value = text;
+    }
 
-        if(!transcript) {
-            alert('Please provide transcript or notes.');
-            return;
-        }
+    function generateDispute() {
+      const notes = document.getElementById('notesInput').value.trim();
+      const context = document.getElementById('contextInput').value.trim();
 
-        outputBox.innerText = "Generating dispute statement...";
+      if (!notes) {
+        alert('Please enter call notes or select a reason.');
+        return;
+      }
 
-        try {
-            const response = await fetch('https://leadclaw-api.onrender.com/api/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ platform: activePlatform, transcript, notes })
-            });
-            const data = await response.json();
-            
-            if(data.statement) {
-                outputBox.innerText = data.statement;
+      if (freeCredits <= 0) {
+        alert('You have used your 3 free dispute credits! Upgrade to LeadClaw Pro ($29/mo) for unlimited dispute generation.');
+        return;
+      }
 
-                const match = data.statement.match(/\$(\d+\.\d{2})/);
-                const estimatedVal = match ? parseFloat(match[1]) : 75.00;
+      // Generate Policy Text
+      const generatedText = `[${selectedPlatform.toUpperCase()} DISPUTE CLAIM]\nPolicy Category: Invalid Lead Refund Request\nSummary: ${notes}\n${context ? 'Additional Details: ' + context + '\n' : ''}Resolution Requested: Credit refund back to account per platform lead policy standards.`;
 
-                const totalEl = document.getElementById('totalRecovered');
-                let currentTotal = parseFloat(totalEl.innerText.replace('$', '').replace(',', ''));
-                currentTotal += estimatedVal;
-                totalEl.innerText = '$' + currentTotal.toFixed(2);
-            } else {
-                outputBox.innerText = "Error: " + data.error;
-            }
-        } catch (e) {
-            outputBox.innerText = "Connection error. Ensure server is running.";
-        }
+      document.getElementById('outputBox').innerText = generatedText;
+      
+      // Update credits
+      freeCredits--;
+      localStorage.setItem('leadclaw_credits', freeCredits);
+      updateUsageDisplay();
+
+      // Bump cash recovered metric visually
+      let currentCash = parseFloat(localStorage.getItem('leadclaw_cash') || '0');
+      currentCash += 45.00; // Estimated lead credit average
+      localStorage.setItem('leadclaw_cash', currentCash);
+      document.getElementById('cashDisplay').innerText = `$${currentCash.toFixed(2)}`;
     }
 
     function copyStatement() {
-        const text = document.getElementById('outputStatement').innerText;
-        if(text.startsWith('Awaiting input') || text.startsWith('Generating')) {
-            alert('Please generate a statement first.');
-            return;
-        }
-        navigator.clipboard.writeText(text);
-        alert('Dispute statement copied to clipboard!');
+      const output = document.getElementById('outputBox').innerText;
+      if (output && output !== 'Awaiting input...') {
+        navigator.clipboard.writeText(output);
+        const btn = document.getElementById('copyBtn');
+        btn.innerText = 'Copied to Clipboard! ✓';
+        setTimeout(() => btn.innerText = 'Copy Statement', 2000);
+      }
     }
-</script>
-
+  </script>
 </body>
 </html>
