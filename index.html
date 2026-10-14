@@ -25,11 +25,7 @@
       --font-mono: 'JetBrains Mono', monospace;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background-color: var(--bg-base);
@@ -40,12 +36,8 @@
       padding: 32px 16px;
     }
 
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
+    .container { max-width: 800px; margin: 0 auto; }
 
-    /* Header */
     header {
       display: flex;
       justify-content: space-between;
@@ -64,10 +56,7 @@
       color: #ffffff;
     }
 
-    .brand-icon {
-      color: var(--accent-blue);
-      font-size: 1.2rem;
-    }
+    .brand-icon { color: var(--accent-blue); font-size: 1.2rem; }
 
     .status-badge {
       background: rgba(34, 197, 94, 0.1);
@@ -79,7 +68,6 @@
       font-weight: 600;
     }
 
-    /* Cards */
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -88,11 +76,7 @@
       margin-bottom: 20px;
     }
 
-    .stat-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+    .stat-row { display: flex; justify-content: space-between; align-items: center; }
 
     .stat-title {
       font-size: 0.85rem;
@@ -119,52 +103,6 @@
       gap: 8px;
     }
 
-    /* Calculator */
-    .calc-sliders {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 16px;
-    }
-
-    @media (max-width: 600px) {
-      .calc-sliders { grid-template-columns: 1fr; }
-    }
-
-    .slider-group label {
-      display: block;
-      font-size: 0.825rem;
-      color: var(--text-sub);
-      margin-bottom: 8px;
-      font-weight: 500;
-    }
-
-    input[type="range"] {
-      width: 100%;
-      height: 5px;
-      background: var(--border-color);
-      border-radius: 5px;
-      outline: none;
-      accent-color: var(--accent-blue);
-    }
-
-    .calc-banner {
-      background: var(--bg-surface);
-      border: 1px dashed var(--border-light);
-      border-radius: 6px;
-      padding: 12px;
-      text-align: center;
-      font-size: 0.875rem;
-      color: var(--text-main);
-    }
-
-    .calc-banner strong {
-      color: var(--accent-green);
-      font-weight: 700;
-      font-family: var(--font-mono);
-    }
-
-    /* Platform Selector */
     .platform-selector {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -190,7 +128,6 @@
       border-color: var(--accent-blue);
     }
 
-    /* Form Fields */
     label.field-label {
       display: block;
       font-size: 0.825rem;
@@ -228,11 +165,8 @@
       cursor: pointer;
     }
 
-    .btn-submit:hover {
-      background: var(--accent-blue-hover);
-    }
+    .btn-submit:hover { background: var(--accent-blue-hover); }
 
-    /* Output Box */
     .output-box {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
@@ -244,6 +178,17 @@
       white-space: pre-wrap;
       font-family: var(--font-mono);
       margin-bottom: 16px;
+    }
+
+    .warning-box {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+      padding: 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin-bottom: 16px;
+      display: none;
     }
 
     .btn-copy {
@@ -269,7 +214,6 @@
       <div class="status-badge">Engine Active</div>
     </header>
 
-    <!-- Cash Stats -->
     <div class="card">
       <div class="stat-row">
         <div class="stat-title">Total Cash Recovered</div>
@@ -277,25 +221,6 @@
       </div>
     </div>
 
-    <!-- Savings Calculator -->
-    <div class="card">
-      <div class="card-title">💡 Monthly Dispute Savings Calculator</div>
-      <div class="calc-sliders">
-        <div class="slider-group">
-          <label>Monthly Lead Spend: $<span id="spendVal">2000</span></label>
-          <input type="range" id="spendRange" min="500" max="10000" step="250" value="2000" oninput="updateCalc()">
-        </div>
-        <div class="slider-group">
-          <label>Estimated Junk Leads: <span id="junkVal">20</span>%</label>
-          <input type="range" id="junkRange" min="5" max="50" step="5" value="20" oninput="updateCalc()">
-        </div>
-      </div>
-      <div class="calc-banner">
-        LeadClaw could recover approximately <strong id="potentialSavings">$400.00 / month</strong> in credits for your business.
-      </div>
-    </div>
-
-    <!-- Input Section -->
     <div class="card">
       <div class="card-title">1. Dispute Input</div>
       
@@ -312,12 +237,12 @@
       <label class="field-label">Additional Context (Optional)</label>
       <input type="text" id="contextInput" placeholder="e.g. Attempted contact within 5 minutes">
 
-      <button class="btn-submit" onclick="generateDispute()">Generate Claim</button>
+      <button class="btn-submit" onclick="generateDispute()" id="submitBtn">Generate Claim</button>
     </div>
 
-    <!-- Output Section -->
     <div class="card">
       <div class="card-title">2. Generated Statement</div>
+      <div class="warning-box" id="warningBox"></div>
       <div class="output-box" id="outputBox">Awaiting input...</div>
       <button class="btn-copy" onclick="copyStatement()" id="copyBtn">Copy Statement</button>
     </div>
@@ -325,16 +250,8 @@
 
   <script>
     let selectedPlatform = 'Angi';
-
-    function updateCalc() {
-      const spend = document.getElementById('spendRange').value;
-      const junk = document.getElementById('junkRange').value;
-      document.getElementById('spendVal').innerText = spend;
-      document.getElementById('junkVal').innerText = junk;
-      
-      const saved = (spend * (junk / 100)).toFixed(2);
-      document.getElementById('potentialSavings').innerText = `$${saved} / month`;
-    }
+    // Replace URL below with your Render Python API deployment URL
+    const API_URL = 'https://your-api-url.onrender.com/api/dispute'; 
 
     function setPlatform(btn, name) {
       document.querySelectorAll('.btn-platform').forEach(b => b.classList.remove('active'));
@@ -342,26 +259,52 @@
       selectedPlatform = name;
     }
 
-    function generateDispute() {
+    async function generateDispute() {
       const notes = document.getElementById('notesInput').value.trim();
       const context = document.getElementById('contextInput').value.trim();
+      const warningBox = document.getElementById('warningBox');
+      const outputBox = document.getElementById('outputBox');
+      const submitBtn = document.getElementById('submitBtn');
 
       if (!notes) {
         alert('Please enter call notes.');
         return;
       }
 
-      const generatedText = `[${selectedPlatform.toUpperCase()} DISPUTE CLAIM]\nCategory: Invalid Lead Refund Request\nSummary: ${notes}\n${context ? 'Context: ' + context + '\n' : ''}Resolution Requested: Credit refund back to account per platform guidelines.`;
+      submitBtn.innerText = 'Evaluating Policy Criteria...';
+      submitBtn.disabled = true;
 
-      document.getElementById('outputBox').innerText = generatedText;
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ platform: selectedPlatform, notes: notes, context: context })
+        });
+
+        const data = await response.json();
+
+        if (data.valid === false) {
+          warningBox.style.display = 'block';
+          warningBox.innerHTML = `<strong>NON-REFUNDABLE REASON DETECTED (${selectedPlatform.toUpperCase()})</strong><br>${data.reason}`;
+          outputBox.innerText = `[DISPUTE BLOCKED]\nReason: Input does not satisfy ${selectedPlatform}'s official refund requirements.`;
+        } else {
+          warningBox.style.display = 'none';
+          outputBox.innerText = data.statement;
+        }
+      } catch (err) {
+        alert('Error connecting to engine API.');
+      } finally {
+        submitBtn.innerText = 'Generate Claim';
+        submitBtn.disabled = false;
+      }
     }
 
     function copyStatement() {
       const output = document.getElementById('outputBox').innerText;
-      if (output && output !== 'Awaiting input...') {
+      if (output && output !== 'Awaiting input...' && !output.includes('[DISPUTE BLOCKED]')) {
         navigator.clipboard.writeText(output);
         const btn = document.getElementById('copyBtn');
-        btn.innerText = 'Copied! ✓';
+        btn.innerText = 'Copied';
         setTimeout(() => btn.innerText = 'Copy Statement', 2000);
       }
     }
