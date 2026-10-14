@@ -7,7 +7,6 @@ from groq import Groq
 
 app = FastAPI()
 
-# Enable CORS so your website frontend can call this backend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
