@@ -253,6 +253,12 @@ html[data-theme=dark] .tour-bar{background:#202b44}
 html[data-theme=dark] .t-back{background:#18223a;border-color:#2c3a5c;color:#e3e9f5}
 .result{transition:opacity .35s,transform .35s}
 .result.leaving{opacity:0;transform:translateY(6px)}
+.toast{background:#0f172a;color:#fff;border:1px solid #2a3759;box-shadow:0 8px 24px rgba(0,0,0,.35);font-weight:500}
+html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f7d}
+.hint.warm{color:var(--muted);margin-top:6px}
+.brand{font-size:26px;font-weight:700;letter-spacing:-.02em;gap:12px}
+.logo{width:38px;height:38px}.logo svg{width:21px;height:21px}
+@media(max-width:520px){.brand{font-size:21px}.logo{width:32px;height:32px}.logo svg{width:18px;height:18px}}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
@@ -309,6 +315,7 @@ html[data-theme=dark] .t-back{background:#18223a;border-color:#2c3a5c;color:#e3e
 
     <button class="go" id="go" disabled><span id="goTxt">Check &amp; build claim</span></button>
     <p class="hint">Add notes, a transcript or a file to continue.</p>
+    <p class="hint warm">Generating can take up to 60 seconds while the AI warms up. This happens because of Render's free plan.</p>
   </section>
 
   <section class="panel result" id="result" aria-live="polite"></section>
@@ -393,7 +400,7 @@ $('notes').addEventListener('input',sync);$('transcript').addEventListener('inpu
 const R=$('result');
 function empty(){R.innerHTML=`<div class="empty"><div class="ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><h3>Your claim shows up here</h3><p>Pick a platform, describe the lead, and run the check. Invalid leads get a ready-to-send statement.</p></div>`}
 const STEPS=['Reading your notes and files','Checking '+'platform refund rules','Drafting the claim statement'];
-function loading(){R.innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="step" data-i="${i}"><i>&#10003;</i>${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:92%"></div><div class="sk" style="width:80%"></div><div class="sk" style="width:86%"></div><div class="sk" style="width:55%"></div>`}
+function loading(){R.innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="step" data-i="${i}"><i>&#10003;</i>${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:92%"></div><div class="sk" style="width:80%"></div><div class="sk" style="width:86%"></div><div class="sk" style="width:55%"></div><p class="note" style="margin-top:16px;color:var(--muted)">This can take up to 60 seconds while the AI warms up. It happens because of Render's free plan.</p>`}
 function tick(i){R.querySelectorAll('.step').forEach((s,j)=>{s.classList.toggle('done',j<i);s.classList.toggle('on',j===i)})}
 
 function render(r){
