@@ -94,3 +94,29 @@ async def process_dispute(
                 raise HTTPException(status_code=500, detail=f"Gemini error: {str(gemini_error)} | Groq error: {str(groq_error)}")
         else:
             raise HTTPException(status_code=500, detail=f"Gemini processing error: {str(gemini_error)}")
+@app.post("/api/dispute/estimate")
+@app.post("/api/dispute/estimate/")
+async def estimate_lead_cost(data: dict):
+    @app.post("/api/dispute/estimate")
+@app.post("/api/dispute/estimate/")
+async def estimate_lead_cost(data: dict):
+    platform = data.get("platform", "Angi")
+    text = data.get("text", "").lower()
+
+    # Simple dynamic estimation logic
+    base = 50
+    if any(w in text for w in ["roof", "shingle", "gutter"]): base = 90
+    elif any(w in text for w in ["plumb", "leak", "drain", "heater"]): base = 60
+    elif any(w in text for w in ["electric", "wiring", "panel"]): base = 55
+    elif any(w in text for w in ["hvac", "furnace", "ac"]): base = 70
+    elif any(w in text for w in ["lawn", "landscap", "tree"]): base = 40
+
+    multiplier = {"Angi": 1.1, "Thumbtack": 0.9, "Porch": 0.85, "Networx": 1.0}.get(platform, 1.0)
+    amount = round(base * multiplier)
+
+    return {
+        "amount": float(amount),
+        "low": round(amount * 0.75),
+        "high": round(amount * 1.25),
+        "basis": f"home service standards on {platform}"
+    }
