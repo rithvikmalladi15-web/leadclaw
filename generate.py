@@ -10,7 +10,7 @@ from google import genai
 from google.genai import types
 import httpx
 
-app = FastAPI(title="Lead Dispute AI Auditor", version="2.2.0")
+app = FastAPI(title="Lead Dispute AI Auditor", version="2.3.0")
 
 # CORS: allow all origins for the Cloudflare frontend connection.
 app.add_middleware(
