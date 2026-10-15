@@ -10,9 +10,9 @@ from google import genai
 from google.genai import types
 import httpx
 
-app = FastAPI(title="Lead Dispute AI Auditor", version="2.1.0")
+app = FastAPI(title="Lead Dispute AI Auditor", version="2.2.0")
 
-# CORS: allow the Cloudflare Pages frontend (and any other origin).
+# CORS: allow all origins for the Cloudflare frontend connection.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,7 +33,6 @@ NOT_ELIGIBLE_REASON = (
     "Pricing, competitor hiring, project postponements, and customer choices are non-refundable under marketplace policy."
 )
 
-# Expanded check used by the fallback when both AIs fail
 NON_REFUNDABLE_RE = re.compile(
     r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
     r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
@@ -41,7 +40,6 @@ NON_REFUNDABLE_RE = re.compile(
     re.I,
 )
 
-# Broad safety net: overrides if valid: true is returned on clear non-refundable scenarios
 INVALID_SAFETY_RE = re.compile(
     r"hired (?:another|a|an|someone|a different)|"
     r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
@@ -68,7 +66,7 @@ NOT ELIGIBLE (valid = false) whenever the homeowner made a choice or the outcome
 - the homeowner is unresponsive or did not answer after a valid connection was made
 
 HARD RULES FOR THE CLAIM:
-- If valid is true, "claim" MUST be a detailed, professional, persuasive dispute letter customized specifically to the facts in the contractor notes or transcript. 
+- If valid is true, "claim" MUST be a detailed, professional, persuasive dispute letter customized specifically to the facts in the contractor refund reason or transcript. 
 - Do NOT use generic placeholders like "See attached evidence".
 - Explicitly detail the exact carrier error messages, wrong trade requests, disconnected numbers, or zip code mismatches mentioned in the input.
 - Format it clearly starting with a Subject line, formal greeting, issue breakdown, policy reference, and a polite request for credit.
@@ -101,7 +99,6 @@ def not_eligible(cost, confidence=0.88, reason=NOT_ELIGIBLE_REASON):
 
 
 async def call_groq_backup(prompt_text: str, cost: float) -> dict:
-    """Backup AI call to Groq using Qwen 3 32B when Gemini fails or times out."""
     if not GROQ_API_KEY:
         raise ValueError("Groq API key not configured")
 
@@ -148,7 +145,7 @@ def health():
 @app.post("/api/dispute/")
 async def analyze_dispute(
     platform: str = Form(...),
-    notes: str = Form(""),
+    notes: str = Form(""),  # Handled as refund reason
     transcript: str = Form(""),
     cost: float = Form(45.00),
     files: List[UploadFile] = File(default=[]),
@@ -157,12 +154,11 @@ async def analyze_dispute(
     combined_prompt = (
         f"Marketplace Platform: {platform}\n"
         f"Lead cost: ${cost:.2f}\n\n"
-        f"Contractor Notes: {notes or '(none)'}\n\n"
+        f"Refund Reason: {notes or '(none)'}\n\n"
         f"Transcript text: {transcript or '(none)'}"
     )
 
     try:
-        # Step 1: Try Primary (Gemini 3.5 Flash) with 50-second timeout
         parts = [combined_prompt]
         for f in files:
             data = await f.read()
@@ -208,7 +204,6 @@ async def analyze_dispute(
         return data
 
     except Exception:
-        # Step 2: Fallback to Backup (Groq Qwen 3 32B) if Gemini throws an error or times out
         try:
             groq_result = await call_groq_backup(combined_prompt, cost)
             valid = bool(groq_result.get("valid"))
@@ -228,7 +223,6 @@ async def analyze_dispute(
             return groq_result
 
         except Exception:
-            # Step 3: Ultimate deterministic backup if both AIs fail
             if NON_REFUNDABLE_RE.search(text_check):
                 return not_eligible(cost)
 
@@ -238,7 +232,7 @@ async def analyze_dispute(
                 f"Dear {platform} Support Team,\n\n"
                 f"I am writing to formally request a credit refund for lead charges totaling ${cost:.2f}. "
                 f"Under your platform's lead quality and verification guidelines, this lead qualifies for a credit reissue due to the following verified issue:\n\n"
-                f"• Issue Details: {issue_summary}\n\n"
+                f"• Refund Reason: {issue_summary}\n\n"
                 f"We attempted prompt outreach and verification in accordance with marketplace standards, but were unable to establish a valid connection due to the system/contact failure outlined above.\n\n"
                 f"Please review the logs and issue credit back to our account.\n\n"
                 f"Thank you for your prompt support.\n\n"
