@@ -10,7 +10,6 @@ from google.genai import types
 
 app = FastAPI()
 
-# CORS: allow the Cloudflare Pages frontend (and any other origin).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,7 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Gemini client
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 
@@ -27,7 +25,6 @@ NOT_ELIGIBLE_REASON = (
     "Pricing, competitor hiring, project postponements, and customer choices are non-refundable under marketplace policy."
 )
 
-# Regex fallback for when Gemini is unreachable
 NON_REFUNDABLE_RE = re.compile(
     r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
     r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
@@ -35,7 +32,6 @@ NON_REFUNDABLE_RE = re.compile(
     re.I,
 )
 
-# Safety net: overrides Gemini if it accidentally marks commercial cases valid
 INVALID_SAFETY_RE = re.compile(
     r"hired (?:another|a|an|someone|a different)|"
     r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
@@ -44,34 +40,30 @@ INVALID_SAFETY_RE = re.compile(
     re.I,
 )
 
-SYSTEM_RULES = """You are an expert compliance auditor for home service lead marketplaces
-(Angi, Thumbtack, Porch, Networx). Decide whether a lead qualifies for a credit refund based on
-strict platform policies.
+SYSTEM_RULES = """You are an expert compliance auditor and policy analyst for home service lead marketplaces (Angi, Thumbtack, Porch, Networx). 
 
-ELIGIBLE (valid = true) only when the LEAD ITSELF was invalid:
-- disconnected, wrong or invalid phone number
-- customer outside the contractor's service area
-- duplicate lead
-- spam, bot or fake submission
-- wrong trade category / service the contractor does not offer
+Your job is to deeply analyze the contractor's notes, transcripts, and attached evidence to determine if the lead itself was inherently defective at the time of delivery.
 
-NOT ELIGIBLE (valid = false) whenever the homeowner made a choice or the outcome was commercial:
-- the homeowner hired a competitor or another contractor, or the project went to a competitor
-- the homeowner rejected the price or quote, or said it was too expensive / over budget
-- the customer changed their mind, put project on hold, postponed, no longer needs the work, or had a personal delay
-- the homeowner is unresponsive or did not answer after a valid connection was made
+CRITICAL POLICY ANALYSIS PRINCIPLES:
+1. FOCUS ON LEAD INTEGRITY (valid = true): The lead is ONLY valid for a refund if the marketplace delivered a broken, unreachable, or fundamentally miscategorized product. This includes:
+   - Contact failure: Phone numbers that are permanently disconnected, wrong numbers belonging to entirely different people, or emails that instantly bounce back as undeliverable.
+   - Geographic mismatch: The customer's project location is strictly outside the contractor's specified operating zip codes or service radius.
+   - Categorization failure: The customer requested a trade or service that the contractor's profile does not offer (e.g., commercial walk-in freezer repair delivered to a residential-only electrical contractor).
+   - System anomalies: Duplicate leads sent within the same billing window or obvious bot/spam submissions.
 
-HARD RULES FOR THE CLAIM LETTER:
-- If valid is true, "claim" MUST be a detailed, professional, persuasive dispute letter customized specifically to the facts in the contractor notes or transcript. 
-- Do NOT use generic placeholders like "See attached evidence".
-- Explicitly detail the exact carrier error messages, wrong trade requests, disconnected numbers, or zip code mismatches mentioned in the input.
-- Format it clearly starting with a Subject line, formal greeting, issue breakdown, policy reference, and a polite request for credit.
+2. FOCUS ON COMMERCIAL & CUSTOMER CHOICES (valid = false): Do NOT approve refunds if the failure occurred *after* a valid connection was established due to normal consumer behavior or commercial negotiations. This includes:
+   - Pricing or quote rejections: The homeowner thought the project was too expensive, rejected the estimate, or went with a lower bidder.
+   - Competitor selection: The homeowner decided to hire another contractor or company.
+   - Postponements & cancellations: The customer changed their mind, put the project on hold indefinitely, or postponed it due to personal reasons.
+   - Communication gaps post-connection: The customer answered initially or was reachable, but later became unresponsive, failed to pick up voicemails, or didn't return calls.
 
-If valid is false: "reason" is a clear policy explanation and "claim" MUST be "".
+INSTRUCTIONS:
+- Do not just look for trigger words. Read the full narrative context to understand the root cause of why the job wasn't booked.
+- If valid is true, write a detailed, professional, persuasive dispute letter customized to the exact facts ("claim").
+- If valid is false, provide a clear, policy-based explanation ("reason") and leave "claim" as an empty string ("").
 
 Respond STRICTLY in valid JSON with no markdown wrappers or backticks, using this exact schema:
 {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
-
 
 def mime_for(name, given):
     n = (name or "").lower()
@@ -83,7 +75,6 @@ def mime_for(name, given):
         return "application/pdf"
     return given or "application/octet-stream"
 
-
 def not_eligible(cost, confidence=0.88, reason=NOT_ELIGIBLE_REASON):
     return {
         "valid": False,
@@ -93,11 +84,9 @@ def not_eligible(cost, confidence=0.88, reason=NOT_ELIGIBLE_REASON):
         "amount": cost,
     }
 
-
 @app.get("/")
 def health():
     return {"ok": True}
-
 
 @app.post("/api/dispute")
 @app.post("/api/dispute/")
@@ -143,7 +132,6 @@ async def analyze_dispute(
         data = json.loads(result_text)
         valid = bool(data.get("valid"))
 
-        # Post-AI guardrail
         if valid and INVALID_SAFETY_RE.search(text_check):
             return not_eligible(cost)
 
@@ -176,7 +164,6 @@ async def analyze_dispute(
             ),
             "amount": cost,
         }
-
 
 @app.post("/api/dispute/estimate")
 @app.post("/api/dispute/estimate/")
