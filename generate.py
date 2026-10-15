@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import re
@@ -8,10 +9,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 from google.genai import types
 
-app = FastAPI()
+app = FastAPI(title="Lead Dispute AI Auditor", version="1.1.0")
 
-# CORS: allow the Cloudflare Pages frontend (and any other origin).
-# allow_credentials must stay False when allow_origins is ["*"].
+# CORS middleware configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,15 +20,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Gemini client
+# Initialize Gemini client & model
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
 NOT_ELIGIBLE_REASON = (
     "Pricing, competitor hiring, project postponements, and customer choices are non-refundable under marketplace policy."
 )
 
-# Expanded check used by the fallback when Gemini times out or is unavailable.
+# Expanded keyword check for fallbacks & safety filters
 NON_REFUNDABLE_RE = re.compile(
     r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
     r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
@@ -36,8 +36,6 @@ NON_REFUNDABLE_RE = re.compile(
     re.I,
 )
 
-# Broad safety net: overrides Gemini if it accidentally returns valid: true 
-# on clear non-refundable scenarios.
 INVALID_SAFETY_RE = re.compile(
     r"hired (?:another|a|an|someone|a different)|"
     r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
@@ -46,30 +44,31 @@ INVALID_SAFETY_RE = re.compile(
     re.I,
 )
 
-SYSTEM_RULES = """You are an expert compliance auditor for home service lead marketplaces
-(Angi, Thumbtack, Porch, Networx). Decide whether a lead qualifies for a credit refund based on
-strict platform policies.
+SYSTEM_RULES = """You are an expert compliance auditor and dispute specialist for home service lead marketplaces
+(Angi, Thumbtack, Porch, Networx). Evaluate whether a contractor lead qualifies for a credit refund based on
+strict platform terms of service.
 
-ELIGIBLE (valid = true) only when the LEAD ITSELF was invalid:
-- disconnected, wrong or invalid phone number
-- customer outside the contractor's service area
-- duplicate lead
-- spam, bot or fake submission
-- wrong trade category / service the contractor does not offer
+ELIGIBLE (valid = true) ONLY when the lead itself contained an operational/system failure:
+- Disconnected, wrong, or permanently invalid phone number / carrier error ("number not in service")
+- Customer explicitly located outside the contractor's registered service area/zip code
+- Verified duplicate lead charged within the policy window
+- Spam, bot, or completely fake/malicious submission
+- Wrong trade category mismatch (e.g., customer requested roofing when contractor only handles plumbing)
 
-NOT ELIGIBLE (valid = false) whenever the homeowner made a choice or the outcome was commercial:
-- the homeowner hired a competitor or another contractor, or the project went to a competitor
-- the homeowner rejected the price or quote, or said it was too expensive / over budget
-- the customer changed their mind, put project on hold, postponed, no longer needs the work, or had a personal delay
-- the homeowner is unresponsive or did not answer after a valid connection was made
+NOT ELIGIBLE (valid = false) whenever the homeowner made an active choice or the outcome was commercial:
+- The homeowner hired a competitor, another contractor, or awarded the project elsewhere
+- The homeowner rejected the price, quote, or stated the service was too expensive / over budget
+- The customer changed their mind, put the project on hold, postponed, or no longer needs the work
+- The homeowner was unresponsive, did not answer calls, or left voicemails after a valid connection was established
 
-HARD RULES FOR THE CLAIM:
-- If valid is true, "claim" MUST be a detailed, professional, persuasive dispute letter customized specifically to the facts in the contractor notes or transcript. 
+HARD RULES FOR THE CLAIM PARAGRAPH:
+- If valid is true, "claim" MUST be an exceptionally polished, professional, and persuasive dispute letter tailored precisely to the facts in the contractor notes or transcript.
+- Control the tone to be firm, polite, business-like, and strictly policy-aligned.
 - Do NOT use generic placeholders like "See attached evidence".
-- Explicitly detail the exact carrier error messages, wrong trade requests, disconnected numbers, or zip code mismatches mentioned in the input.
-- Format it clearly starting with a Subject line, formal greeting, issue breakdown, policy reference, and a polite request for credit.
+- Explicitly detail exact error messages, wrong trade requests, disconnected numbers, or zip code mismatches.
+- Format it cleanly starting with a Subject line, formal greeting, issue breakdown referencing platform terms, and a professional request for credit reissue.
 
-If valid is false: "reason" is a clear policy explanation and "claim" MUST be "".
+If valid is false: "reason" must be a clear policy explanation and "claim" MUST be an empty string "".
 
 Respond STRICTLY in valid JSON with no markdown wrappers or backticks, using this exact schema:
 {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
@@ -98,7 +97,7 @@ def not_eligible(cost, confidence=0.88, reason=NOT_ELIGIBLE_REASON):
 
 @app.get("/")
 def health():
-    return {"ok": True}
+    return {"status": "healthy", "service": "lead-dispute-auditor"}
 
 
 @app.post("/api/dispute")
@@ -126,19 +125,21 @@ async def analyze_dispute(
                     types.Part.from_bytes(data=data, mime_type=mime_for(f.filename, f.content_type))
                 )
 
-        # Gemini 3.5 Flash handles the core policy reasoning
-        response = await client.aio.models.generate_content(
-            model=MODEL,
-            contents=parts,
-            config=types.GenerateContentConfig(
-                system_instruction=SYSTEM_RULES,
-                response_mime_type="application/json",
-                temperature=0.1,
-            ),
-        )
+        async def call_gemini():
+            return await client.aio.models.generate_content(
+                model=MODEL,
+                contents=parts,
+                config=types.GenerateContentConfig(
+                    system_instruction=SYSTEM_RULES,
+                    response_mime_type="application/json",
+                    temperature=0.1,
+                ),
+            )
+
+        # 50-second timeout guardrail for API response hangs
+        response = await asyncio.wait_for(call_gemini(), timeout=50.0)
 
         result_text = response.text.strip()
-        # Clean potential markdown wrappers if the model includes them
         if result_text.startswith("```json"):
             result_text = result_text[7:-3].strip()
         elif result_text.startswith("```"):
@@ -147,7 +148,7 @@ async def analyze_dispute(
         data = json.loads(result_text)
         valid = bool(data.get("valid"))
 
-        # Safety net: never produce a claim when a non-refundable scenario is detected
+        # Safety net override for non-refundable markers
         if valid and INVALID_SAFETY_RE.search(text_check):
             return not_eligible(cost)
 
@@ -163,7 +164,6 @@ async def analyze_dispute(
         return data
 
     except Exception:
-        # Fallback logic if Gemini hits an exception or rate limit
         if NON_REFUNDABLE_RE.search(text_check):
             return not_eligible(cost)
 
@@ -171,13 +171,17 @@ async def analyze_dispute(
             "valid": True,
             "confidence": 0.5,
             "reason": (
-                f"AI review was unavailable, so this was not fully checked against {platform} "
+                f"AI review was unavailable or timed out, so this was not fully checked against {platform} "
                 "policy. Review it before submitting."
             ),
             "claim": (
-                f"Official Lead Credit Request\nPlatform: {platform}\n\n"
-                f"Requesting credit of ${cost:.2f} due to a contact/system failure.\n\n"
-                f"Details:\n{notes}"
+                f"Subject: Formal Request for Lead Credit Reissue - ${cost:.2f}\n\n"
+                f"Dear {platform} Support Team,\n\n"
+                f"I am writing to formally request a credit refund for lead charges totaling ${cost:.2f} due to systemic connection and qualification failures.\n\n"
+                f"Issue Details:\n{notes or transcript or 'Lead data failed to meet operational connection criteria.'}\n\n"
+                "Under marketplace guidelines regarding invalid or unreachable contact details, I respectfully request that this credit be reviewed and reinstated to my account.\n\n"
+                "Thank you for your prompt assistance.\n\n"
+                "Sincerely,\nContractor Account Management"
             ),
             "amount": cost,
         }
