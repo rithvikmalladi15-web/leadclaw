@@ -125,9 +125,8 @@ textarea:focus,input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3
 .btn.primary:hover{background:var(--blue-d)}
 .btn.copied{background:rgba(22,101,52,0.1);border-color:var(--green);color:var(--green)}
 
-.tour-btn,.theme-btn{background:transparent;border:1px solid var(--line);color:var(--text);border-radius:6px;padding:8px 12px;font-weight:600;font-size:13px;cursor:pointer}
-.tour-btn:hover,.theme-btn:hover{border-color:var(--blue)}
-.theme-btn{width:36px;height:36px;padding:0;display:grid;place-items:center}
+.theme-btn{background:transparent;border:1px solid var(--line);color:var(--text);border-radius:6px;padding:0;width:36px;height:36px;display:grid;place-items:center;cursor:pointer}
+.theme-btn:hover{border-color:var(--blue)}
 .theme-btn .moon{display:none}
 html[data-theme=dark] .theme-btn .sun{display:none}
 html[data-theme=dark] .theme-btn .moon{display:block}
@@ -154,14 +153,28 @@ html[data-theme=dark] .theme-btn .moon{display:block}
     <h1>Lead credit request</h1>
     <p class="sub">Enter the lead details below. Our AI checks them against platform policies and generates a professional dispute claim if eligible.</p>
 
+    <!-- Hardcoded Platform Segment Buttons so they always display -->
     <div class="field">
-      <span class="lbl" id="plbl">Lead platform</span>
-      <div class="seg" role="radiogroup" aria-labelledby="plbl" id="platforms"></div>
+      <span class="lbl">Lead platform</span>
+      <div class="seg" role="radiogroup" id="platforms">
+        <button type="button" role="radio" aria-checked="true" data-platform="Angi">Angi</button>
+        <button type="button" role="radio" aria-checked="false" data-platform="Thumbtack">Thumbtack</button>
+        <button type="button" role="radio" aria-checked="false" data-platform="Porch">Porch</button>
+        <button type="button" role="radio" aria-checked="false" data-platform="Networx">Networx</button>
+      </div>
     </div>
 
+    <!-- Hardcoded Chips so they always display -->
     <div class="field">
-      <span class="lbl">Common refund reasons<span>tap to auto-fill</span></span>
-      <div class="chips" id="chips"></div>
+      <span class="lbl">Common refund reasons <span>tap to auto-fill</span></span>
+      <div class="chips" id="chips">
+        <button type="button" class="chip" data-text="Wrong number: the contact phone number on the lead was invalid or belonged to someone else. ">Wrong number</button>
+        <button type="button" class="chip" data-text="Phone was disconnected or out of service on every attempt. ">Disconnected</button>
+        <button type="button" class="chip" data-text="Customer is located outside our service area. ">Outside service area</button>
+        <button type="button" class="chip" data-text="This lead duplicates one already received. ">Duplicate lead</button>
+        <button type="button" class="chip" data-text="Lead appears to be spam or a fake inquiry. ">Spam or fake</button>
+        <button type="button" class="chip" data-text="Customer requested a trade category we do not offer. ">Wrong trade</button>
+      </div>
     </div>
 
     <div class="field">
@@ -212,15 +225,6 @@ html[data-theme=dark] .theme-btn .moon{display:block}
   const API_ENDPOINT = 'https://leadclaw-api.onrender.com/api/dispute';
   const EST_ENDPOINT = 'https://leadclaw-api.onrender.com/api/dispute/estimate';
 
-  const PLATFORMS = ['Angi', 'Thumbtack', 'Porch', 'Networx'];
-  const CHIPS = [
-    ['Wrong number', 'Wrong number: the contact phone number on the lead was invalid or belonged to someone else. '],
-    ['Disconnected', 'Phone was disconnected or out of service on every attempt. '],
-    ['Outside service area', 'Customer is located outside our service area. '],
-    ['Duplicate lead', 'This lead duplicates one already received. '],
-    ['Spam or fake', 'Lead appears to be spam or a fake inquiry. '],
-    ['Wrong trade', 'Customer requested a trade category we do not offer. ']
-  ];
   const POLICY = {
     Angi: 'Angi Lead Credit Policy',
     Thumbtack: 'Thumbtack Lead Price Credit Terms',
@@ -258,43 +262,33 @@ html[data-theme=dark] .theme-btn .moon{display:block}
   let total = parseFloat(store.get('lc_total')) || 0;
   $('total').textContent = money(total);
 
-  // Platform tabs
-  const pl = $('platforms');
-  PLATFORMS.forEach(p => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.textContent = p;
-    b.setAttribute('role', 'radio');
-    b.setAttribute('aria-checked', p === st.platform);
+  // Platform selection wiring
+  document.querySelectorAll('#platforms button').forEach(b => {
     b.onclick = () => {
-      st.platform = p;
-      [...pl.children].forEach(x => x.setAttribute('aria-checked', x === b));
+      st.platform = b.getAttribute('data-platform');
+      document.querySelectorAll('#platforms button').forEach(x => x.setAttribute('aria-checked', x === b));
     };
-    pl.appendChild(b);
   });
 
-  // Chips
-  CHIPS.forEach(([label, text]) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'chip';
-    b.textContent = label;
-    b.setAttribute('aria-pressed', 'false');
+  // Chips wiring
+  document.querySelectorAll('#chips button').forEach(b => {
+    const text = b.getAttribute('data-text');
+    const label = b.textContent;
     b.onclick = () => {
       const n = $('notes');
       const on = !st.tags.has(label);
       if (on) {
         st.tags.add(label);
         n.value = (n.value && !/\s$/.test(n.value) ? n.value + ' ' : n.value) + text;
+        b.setAttribute('aria-pressed', 'true');
       } else {
         st.tags.delete(label);
         n.value = n.value.replace(text, '');
+        b.setAttribute('aria-pressed', 'false');
       }
-      b.setAttribute('aria-pressed', on);
       n.focus();
       sync();
     };
-    $('chips').appendChild(b);
   });
 
   // File dropzone
