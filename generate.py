@@ -25,22 +25,25 @@ client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 
 NOT_ELIGIBLE_REASON = (
-    "Pricing, competitor hiring, and customer choices are non-refundable under marketplace policy."
+    "Pricing, competitor hiring, project postponements, and customer choices are non-refundable under marketplace policy."
 )
 
-# Keyword check used by the fallback when Gemini is unavailable.
+# Expanded check used by the fallback when Gemini times out or is unavailable.
+# Catches postponements, job loss/financial delays, budget issues, and unresponsiveness.
 NON_REFUNDABLE_RE = re.compile(
     r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
-    r"changed\s+(?:\w+\s+)?mind|not interested",
+    r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
+    r"budget|lost job|financial|no answer|unresponsive|voicemail",
     re.I,
 )
 
-# Competitor hiring is never refundable, even if the model says otherwise.
-COMPETITOR_RE = re.compile(
+# Broad safety net: overrides Gemini if it accidentally returns valid: true 
+# on clear non-refundable scenarios.
+INVALID_SAFETY_RE = re.compile(
     r"hired (?:another|a|an|someone|a different)|"
     r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
     r"project went to|chose (?:another|a different) (?:contractor|company)|"
-    r"competitor",
+    r"competitor|too expensive|over (?:our|my) budget|on hold|postponed",
     re.I,
 )
 
@@ -57,13 +60,12 @@ ELIGIBLE (valid = true) only when the LEAD ITSELF was invalid:
 
 NOT ELIGIBLE (valid = false) whenever the homeowner made a choice or the outcome was commercial:
 - the homeowner hired a competitor or another contractor, or the project went to a competitor
-- the homeowner rejected the price or quote, or said it was too expensive
-- the customer changed their mind, no longer needs the work, or will do it themselves
+- the homeowner rejected the price or quote, or said it was too expensive / over budget
+- the customer changed their mind, put project on hold, postponed, no longer needs the work, or had a personal delay
 - the homeowner is unresponsive or did not answer after a valid connection was made
 
-HARD RULE: if the notes, transcript or any attached file says a competitor or another contractor
-was hired, or that the price or quote was rejected, valid MUST be false, even if the notes also
-list an eligible reason. Never produce a dispute claim for these cases.
+HARD RULE: if the notes, transcript or any attached file says a competitor was hired, price was rejected,
+or the project was postponed/cancelled by the homeowner, valid MUST be false. Never produce a dispute claim for these cases.
 
 If valid is false: "reason" is one or two plain sentences explaining why, and "claim" MUST be "".
 If valid is true: "reason" is a short explanation and "claim" is a formal, professional dispute
@@ -146,8 +148,8 @@ async def analyze_dispute(
         data = json.loads(result_text)
         valid = bool(data.get("valid"))
 
-        # Safety net: never produce a claim when a competitor was hired.
-        if valid and COMPETITOR_RE.search(text_check):
+        # Safety net: never produce a claim when a non-refundable scenario is detected
+        if valid and INVALID_SAFETY_RE.search(text_check):
             return not_eligible(cost)
 
         if not valid:
