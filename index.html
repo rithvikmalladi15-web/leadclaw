@@ -442,7 +442,7 @@ function recover(){const b=\$('rec');if(b.disabled)return;const from=total;total
 \$('go').onclick=async()=>{
  const g=$('go');g.disabled=true;$('goTxt').outerHTML='<span class="spin"></span><span id="goTxt">Analyzing…</span>';
  loading();tick(0);let i=0;const iv=setInterval(()=>{i=Math.min(i+1,2);tick(i)},1300);
- const cost=parseFloat(\$('cost').value.replace(/[^0-9.]/g,))||45.00;
+ const cost=parseFloat(\$('cost').value.replace(/[^0-9.]/g,''))||45.00;
  
  try{
   const fd=new FormData();
@@ -452,7 +452,8 @@ function recover(){const b=\$('rec');if(b.disabled)return;const from=total;total
   fd.append('cost',cost);
   st.files.forEach(f=>fd.append('files',f));
 
-  const r=await fetch(API_ENDPOINT,{method:'POST',body:fd});
+  const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),55000);
+  const r=await fetch(API_ENDPOINT,{method:'POST',body:fd,signal:ctl.signal});clearTimeout(to);
   if(!r.ok)throw new Error('Server error '+r.status);
   const j=await r.json();
   
