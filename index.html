@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LeadClaw: Recover wasted lead spend</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><path d=%22M25 20 L40 80 M45 15 L60 75 M65 10 L80 70%22 stroke=%22%233b82f6%22 stroke-width=%2212%22 stroke-linecap=%22round%22/></svg>">
 <meta name="color-scheme" content="dark light">
 <script>try{var __t=localStorage.getItem('lc_theme')}catch(e){}document.documentElement.setAttribute('data-theme',__t==='dark'?'dark':'light')</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -442,7 +443,7 @@ function recover(){const b=\$('rec');if(b.disabled)return;const from=total;total
 \$('go').onclick=async()=>{
  const g=$('go');g.disabled=true;$('goTxt').outerHTML='<span class="spin"></span><span id="goTxt">Analyzing…</span>';
  loading();tick(0);let i=0;const iv=setInterval(()=>{i=Math.min(i+1,2);tick(i)},1300);
- const cost=parseFloat(\$('cost').value.replace(/[^0-9.]/g,''))||45.00;
+ const cost=parseFloat(\$('cost').value.replace(/[^0-9.]/g, ''))||45.00;
  
  try{
   const fd=new FormData();
