@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>LeadClaw: Recover wasted lead spend</title>
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M5 4c3 3 4 8 3 16M11 4c3 3 4 8 3 16M17 4c3 3 4 8 3 16'/></svg>">
+
 <meta name="color-scheme" content="dark light">
 <script>try{var __t=localStorage.getItem('lc_theme')}catch(e){}document.documentElement.setAttribute('data-theme',__t==='dark'?'dark':'light')</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -330,10 +334,9 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
 
 <script>
 (()=>{
-// ---- Config: point this at your Cloudflare Worker / backend ----
-const API_ENDPOINT = '/api/dispute';   // POST multipart: platform, notes, cost, files[]
-// Expected JSON: {valid:boolean, confidence:0-1, reason?, policy?, claim?, amount?}
-// If the endpoint is unreachable, a clearly-labelled demo heuristic runs so the UI can be previewed.
+// ---- Config: points to your Render backend API ----
+const API_ENDPOINT = 'https://leadclaw-api.onrender.com/api/dispute';
+const EST_ENDPOINT = 'https://leadclaw-api.onrender.com/api/dispute/estimate';
 
 const PLATFORMS=['Angi','Thumbtack','Porch','Networx'];
 const CHIPS=[
@@ -352,7 +355,7 @@ const $=id=>document.getElementById(id);
 const st={platform:'Angi',files:[],tags:new Set(),claim:'',amount:0};
 const store={get(k){try{return localStorage.getItem(k)}catch(e){return null}},set(k,v){try{localStorage.setItem(k,v)}catch(e){}}};
 const money=n=>'$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc=s=>String(s|| '').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let toastT;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2200)}
 
 // total counter with count-up
@@ -393,14 +396,14 @@ function renderFiles(){const c=$('files');c.innerHTML='';
   d.innerHTML=`<div class="ico ${ext==='pdf'?'pdf':''}">${ext.toUpperCase()}</div><div class="nm">${esc(f.name)}</div><div class="sz">${(f.size/1048576).toFixed(1)} MB</div><button aria-label="Remove ${esc(f.name)}">&times;</button>`;
   d.querySelector('button').onclick=()=>{st.files.splice(i,1);renderFiles();sync()};c.appendChild(d)})}
 
-function sync(){$('go').disabled=!($('notes').value.trim()||$('transcript').value.trim()||st.files.length)}
+function sync(){$('go').disabled=!($('notes').value.trim()\vert{}\vert{}$('transcript').value.trim()||st.files.length)}
 $('notes').addEventListener('input',sync);$('transcript').addEventListener('input',sync);
 
 // result states
 const R=$('result');
 function empty(){R.innerHTML=`<div class="empty"><div class="ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><h3>Your claim shows up here</h3><p>Pick a platform, describe the lead, and run the check. Invalid leads get a ready-to-send statement.</p></div>`}
-const STEPS=['Reading your notes and files','Checking '+'platform refund rules','Drafting the claim statement'];
-function loading(){R.innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="step" data-i="${i}"><i>&#10003;</i>${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:92%"></div><div class="sk" style="width:80%"></div><div class="sk" style="width:86%"></div><div class="sk" style="width:55%"></div><p class="note" style="margin-top:16px;color:var(--muted)">This can take up to 60 seconds while the AI warms up. It happens because of Render's free plan.</p>`}
+const STEPS=['Reading your notes and files','Checking platform refund rules','Drafting the claim statement'];
+function loading(){R.innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="step" data-i="${i}"><i>&#10003;</i>${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:92%"></div><div class="sk" style="width:80%"></div><div class="sk" style="width:86%"></div><div class="sk" style="width:55%"></div><p class="note" style="margin-top:16px;color:var(--muted)">This can take up to 60 seconds while the AI warms up. This happens because of Render's free plan.</p>`}
 function tick(i){R.querySelectorAll('.step').forEach((s,j)=>{s.classList.toggle('done',j<i);s.classList.toggle('on',j===i)})}
 
 function render(r){
@@ -426,69 +429,60 @@ async function copy(){const b=$('copy');
 function recover(){const b=$('rec');if(b.disabled)return;const from=total;total+=st.amount;store.set('lc_total',total);showTotal(from,total);b.disabled=true;b.textContent='Added to your total';toast(money(st.amount)+' added to recovered');
  setTimeout(()=>{R.classList.add('leaving');setTimeout(()=>{empty();st.claim='';st.amount=0;R.classList.remove('leaving')},350)},1100)}
 
-// AI cost estimate (POST API_ENDPOINT + '/estimate' -> {amount, low?, high?, basis?}); demo fallback below
-const SERVICES=[['roofing',/roof|shingle|gutter/i,90],['plumbing',/plumb|leak|drain|water heater|pipe/i,60],['electrical',/electric|wiring|panel|outlet/i,55],['HVAC',/hvac|furnace|\bac\b|air condition|heating/i,70],['landscaping',/lawn|landscap|tree|fence/i,40]];
-const MULT={Angi:1.1,Thumbtack:.9,Porch:.85,Networx:1};
-function guess(t){let s=SERVICES.find(x=>x[1].test(t));const base=s?s[2]:50;const a=Math.round(base*MULT[st.platform]);
- return{amount:a,low:Math.round(a*.75),high:Math.round(a*1.25),basis:(s?s[0]:'general home services')+' on '+st.platform+' (demo estimate)'}}
+// AI cost estimate
 $('est').onclick=async()=>{
  const b=$('est'),txt=($('notes').value+' '+$('transcript').value).trim();
  b.disabled=true;b.innerHTML='<span class="spin"></span>Estimating…';
- let res;
- try{const x=await fetch(API_ENDPOINT+'/estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:st.platform,text:txt})});
-  if(!x.ok)throw 0;res=await x.json();if(typeof res.amount!=='number')throw 0}
- catch(e){await new Promise(r=>setTimeout(r,700));res=guess(txt)}
- $('cost').value=res.amount.toFixed(2);
- $('estNote').textContent='Estimated '+money(res.amount)+(res.low?' (typical range '+money(res.low)+' to '+money(res.high)+')':'')+(res.basis?', based on '+res.basis:'')+'. Check it against your lead receipt before filing.';
- b.disabled=false;b.innerHTML='Estimate with AI'};
+ try{
+  const res=await fetch(EST_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:st.platform,text:txt})});
+  if(!res.ok)throw new Error();
+  const data=await res.json();
+  $('cost').value=data.amount.toFixed(2);$('estNote').textContent='Estimated '+money(data.amount)+' based on '+data.basis+'. Check it against your lead receipt before filing.';
+ }catch(e){
+  toast('Could not fetch AI price estimate');
+ } finally {
+  b.disabled=false;b.innerHTML='Estimate with AI';
+ }
+};
 
-// analysis
+// analysis submission
 $('go').onclick=async()=>{
  const g=$('go');g.disabled=true;$('goTxt').outerHTML='<span class="spin"></span><span id="goTxt">Analyzing…</span>';
  loading();tick(0);let i=0;const iv=setInterval(()=>{i=Math.min(i+1,2);tick(i)},1300);
- const cost=parseFloat($('cost').value.replace(/[^0-9.]/g,''))||0;
- let res;
- try{res=await call(cost)}catch(e){res=await demo(cost)}
- clearInterval(iv);tick(3);await new Promise(r=>setTimeout(r,350));render(res);
- g.querySelector('.spin')?.remove();$('goTxt').textContent='Check & build claim';sync();
- if(innerWidth<=900)R.scrollIntoView({behavior:'smooth',block:'start'})};
+ const cost=parseFloat($('cost').value.replace(/[^0-9.]/g,''))||75.00;
+ 
+ try{
+  const fd=new FormData();
+  fd.append('platform',st.platform);
+  fd.append('notes',$('notes').value);
+  fd.append('transcript',$('transcript').value);
+  fd.append('cost',cost);
+  st.files.forEach(f=>fd.append('files',f));
 
-async function call(cost){
- const fd=new FormData();fd.append('platform',st.platform);fd.append('notes',$('notes').value);fd.append('transcript',$('transcript').value);fd.append('cost',cost);st.files.forEach(f=>fd.append('files',f));
- const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),45000);
- const r=await fetch(API_ENDPOINT,{method:'POST',body:fd,signal:ctl.signal});clearTimeout(to);
- if(!r.ok)throw new Error('http '+r.status);const j=await r.json();if(typeof j.valid!=='boolean')throw new Error('bad shape');
- j.amount=j.amount??cost;return j}
+  const res=await fetch(API_ENDPOINT,{method:'POST',body:fd});
+  if(!res.ok)throw new Error('API failed');
+  const data=await res.json();
+  data.amount = data.amount ?? cost;
 
-// Demo fallback (no backend): simple keyword heuristic, for previewing the UI only
-async function demo(cost){
- await new Promise(r=>setTimeout(r,3200));
- const n=$('notes').value;const tr=$('transcript').value;const all=n+' '+tr;const bad=/changed (my|their) mind|too expensive|price|chose another|hired someone|not interested|quote/i.test(all)&&!/disconnect|wrong number|spam|fake|duplicate|outside/i.test(all);
- if(bad)return{valid:false,confidence:.86,reason:'Homeowner declined or chose another contractor after contact was made. Pricing and hiring decisions are not refundable under this policy.'};
- const reasons=[...st.tags];const today=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
- return{valid:true,confidence:.91,amount:cost,claim:
-`Subject: Lead credit request, ${st.platform}
-
-Hello ${st.platform} Support,
-
-I'm requesting a credit of ${money(cost)} for a lead I believe does not meet your lead quality standards under the ${POLICY[st.platform]}.
-
-Reason: ${reasons.length?reasons.join(', '):'Invalid lead'}
-
-Details:
-${n.trim()||'See attached evidence.'}${tr.trim()?'\n\nTranscript excerpt:\n'+tr.trim().slice(0,600)+(tr.trim().length>600?'…':''):''}
-
-Evidence: ${st.files.length?st.files.map(f=>f.name).join(', '):'Available on request'}
-Date submitted: ${today}
-
-Please review and apply the credit to my account. I'm glad to provide anything else you need.
-
-Thank you,`}}
+  clearInterval(iv);tick(3);await new Promise(r=>setTimeout(r,350));
+  render(data);
+ }catch(e){
+  clearInterval(iv);
+  R.innerHTML=`<div class="why"><b>Connection Error</b><br>Could not reach the Render backend API. Please check your deployment.</div>`;
+ } finally {
+  g.querySelector('.spin')?.remove();
+  const tSpan = document.createElement('span');
+  tSpan.id = 'goTxt';
+  tSpan.textContent = 'Check & build claim';
+  g.appendChild(tSpan);
+  sync();
+  if(innerWidth<=900)R.scrollIntoView({behavior:'smooth',block:'start'});
+ };
+};
 
 // theme toggle
 const root=document.documentElement;
-function setTheme(t){root.setAttribute('data-theme',t);store.set('lc_theme',t);const b=$('themeBtn'),l='Switch to '+(t==='dark'?'light':'dark')+' mode';b.setAttribute('aria-label',l);b.title=l}
-$('themeBtn').onclick=()=>setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
+function setTheme(t){root.setAttribute('data-theme',t);store.set('lc_theme',t);const b=$('themeBtn'),l='Switch to '+(t==='dark'?'light':'dark')+' mode';b.setAttribute('aria-label',l);b.title=l}$('themeBtn').onclick=()=>setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
 setTheme(root.getAttribute('data-theme')==='dark'?'dark':'light');
 
 // quick tour
@@ -513,8 +507,7 @@ function tourOpen(){ti=0;$('tour').hidden=false;$('tourBtn').setAttribute('aria-
 function tourClose(){$('tour').hidden=true;$('tourBtn').setAttribute('aria-expanded','false');spot&&spot.classList.remove('spot');spot=null;store.set('lc_tour','1')}
 $('tourBtn').onclick=()=>$('tour').hidden?tourOpen():tourClose();
 $('tourX').onclick=tourClose;
-$('tourBack').onclick=()=>{if(ti>0){ti--;tourShow()}};
-$('tourNext').onclick=()=>{if(ti<TOUR.length-1){ti++;tourShow()}else tourClose()};
+$('tourBack').onclick=()=>{if(ti>0){ti--;tourShow()}};$('tourNext').onclick=()=>{if(ti<TOUR.length-1){ti++;tourShow()}else tourClose()};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('tour').hidden)tourClose()});
 if(!store.get('lc_tour'))setTimeout(tourOpen,700);
 
