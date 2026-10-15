@@ -8,8 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from google import genai
 from google.genai import types
 
-app = FastAPI()
+app = FastAPI(title="LeadClaw API", version="1.0.0")
 
+# Production CORS configuration (restrict or open based on deployment)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,74 +20,42 @@ app.add_middleware(
 )
 
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 
-NOT_ELIGIBLE_REASON = (
-    "Pricing, competitor hiring, project postponements, and customer choices are non-refundable under marketplace policy."
-)
+SYSTEM_RULES = """You are an expert compliance auditor and lead marketplace policy specialist for Angi, Thumbtack, Porch, and Networx. 
 
-NON_REFUNDABLE_RE = re.compile(
-    r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
-    r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
-    r"budget|lost job|financial|no answer|unresponsive|voicemail",
-    re.I,
-)
+Your task is to evaluate the contractor's notes, transcripts, and attached evidence to determine if the lead is genuinely defective or if it represents normal commercial drop-off.
 
-INVALID_SAFETY_RE = re.compile(
-    r"hired (?:another|a|an|someone|a different)|"
-    r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
-    r"project went to|chose (?:another|a different) (?:contractor|company)|"
-    r"competitor|too expensive|over (?:our|my) budget|on hold|postponed",
-    re.I,
-)
+POLICY GUIDELINES:
+1. ELIGIBLE FOR REFUND (valid = true):
+   - Contact failure: Permanently disconnected numbers, wrong numbers belonging to third parties, or undeliverable emails.
+   - Geographic mismatch: Project address is strictly outside the contractor's service zip codes/radius.
+   - Trade mismatch: Inquiries for services the contractor does not offer.
+   - System/Duplicate errors: Duplicate leads sent within the billing window or bot/spam submissions.
 
-SYSTEM_RULES = """You are an expert compliance auditor and policy analyst for home service lead marketplaces (Angi, Thumbtack, Porch, Networx). 
-
-Your job is to deeply analyze the contractor's notes, transcripts, and attached evidence to determine if the lead itself was inherently defective at the time of delivery.
-
-CRITICAL POLICY ANALYSIS PRINCIPLES:
-1. FOCUS ON LEAD INTEGRITY (valid = true): The lead is ONLY valid for a refund if the marketplace delivered a broken, unreachable, or fundamentally miscategorized product. This includes:
-   - Contact failure: Phone numbers that are permanently disconnected, wrong numbers belonging to entirely different people, or emails that instantly bounce back as undeliverable.
-   - Geographic mismatch: The customer's project location is strictly outside the contractor's specified operating zip codes or service radius.
-   - Categorization failure: The customer requested a trade or service that the contractor's profile does not offer (e.g., commercial walk-in freezer repair delivered to a residential-only electrical contractor).
-   - System anomalies: Duplicate leads sent within the same billing window or obvious bot/spam submissions.
-
-2. FOCUS ON COMMERCIAL & CUSTOMER CHOICES (valid = false): Do NOT approve refunds if the failure occurred *after* a valid connection was established due to normal consumer behavior or commercial negotiations. This includes:
-   - Pricing or quote rejections: The homeowner thought the project was too expensive, rejected the estimate, or went with a lower bidder.
-   - Competitor selection: The homeowner decided to hire another contractor or company.
-   - Postponements & cancellations: The customer changed their mind, put the project on hold indefinitely, or postponed it due to personal reasons.
-   - Communication gaps post-connection: The customer answered initially or was reachable, but later became unresponsive, failed to pick up voicemails, or didn't return calls.
+2. INELIGIBLE FOR REFUND (valid = false):
+   - Commercial / Consumer choices: Homeowner thought the price was too expensive, rejected estimates, or chose a competitor.
+   - Postponements: Project put on hold or cancelled by the customer.
+   - Unresponsiveness post-connection: Customer answered initially but stopped returning calls/voicemails later.
 
 INSTRUCTIONS:
-- Do not just look for trigger words. Read the full narrative context to understand the root cause of why the job wasn't booked.
-- If valid is true, write a detailed, professional, persuasive dispute letter customized to the exact facts ("claim").
-- If valid is false, provide a clear, policy-based explanation ("reason") and leave "claim" as an empty string ("").
+- Read the narrative context carefully to determine the true root cause.
+- If valid is true, write a highly professional, persuasive, formal dispute claim letter tailored to the specific platform ("claim").
+- If valid is false, provide a clear, policy-based explanation ("reason") and leave "claim" empty ("").
 
-Respond STRICTLY in valid JSON with no markdown wrappers or backticks, using this exact schema:
+Respond STRICTLY in valid JSON with no extra markdown formatting outside the JSON block, using this exact schema:
 {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
 
 def mime_for(name, given):
     n = (name or "").lower()
-    if n.endswith(".mp3"):
-        return "audio/mpeg"
-    if n.endswith(".wav"):
-        return "audio/wav"
-    if n.endswith(".pdf"):
-        return "application/pdf"
+    if n.endswith(".mp3"): return "audio/mpeg"
+    if n.endswith(".wav"): return "audio/wav"
+    if n.endswith(".pdf"): return "application/pdf"
     return given or "application/octet-stream"
-
-def not_eligible(cost, confidence=0.88, reason=NOT_ELIGIBLE_REASON):
-    return {
-        "valid": False,
-        "confidence": confidence,
-        "reason": reason,
-        "claim": "",
-        "amount": cost,
-    }
 
 @app.get("/")
 def health():
-    return {"ok": True}
+    return {"status": "healthy", "service": "LeadClaw API"}
 
 @app.post("/api/dispute")
 @app.post("/api/dispute/")
@@ -97,15 +66,14 @@ async def analyze_dispute(
     cost: float = Form(45.00),
     files: List[UploadFile] = File(default=[]),
 ):
-    text_check = f"{notes} {transcript}"
-
     try:
         parts = [
             f"Marketplace Platform: {platform}\n"
-            f"Lead cost: ${cost:.2f}\n\n"
+            f"Lead Cost: ${cost:.2f}\n\n"
             f"Contractor Notes: {notes or '(none)'}\n\n"
             f"Transcript text: {transcript or '(none)'}"
         ]
+        
         for f in files:
             data = await f.read()
             if data:
@@ -123,45 +91,26 @@ async def analyze_dispute(
             ),
         )
 
-        result_text = response.text.strip()
-        if result_text.startswith("```json"):
-            result_text = result_text[7:-3].strip()
-        elif result_text.startswith("```"):
-            result_text = result_text[3:-3].strip()
+        raw_text = response.text.strip()
+        
+        # Robust JSON extraction using regex fallback in case of model formatting quirks
+        match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+        if match:
+            clean_json = match.group(0)
+            data = json.loads(clean_json)
+        else:
+            raise ValueError("Model output did not contain valid JSON structure.")
 
-        data = json.loads(result_text)
-        valid = bool(data.get("valid"))
-
-        if valid and INVALID_SAFETY_RE.search(text_check):
-            return not_eligible(cost)
-
-        if not valid:
-            return not_eligible(
-                cost,
-                confidence=float(data.get("confidence") or 0.88),
-                reason=data.get("reason") or NOT_ELIGIBLE_REASON,
-            )
-
-        data["valid"] = True
         data["amount"] = cost
         return data
 
-    except Exception:
-        if NON_REFUNDABLE_RE.search(text_check):
-            return not_eligible(cost)
-
+    except Exception as e:
+        # Fallback response for unhandled runtime errors
         return {
-            "valid": True,
-            "confidence": 0.5,
-            "reason": (
-                f"AI review was unavailable, so this was not fully checked against {platform} "
-                "policy. Review it before submitting."
-            ),
-            "claim": (
-                f"Official Lead Credit Request\nPlatform: {platform}\n\n"
-                f"Requesting credit of ${cost:.2f} due to a contact/system failure.\n\n"
-                f"Details:\n{notes}"
-            ),
+            "valid": False,
+            "confidence": 0.75,
+            "reason": f"Unable to complete automated policy verification due to a processing error. Please review manually.",
+            "claim": "",
             "amount": cost,
         }
 
@@ -172,23 +121,24 @@ async def estimate_lead_cost(data: dict):
     text = data.get("text", "").lower()
 
     base = 50
+    basis = "general home services"
     if any(w in text for w in ["roof", "shingle", "gutter"]):
-        base = 90
-    elif any(w in text for w in ["plumb", "leak", "drain", "heater"]):
-        base = 60
+        base, basis = 90, "roofing"
+    elif any(w in text for w in ["plumb", "leak", "drain", "water heater"]):
+        base, basis = 60, "plumbing"
     elif any(w in text for w in ["electric", "wiring", "panel"]):
-        base = 55
-    elif re.search(r"hvac|furnace|\bac\b|air condition", text):
-        base = 70
+        base, basis = 55, "electrical"
+    elif any(w in text for w in ["hvac", "furnace", "ac", "heating"]):
+        base, basis = 70, "HVAC"
     elif any(w in text for w in ["lawn", "landscap", "tree"]):
-        base = 40
+        base, basis = 40, "landscaping"
 
     multiplier = {"Angi": 1.1, "Thumbtack": 0.9, "Porch": 0.85, "Networx": 1.0}.get(platform, 1.0)
-    amount = round(base * multiplier)
+    amount = round(base * multiplier, 2)
 
     return {
-        "amount": float(amount),
-        "low": round(amount * 0.75),
-        "high": round(amount * 1.25),
-        "basis": f"home service standards on {platform}",
+        "amount": amount,
+        "low": round(amount * 0.75, 2),
+        "high": round(amount * 1.25, 2),
+        "basis": f"{basis} on {platform}"
     }
