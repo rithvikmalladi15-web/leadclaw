@@ -29,7 +29,6 @@ NOT_ELIGIBLE_REASON = (
 )
 
 # Expanded check used by the fallback when Gemini times out or is unavailable.
-# Catches postponements, job loss/financial delays, budget issues, and unresponsiveness.
 NON_REFUNDABLE_RE = re.compile(
     r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
     r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
@@ -64,13 +63,13 @@ NOT ELIGIBLE (valid = false) whenever the homeowner made a choice or the outcome
 - the customer changed their mind, put project on hold, postponed, no longer needs the work, or had a personal delay
 - the homeowner is unresponsive or did not answer after a valid connection was made
 
-HARD RULE: if the notes, transcript or any attached file says a competitor was hired, price was rejected,
-or the project was postponed/cancelled by the homeowner, valid MUST be false. Never produce a dispute claim for these cases.
+HARD RULES FOR THE CLAIM:
+- If valid is true, "claim" MUST be a detailed, professional, persuasive dispute letter customized specifically to the facts in the contractor notes or transcript. 
+- Do NOT use generic placeholders like "See attached evidence".
+- Explicitly detail the exact carrier error messages, wrong trade requests, disconnected numbers, or zip code mismatches mentioned in the input.
+- Format it clearly starting with a Subject line, formal greeting, issue breakdown, policy reference, and a polite request for credit.
 
-If valid is false: "reason" is one or two plain sentences explaining why, and "claim" MUST be "".
-If valid is true: "reason" is a short explanation and "claim" is a formal, professional dispute
-statement ready to copy and paste, starting with a Subject line, naming the platform, stating the
-credit amount, and using only facts from the provided material. Never invent facts.
+If valid is false: "reason" is a clear policy explanation and "claim" MUST be "".
 
 Respond STRICTLY in valid JSON with no markdown wrappers or backticks, using this exact schema:
 {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
