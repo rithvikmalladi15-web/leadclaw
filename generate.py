@@ -10,9 +10,9 @@ from google import genai
 from google.genai import types
 import httpx
 
-app = FastAPI(title="Lead Dispute AI Auditor", version="2.0.0")
+app = FastAPI(title="Lead Dispute AI Auditor", version="2.1.0")
 
-# CORS middleware configuration
+# CORS: allow the Cloudflare Pages frontend (and any other origin).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,7 +33,7 @@ NOT_ELIGIBLE_REASON = (
     "Pricing, competitor hiring, project postponements, and customer choices are non-refundable under marketplace policy."
 )
 
-# Expanded keyword check for safety filters & text fallbacks
+# Expanded check used by the fallback when both AIs fail
 NON_REFUNDABLE_RE = re.compile(
     r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
     r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
@@ -41,6 +41,7 @@ NON_REFUNDABLE_RE = re.compile(
     re.I,
 )
 
+# Broad safety net: overrides if valid: true is returned on clear non-refundable scenarios
 INVALID_SAFETY_RE = re.compile(
     r"hired (?:another|a|an|someone|a different)|"
     r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
@@ -50,30 +51,29 @@ INVALID_SAFETY_RE = re.compile(
 )
 
 SYSTEM_RULES = """You are an expert compliance auditor and dispute specialist for home service lead marketplaces
-(Angi, Thumbtack, Porch, Networx). Evaluate whether a contractor lead qualifies for a credit refund based on
-strict platform terms of service.
+(Angi, Thumbtack, Porch, Networx). Decide whether a lead qualifies for a credit refund based on
+strict platform policies.
 
-ELIGIBLE (valid = true) ONLY when the lead itself contained an operational/system failure:
-- Disconnected, wrong, or permanently invalid phone number / carrier error ("number not in service")
-- Customer explicitly located outside the contractor's registered service area/zip code
-- Verified duplicate lead charged within the policy window
-- Spam, bot, or completely fake/malicious submission
-- Wrong trade category mismatch (e.g., customer requested roofing when contractor only handles plumbing)
+ELIGIBLE (valid = true) only when the LEAD ITSELF was invalid:
+- disconnected, wrong or invalid phone number
+- customer outside the contractor's service area
+- duplicate lead
+- spam, bot or fake submission
+- wrong trade category / service the contractor does not offer
 
-NOT ELIGIBLE (valid = false) whenever the homeowner made an active choice or the outcome was commercial:
-- The homeowner hired a competitor, another contractor, or awarded the project elsewhere
-- The homeowner rejected the price, quote, or stated the service was too expensive / over budget
-- The customer changed their mind, put the project on hold, postponed, or no longer needs the work
-- The homeowner was unresponsive, did not answer calls, or left voicemails after a valid connection was established
+NOT ELIGIBLE (valid = false) whenever the homeowner made a choice or the outcome was commercial:
+- the homeowner hired a competitor or another contractor, or the project went to a competitor
+- the homeowner rejected the price or quote, or said it was too expensive / over budget
+- the customer changed their mind, put project on hold, postponed, no longer needs the work, or had a personal delay
+- the homeowner is unresponsive or did not answer after a valid connection was made
 
-HARD RULES FOR THE CLAIM PARAGRAPH:
-- If valid is true, "claim" MUST be an exceptionally polished, professional, and persuasive dispute letter tailored precisely to the facts in the contractor notes or transcript.
-- Control the tone to be firm, polite, business-like, and strictly policy-aligned.
+HARD RULES FOR THE CLAIM:
+- If valid is true, "claim" MUST be a detailed, professional, persuasive dispute letter customized specifically to the facts in the contractor notes or transcript. 
 - Do NOT use generic placeholders like "See attached evidence".
-- Explicitly detail exact error messages, wrong trade requests, disconnected numbers, or zip code mismatches.
-- Format it cleanly starting with a Subject line, formal greeting, issue breakdown referencing platform terms, and a professional request for credit reissue.
+- Explicitly detail the exact carrier error messages, wrong trade requests, disconnected numbers, or zip code mismatches mentioned in the input.
+- Format it clearly starting with a Subject line, formal greeting, issue breakdown, policy reference, and a polite request for credit.
 
-If valid is false: "reason" must be a clear policy explanation and "claim" MUST be an empty string "".
+If valid is false: "reason" is a clear policy explanation and "claim" MUST be "".
 
 Respond STRICTLY in valid JSON with no markdown wrappers or backticks, using this exact schema:
 {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
@@ -129,7 +129,6 @@ async def call_groq_backup(prompt_text: str, cost: float) -> dict:
         res_json = response.json()
         content = res_json["choices"][0]["message"]["content"].strip()
         
-        # Clean potential markdown codeblock wrappers
         if content.startswith("```json"):
             content = content[7:-3].strip()
         elif content.startswith("```"):
@@ -142,7 +141,7 @@ async def call_groq_backup(prompt_text: str, cost: float) -> dict:
 
 @app.get("/")
 def health():
-    return {"status": "healthy", "service": "lead-dispute-auditor", "primary": "gemini-3.5-flash", "backup": "qwen/qwen3-32b"}
+    return {"ok": True, "primary": "gemini-3.5-flash", "backup": "qwen/qwen3-32b"}
 
 
 @app.post("/api/dispute")
@@ -163,7 +162,7 @@ async def analyze_dispute(
     )
 
     try:
-        # Step 1: Try Primary (Gemini 3.5 Flash)
+        # Step 1: Try Primary (Gemini 3.5 Flash) with 50-second timeout
         parts = [combined_prompt]
         for f in files:
             data = await f.read()
@@ -183,7 +182,6 @@ async def analyze_dispute(
                 ),
             )
 
-        # 50-second timeout guardrail for Gemini
         response = await asyncio.wait_for(call_gemini(), timeout=50.0)
 
         result_text = response.text.strip()
@@ -195,7 +193,6 @@ async def analyze_dispute(
         data = json.loads(result_text)
         valid = bool(data.get("valid"))
 
-        # Safety net rule override
         if valid and INVALID_SAFETY_RE.search(text_check):
             return not_eligible(cost)
 
@@ -231,7 +228,7 @@ async def analyze_dispute(
             return groq_result
 
         except Exception:
-            # Step 3: Final deterministic fallback if both AI providers fail
+            # Step 3: Ultimate deterministic backup if both AIs fail
             if NON_REFUNDABLE_RE.search(text_check):
                 return not_eligible(cost)
 
