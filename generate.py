@@ -107,3 +107,12 @@ async def estimate_lead_cost(data: dict):
         "high": round(amount * 1.25),
         "basis": f"home service standards on {platform}"
     }
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins, including Cloudflare Pages
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
