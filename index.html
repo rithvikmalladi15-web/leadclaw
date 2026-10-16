@@ -6,7 +6,6 @@
 <title>LeadClaw</title>
 <meta name="color-scheme" content="light dark">
 <script>try{var __t=localStorage.getItem('lc_theme')||'light';document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='9' stroke-linecap='round' fill='none'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
@@ -46,34 +45,12 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--tx);font:15px/1.
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:5px}
 a{color:var(--accent);text-decoration:none}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@keyframes rot{to{transform:rotate(360deg)}}
-@keyframes sk{to{background-position:-200% 0}}
-@keyframes bump{50%{transform:scale(1.03)}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.4)}50%{box-shadow:0 0 0 7px rgba(37,99,235,0)}}
-.view{animation:fadein .22s ease}
-.bar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  padding:12px max(20px,calc((100% - 1180px)/2));
-  background:var(--bar);border-bottom:1px solid var(--bdr);box-shadow:var(--sh-sm);
-  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.bar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 24px;background:var(--bar);border-bottom:1px solid var(--bdr);box-shadow:var(--sh-sm);backdrop-filter:blur(12px)}
 .bar .sp{flex:1}
-.nav{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--bdr2);
-  border-radius:7px;background:transparent;color:var(--tx);font-weight:600;font-size:13.5px;
-  cursor:pointer;white-space:nowrap;transition:border-color .15s,background .15s,color .15s}
+.nav{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--bdr2);border-radius:7px;background:transparent;color:var(--tx);font-weight:600;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:all .15s}
 .nav:hover{border-color:var(--blue);background:var(--tint);color:var(--blue)}
 .nav svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .icon-btn{width:38px;height:38px;padding:0;justify-content:center}
-.icon-btn svg{width:18px;height:18px}
-.icon-btn .moon{display:none}
-html[data-theme=light] .icon-btn .sun{display:none}
-html[data-theme=light] .icon-btn .moon{display:block}
-.ws-sw{display:none;align-items:center;gap:7px;padding:7px 11px;border:1px solid var(--bdr2);
-  border-radius:7px;background:transparent;color:var(--tx);font-weight:600;font-size:13px;
-  cursor:pointer;transition:all .15s}
-.ws-sw:hover{border-color:var(--blue);background:var(--tint)}
-.ws-sw .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none;animation:pulse 2.5s infinite}
-.ws-sw.visible{display:inline-flex}
 .page{display:none}.page.active{display:block}
 .auth-wrap{max-width:460px;margin:40px auto 60px;padding:0 20px}
 .brand{display:flex;align-items:center;justify-content:center;gap:11px;font:800 26px var(--display);letter-spacing:-.03em;margin-bottom:26px}
@@ -81,139 +58,50 @@ html[data-theme=light] .icon-btn .moon{display:block}
 .logo-m svg{width:21px;height:21px}
 .stepper{display:flex;justify-content:center;margin:0 0 26px;list-style:none;padding:0}
 .st{flex:1;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--dim)}
-.st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none;transition:all .2s}
+.st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none}
 .st::after{content:"";flex:1;height:2px;background:var(--bdr);border-radius:2px;margin:0 4px}
 .st:last-child::after{display:none}
 .st.on{color:var(--tx)}.st.on i{border-color:var(--blue);background:var(--blue);color:#fff}
 .st.done{color:var(--mu)}.st.done i{background:var(--tint);border-color:var(--blue);color:var(--accent)}
-.st.done::after{background:var(--blue)}
-@media(max-width:500px){.st span{display:none}.st.on span{display:inline}}
-.card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh);transition:background .2s}
-@media(max-width:500px){.card{padding:22px 16px}}
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh)}
 h1{font:800 23px/1.2 var(--display);letter-spacing:-.025em;margin:0 0 7px}
 .sub{color:var(--mu);margin:0 0 20px;font-size:14.5px}
 .tabs{display:flex;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:3px;margin-bottom:20px;gap:3px}
-.tab{flex:1;padding:8px;border:0;background:transparent;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mu);transition:all .15s}
+.tab{flex:1;padding:8px;border:0;background:transparent;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mu)}
 .tab.on{background:var(--surf);color:var(--tx);box-shadow:var(--sh-sm)}
 .field{margin-bottom:16px}
 label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;color:var(--tx2)}
-.inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx);transition:border-color .15s,box-shadow .15s,background .15s}
-.inp::placeholder{color:var(--dim)}
+.inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx)}
 .inp:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
-.inp.bad{border-color:var(--err)}
-select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:18px;padding-right:36px}
 .code-inp{font:700 26px/1 var(--mono);letter-spacing:12px;text-align:center;height:62px}
-.err-msg{color:var(--err);font-size:13px;margin:5px 0 0;min-height:18px}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border-radius:7px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s,transform .1s}
-.btn:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h);box-shadow:0 4px 14px rgba(37,99,235,.35)}
-.btn:active:not(:disabled){transform:scale(.99)}
-.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border-radius:7px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:all .15s}
+.btn:hover:not(:disabled){background:var(--blue-h)}
 .btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr2)}
-.btn.sec:hover:not(:disabled){background:var(--tint);border-color:var(--blue);color:var(--blue);box-shadow:none}
-.btn.sm{height:38px;font-size:13.5px;border-radius:6px}
-.link-btn{border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer;font-size:13.5px;text-decoration:underline}
-.stack{display:grid;gap:10px;margin-top:4px}
-.or-div{display:flex;align-items:center;gap:12px;color:var(--dim);font-size:13px;margin:16px 0}
-.or-div::before,.or-div::after{content:"";flex:1;height:1.5px;background:var(--bdr)}
+.btn.sec:hover:not(:disabled){background:var(--tint);border-color:var(--blue);color:var(--blue)}
+.err-msg{color:var(--err);font-size:13px;margin:5px 0 0}
 .g-btn{background:var(--surf);border:1.5px solid var(--bdr2);color:var(--tx)}
-.g-btn:hover:not(:disabled){background:var(--tint2);border-color:var(--blue);color:var(--blue)}
 .g-icon{width:20px;height:20px;flex:none}
-.badge-ico{width:52px;height:52px;border-radius:50%;background:var(--tint);display:grid;place-items:center;margin:0 auto 14px;color:var(--blue)}
-.badge-ico svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.badge-ico.ok{background:var(--okbg);color:var(--ok)}
-.center{text-align:center}
 body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
 .trial-banner{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--blue) 0%,#1e40af 100%);color:#fff;font:700 15.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px;box-shadow:0 6px 20px rgba(37,99,235,.3)}
-.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media(max-width:840px){.plans{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
-.plan{position:relative;display:flex;flex-direction:column;background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:24px 20px;box-shadow:var(--sh-sm);transition:border-color .2s,box-shadow .2s,transform .2s}
-.plan:hover{border-color:var(--blue);box-shadow:var(--sh);transform:translateY(-2px)}
-.plan.pop{border:2px solid var(--blue);box-shadow:0 4px 20px rgba(37,99,235,.2)}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1200px;margin:0 auto}
+@media(max-width:900px){.plans{grid-template-columns:1fr}}
+.plan{background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:32px 24px;display:flex;flex-direction:column;box-shadow:var(--sh-sm);position:relative}
+.plan.pop{border-color:var(--blue);box-shadow:var(--sh)}
 .pop-tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font:700 12px var(--sans);padding:4px 13px;border-radius:999px;white-space:nowrap}
-.plan h2{font:700 17px var(--display);margin:0 0 8px}
-.plan .price{font:800 36px/1 var(--display);letter-spacing:-.03em;margin:0 0 2px}
-.plan .price small{font:500 14px var(--sans);color:var(--mu)}
-.trial-note{color:var(--ok);font-weight:600;font-size:13px;margin-bottom:16px}
-.plan ul{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:9px;flex:1}
-.plan li{display:flex;gap:8px;font-size:14px}
-.plan li svg{width:15px;height:15px;flex:none;margin-top:3px;stroke:var(--accent);fill:none;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
-.back-row{text-align:center;margin-top:16px}
-.dash-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;max-width:1180px;margin:0 auto;padding:18px 24px 6px}
-.dash-brand{display:flex;align-items:center;gap:9px;font:700 16px var(--display)}
-.dash-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.trial-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--tint2);border:1px solid rgba(37,99,235,.28);border-radius:999px;font:600 13px var(--sans);color:var(--blue);white-space:nowrap}
-html[data-theme=dark] .trial-badge{background:var(--tint);border-color:rgba(96,165,250,.28);color:var(--blue-l)}
-.trial-badge .tb-n{font:700 14px var(--mono)}
-.trial-badge.warn{background:var(--ambbg);border-color:rgba(180,83,9,.3);color:var(--amb)}
-.trial-badge.gone{background:var(--errbg);border-color:rgba(220,38,38,.3);color:var(--err)}
-.plan-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:999px;font:600 12px var(--sans);color:var(--mu);white-space:nowrap}
-.plan-chip.pro{background:linear-gradient(135deg,rgba(37,99,235,.18),rgba(37,99,235,.07));border-color:rgba(37,99,235,.32);color:var(--accent)}
-.plan-chip.ent{background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(124,58,237,.07));border-color:rgba(124,58,237,.32);color:#a78bfa}
-main{max-width:1180px;margin:0 auto;padding:8px 24px 56px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
-@media(max-width:900px){main{grid-template-columns:1fr;padding:8px 16px 40px}}
+.plan h2{font:700 20px var(--display);margin:0 0 8px}
+.plan .price{font:800 42px/1 var(--display);margin:0 0 12px}
+.plan ul{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:12px;flex:1}
+.plan li{display:flex;gap:10px;font-size:14.5px}
+.dash-bar{display:flex;align-items:center;justify-content:space-between;max-width:1180px;margin:0 auto;padding:18px 24px}
+main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:24px}
-html[data-theme=light] .panel{box-shadow:var(--sh-sm)}
-.panel>.field{padding-bottom:18px;border-bottom:1px solid var(--bdr)}
-.model-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
-.model-opt{border:1.5px solid var(--bdr2);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s;background:var(--surf2)}
-.model-opt:hover{border-color:var(--blue)}
-.model-opt.sel{border-color:var(--blue);background:var(--tint)}
-.model-opt b{font-size:13.5px;display:block}.model-opt small{color:var(--mu);font-size:12px}
-.pro-badge{font:700 11px var(--sans);background:var(--blue);color:#fff;padding:2px 7px;border-radius:4px;vertical-align:middle;margin-left:5px}
-.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:4px}
-.seg button{border:0;background:transparent;padding:9px 6px;border-radius:7px;color:var(--mu);font-weight:500;cursor:pointer;transition:background .15s,color .15s}
-.seg button:hover{color:var(--tx)}
-.seg button[aria-checked=true]{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.28)}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{border:1px solid var(--bdr2);background:transparent;color:var(--mu);padding:5px 11px;border-radius:999px;font-size:13px;cursor:pointer;transition:all .15s}
-.chip:hover{border-color:var(--blue);color:var(--tx)}
-.chip[aria-pressed=true]{background:var(--tint);border-color:var(--blue);color:var(--accent)}
-textarea{width:100%;min-height:112px;resize:vertical;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:11px 12px;line-height:1.55}
-textarea::placeholder{color:var(--dim)}
-#transcript{font:13px/1.6 var(--mono);min-height:96px}
-textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
-.costrow{display:flex;gap:9px;align-items:stretch;flex-wrap:wrap}
-.costrow .cost{width:144px;flex:none}
-.cost{position:relative}
-.cost span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--dim);font-family:var(--mono)}
-.cost input{width:100%;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:10px 10px 10px 24px;font-family:var(--mono);height:43px}
-.est{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:9px;border:1px solid var(--bdr2);background:var(--tint2);color:var(--blue);font-weight:600;font-size:13.5px;cursor:pointer;white-space:nowrap}
-.go{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;border:0;cursor:pointer;background:linear-gradient(180deg,var(--blue) 0%,var(--blue-h) 100%);color:#fff;font-weight:600;font-size:15px;padding:12px;border-radius:9px;box-shadow:0 4px 16px rgba(37,99,235,.26)}
-.spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
-.hint{margin:9px 0 0;text-align:center;color:var(--dim);font-size:12.5px}
-.result{position:sticky;top:14px;min-height:380px;display:flex;flex-direction:column}
-.empty{margin:auto;text-align:center;max-width:280px;color:var(--mu);padding:24px 0}
-.empty .ring{width:50px;height:50px;border-radius:50%;border:1px solid var(--bdr2);margin:0 auto 12px;display:grid;place-items:center;color:var(--dim)}
-.steps{display:flex;flex-direction:column;gap:12px;margin:6px 0 18px}
-.step{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:14px}
-.step i{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--bdr2);display:grid;place-items:center;font-style:normal;font-size:11px}
-.step.on{color:var(--tx)}.step.on i{border-color:var(--blue);border-top-color:transparent;animation:rot .8s linear infinite}
-.step.done{color:var(--mu)}.step.done i{background:var(--blue);border-color:var(--blue);color:#fff}
-.sk{height:11px;border-radius:6px;margin-bottom:9px;background:linear-gradient(90deg,var(--surf2) 25%,var(--bdr) 50%,var(--surf2) 75%);background-size:200% 100%;animation:sk 1.3s infinite}
-.verdict{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;animation:pop .22s}
-.badge{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-weight:600;font-size:13.5px}
-.badge.ok{background:var(--okbg);color:var(--ok);border:1px solid var(--okbdr)}
-.badge.no{background:var(--errbg);color:var(--err);border:1px solid var(--errbdr)}
-.conf{font:12px var(--mono);color:var(--mu)}
-.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
-.fact{background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:9px 10px}
-.fact small{display:block;color:var(--dim);font-size:12px}
-.fact b{font:700 14.5px 'Manrope',var(--sans);font-variant-numeric:tabular-nums}
-.fact b.g{color:var(--accent)}
-.claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:13px;font:13px/1.7 var(--mono);color:var(--tx2);white-space:pre-wrap;max-height:270px;overflow:auto;margin-bottom:12px}
-.why{background:var(--errbg);border:1px solid var(--errbdr);border-radius:9px;padding:12px 13px;margin-bottom:12px;color:var(--tx2)}
-.why b{color:var(--err)}
-.actions{display:flex;gap:8px;flex-wrap:wrap}
-.action-btn{flex:1;min-width:130px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer;border:1px solid var(--bdr2);background:var(--surf2);color:var(--tx);font-size:14px}
-.action-btn.copied{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
-.ledger small{display:block;font-size:12px;color:var(--mu)}
-.ledger b{font:800 23px/1 'Manrope',var(--sans);letter-spacing:-.02em}
-.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,18px);background:#0f172a;color:#fff;border:1px solid #1e3a5f;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;font-size:14px;font-weight:500;z-index:90;white-space:nowrap}
+.claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:16px;font:13.5px/1.7 var(--mono);white-space:pre-wrap;max-height:300px;overflow:auto;margin-bottom:14px}
+.gmail-card{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:8px;padding:12px}
+.gmail-card.connected{border-color:var(--ok);background:var(--okbg)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px;z-index:100;backdrop-filter:blur(4px)}
+.modal{width:100%;max-width:470px;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;z-index:90}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;z-index:100;backdrop-filter:blur(4px)}
-.modal{width:100%;max-width:470px;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px;box-shadow:0 22px 56px rgba(0,0,0,.4)}
-.modal-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
-.close-btn{border:0;background:none;font-size:24px;line-height:1;color:var(--mu);cursor:pointer}
 </style>
 </head>
 <body>
@@ -222,13 +110,7 @@ textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,9
   <button class="nav" id="backBtn" type="button"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back</button>
   <button class="nav" id="fbOpen" type="button"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback</button>
   <span class="sp"></span>
-  <button class="ws-sw" id="wsSw" type="button" style="display:none">
-    <span class="dot"></span><span id="wsSwName">Workspace</span>
-  </button>
-  <button class="nav icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
-    <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-    <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-  </button>
+  <button class="nav icon-btn" id="themeBtn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
 </header>
 
 <div class="page active" id="pg-auth">
@@ -237,50 +119,57 @@ textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,9
     <div class="logo-m"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76" stroke="white" stroke-width="9" stroke-linecap="round"/></svg></div>
     LeadClaw
   </div>
-  <ol class="stepper" id="stepper">
-    <li class="st on"><i>1</i><span>Account</span></li>
-    <li class="st"><i>2</i><span>Workspace</span></li>
-    <li class="st"><i>3</i><span>Plan</span></li>
+  <ol class="stepper">
+    <li class="st on" id="st1"><i>1</i><span>Account</span></li>
+    <li class="st" id="st2"><i>2</i><span>Workspace</span></li>
+    <li class="st" id="st3"><i>3</i><span>Plan</span></li>
   </ol>
   <div class="card">
     <div class="view" id="v-email">
-      <h1 id="authTitle">Welcome to LeadClaw</h1>
+      <h1>Welcome to LeadClaw</h1>
       <p class="sub">Recover money from bad leads in minutes.</p>
       <div class="tabs">
         <button class="tab on" id="tabSignup" type="button">Sign up</button>
         <button class="tab" id="tabLogin" type="button">Log in</button>
       </div>
-      <button class="btn g-btn" id="googleBtn" type="button">
-        <svg class="g-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
-        Continue with Google
-      </button>
-      <div class="or-div">or</div>
-      <div class="field"><label>Email address</label>
+      <button class="btn g-btn" id="googleBtn" type="button">Continue with Google</button>
+      <div style="text-align:center; color:var(--dim); font-size:13px; margin:16px 0;">or continue with email verification code</div>
+      <div class="field">
+        <label>Email address</label>
         <input class="inp" id="emailInp" type="email" placeholder="you@company.com">
-        <p class="err-msg" id="emailErr"></p></div>
-      <button class="btn" id="emailGo" type="button">Send verification code</button>
+        <p class="err-msg" id="emailErr"></p>
+      </div>
+      <button class="btn" id="emailGo" type="button">Send Verification Code</button>
     </div>
 
-    <div class="view center" id="v-code" hidden>
+    <div class="view" id="v-code" hidden>
       <h1>Check your email</h1>
-      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget"></b>.</p>
-      <div class="field"><input class="inp code-inp" id="codeInp" maxlength="6" placeholder="000000"><p class="err-msg" id="codeErr"></p></div>
-      <div class="stack">
-        <button class="btn" id="codeGo" type="button">Confirm code</button>
-        <button class="btn sec sm" id="resendBtn" type="button">Resend code</button>
+      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget"></b> (check Render deployment logs).</p>
+      <div class="field">
+        <input class="inp code-inp" id="codeInp" maxlength="6" placeholder="000000">
+        <p class="err-msg" id="codeErr"></p>
       </div>
+      <button class="btn" id="codeGo" type="button">Confirm Code</button>
     </div>
 
     <div class="view" id="v-terms" hidden>
       <h1>Set up your workspace</h1>
-      <p class="sub">Name your business and agree to continue.</p>
-      <div class="field"><label>Business name</label>
-        <input class="inp" id="wsName" type="text" placeholder="Apex Roofing">
-        <p class="err-msg" id="wsErr"></p></div>
-      <button class="btn" id="termsGo" type="button">Continue to plan selection</button>
+      <p class="sub">Enter your contractor business name and connect Gmail.</p>
+      <div class="field">
+        <label>Business Name</label>
+        <input class="inp" id="wsName" type="text" placeholder="Apex Roofing & Plumbing">
+        <p class="err-msg" id="wsErr"></p>
+      </div>
+      <div class="field">
+        <div class="gmail-card" id="gmailCard">
+          <div><b>Connect Gmail</b><p style="margin:2px 0 0; color:var(--mu); font-size:13px;">Auto-detect lead receipts.</p></div>
+          <button class="btn sec sm" id="gmailBtn" type="button" style="width:auto; height:36px; font-size:13px;">Connect</button>
+        </div>
+      </div>
+      <button class="btn" id="termsGo" type="button" style="margin-top:10px;">Continue to Plans</button>
     </div>
 
-    <div class="view" id="v-plans" hidden style="max-width:1180px">
+    <div class="view" id="v-plans" hidden style="max-width:1200px; margin:0 auto;">
       <div class="trial-banner">3 free AI disputes included. No credit card required.</div>
       <div class="plans" id="plansGrid"></div>
     </div>
@@ -290,192 +179,273 @@ textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,9
 
 <div class="page" id="pg-dash">
   <div class="dash-bar">
-    <div class="dash-brand">
-      <div class="logo-m" style="width:28px;height:28px"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76" stroke="white" stroke-width="9" stroke-linecap="round"/></svg></div>
-      <span id="dashWsName">LeadClaw</span>
-    </div>
-    <div class="dash-right">
-      <div class="ledger"><small>Recovered</small><b id="total">\$0.00</b></div>
-      <div class="trial-badge" id="trialBadge">Disputes left: <span class="tb-n" id="trialCount">3</span></div>
-    </div>
+    <div class="dash-brand"><b id="dashWsName">LeadClaw Workspace</b></div>
+    <div><span style="color:var(--blue); font-weight:600;">Free disputes left: <b id="trialCount">3</b></span></div>
   </div>
   <main>
     <section class="panel">
-      <h1>Lead credit request</h1>
-      <p class="sub">Fill in the details. We check the platform policy and write the claim.</p>
-      <div class="field"><span class="lbl">Lead platform</span>
-        <div class="seg" id="platforms"></div></div>
-      <div class="field"><label for="notes">Call notes</label>
-        <textarea id="notes" placeholder="e.g. Called twice, number disconnected."></textarea></div>
-      <div class="field"><label for="cost">Lead cost (\$)</label>
-        <div class="costrow">
-          <div class="cost"><span>\$</span><input id="cost" value="85.00"></div>
-        </div></div>
-      <button class="go" id="go" disabled><span id="goTxt">Check &amp; build claim</span></button>
+      <h1>Lead Credit Request</h1>
+      <p class="sub">Select your platform and submit notes to generate an AI dispute claim.</p>
+      <div class="field">
+        <label>Platform</label>
+        <div class="seg" id="platforms" style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px;"></div>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="notes" class="inp" style="height:110px; padding-top:10px;" placeholder="Describe why the lead is invalid..."></textarea>
+      </div>
+      <div class="field">
+        <label>Cost (\$)</label>
+        <input id="cost" class="inp" value="85.00">
+      </div>
+      <button class="btn" id="go" disabled>Generate Dispute Claim</button>
     </section>
-    <section class="panel result" id="result"></section>
+    <section class="panel" id="result">
+      <div style="color:var(--mu); text-align:center; padding:60px 0;">
+        Your generated claim will appear here instantly.
+      </div>
+    </section>
   </main>
 </div>
 
 <div class="ov" id="fbModal" hidden>
   <div class="modal">
-    <div class="modal-hd">
-      <h1>Feedback</h1>
-      <button class="close-btn" id="fbClose">&times;</button>
+    <h1>Send Feedback</h1>
+    <p class="sub">Directly logs to your Render database.</p>
+    <div class="field">
+      <label>Message</label>
+      <textarea class="inp" id="fbMsg" style="height:100px; padding-top:10px;" placeholder="Your feedback or feature request..."></textarea>
     </div>
-    <div class="field"><label>Message</label><textarea class="inp" id="fbMsg" style="height:100px" placeholder="Your feedback..."></textarea></div>
-    <button class="btn" id="fbSend" type="button">Send feedback</button>
+    <div style="display:flex; gap:10px;">
+      <button class="btn" id="fbSend" type="button">Submit Feedback</button>
+      <button class="btn sec" id="fbClose" type="button">Cancel</button>
+    </div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const API_BASE = 'https://leadclaw-api.onrender.com';
+// Pointing to your Render backend URL
+const API_BASE         = 'https://leadclaw-api.onrender.com';
 const GOOGLE_CLIENT_ID = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com';
 
-(()=>{
-'use strict';
-const \$ = id => document.getElementById(id);
-const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}\$/.test(e);
-const money = n => '\$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-const store = {
-  get(k){try{return localStorage.getItem(k)}catch{return null}},
-  set(k,v){try{localStorage.setItem(k,v)}catch{}},
-  del(k){try{localStorage.removeItem(k)}catch{}}
-};
-
-let toastT;
-function toast(m){const t=\$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
-
-const root = document.documentElement;
-function setTheme(t){root.setAttribute('data-theme',t);store.set('lc_theme',t);}
-\$('themeBtn').onclick = () => setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
-setTheme(store.get('lc_theme')||'light');
-
-function deviceToken(){
-  let t=store.get('lc_device_token');
-  if(!t){t='lc_'+Math.random().toString(36).slice(2,11)+'_'+Date.now();store.set('lc_device_token',t);}
-  return t;
-}
-
-function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));window.scrollTo({top:0,behavior:'smooth'});}
-\$('backBtn').onclick = () => {if(confirm('Sign out?'))logout();}
-
-const AUTH = {email:'',ws:'',plan:''};
 const PLANS_DEF = [
-  {id:'solo',name:'Solo',price:29,features:['25 AI disputes/mo','Text notes','Email support']},
-  {id:'growth',name:'Growth Pro',price:59,pop:true,features:['Unlimited AI disputes','Audio/PDF evidence','Gmail send']},
-  {id:'crew',name:'Enterprise',price:129,features:['Everything in Growth Pro','Team seats','Analytics']}
+  { id: 'solo', name: 'Standard Solo', price: 29, features: ['25 AI disputes per month', 'Formatted text claims', 'SQLite ledger tracking', 'Email support'] },
+  { id: 'growth', name: 'Growth Pro', price: 59, pop: true, features: ['Unlimited AI disputes', 'Audio/PDF evidence upload', 'Gmail direct compose button', 'Priority processing'] },
+  { id: 'crew', name: 'Enterprise', price: 129, features: ['Everything in Growth Pro', 'Multi-user team seats', 'Advanced analytics dashboard', 'White-glove onboarding'] }
 ];
 
-function getPlan(){return store.get('lc_plan')||'solo';}
-function getTrialLeft(){return parseInt(store.get('lc_trial_left')||3);}
+(function() {
+  const \$ = id => document.getElementById(id);
+  const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}\$/.test(e);
 
-window.onload = function() {
-  if (typeof google !== 'undefined') {
-    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleResponse });
+  function toast(m) {
+    const t = \$('toast'); t.textContent = m; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
   }
-};
-\$('googleBtn').onclick = () => { if (typeof google !== 'undefined') google.accounts.id.prompt(); };
 
-async function handleGoogleResponse(res) {
-  try {
-    const r = await fetch(API_BASE + '/api/auth/google', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: res.credential })
-    });
-    const d = await r.json();
-    AUTH.email = d.email;
-    showView('terms');
-  } catch { toast('Google sign-in failed'); }
-}
-
-\$('emailGo').onclick = async () => {
-  const email = \$('emailInp').value.trim();
-  if(!validEmail(email)){\$('emailErr').textContent='Invalid email';return;}
-  AUTH.email = email;
-  const r = await fetch(API_BASE+'/api/auth/send-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
-  const d = await r.json();
-  \$('codeTarget').textContent = email;
-  showView('code');
-  if(d.debug_code) toast('Code: '+d.debug_code);
-};
-
-\$('codeGo').onclick = async () => {
-  const code = \$('codeInp').value.trim();
-  const r = await fetch(API_BASE+'/api/auth/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,code})});
-  if(r.ok) showView('terms'); else \$('codeErr').textContent='Invalid code';
-};
-
-\$('termsGo').onclick = () => {
-  const ws = \$('wsName').value.trim();
-  if(!ws){\$('wsErr').textContent='Enter business name';return;}
-  AUTH.ws = ws; showView('plans'); renderPlans();
-};
-
-function renderPlans(){
-  \$('plansGrid').innerHTML = PLANS_DEF.map(p=>`
-    <article class="plan${p.pop?' pop':''}">
-      ${p.pop?'<span class="pop-tag">Popular</span>':''}
-      <h2>${p.name}</h2>
-      <div class="price">$${p.price}<small>/mo</small></div>
-      <ul>${p.features.map(f=>`<li><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg><span>\${f}</span></li>`).join('')}</ul>
-      <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Select</button>
-    </article>
-  `).join('');
-}
-
-window.selectPlan = async (planId) => {
-  AUTH.plan = planId;
-  store.set('lc_user', JSON.stringify({email:AUTH.email}));
-  store.set('lc_workspace', AUTH.ws);
-  store.set('lc_plan', planId);
-  await fetch(API_BASE+'/api/auth/setup-workspace',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,workspace:AUTH.ws,plan:planId,device_token:deviceToken()})});
-  enterDashboard();
-};
-
-function logout(){store.del('lc_user');store.del('lc_workspace');location.reload();}
-function enterDashboard(){showPage('pg-dash');dashInit();}
-
-function showView(v){
-  ['email','code','terms','plans'].forEach(id=>\$('v-'+id).hidden=(id!==v));
-  if(v==='plans') document.body.classList.add('wide-view');
-}
-
-function dashInit(){
-  \$('dashWsName').textContent = AUTH.ws || store.get('lc_workspace') || 'LeadClaw';
-  const plats = ['Angi','Thumbtack','Porch','Networx'];
-  let cur = 'Angi';
-  \$('platforms').innerHTML = plats.map(p=>`<button type="button" aria-checked="${p===cur}" onclick="setPlat('${p}',this)">${p}</button>`).join('');
-  window.setPlat = (p,b) => { cur=p; [...\$('platforms').children].forEach(x=>x.setAttribute('aria-checked',x===b)); };
-
-  \$('notes').oninput = () => { $('go').disabled = !$('notes').value.trim(); };
-
-  \$('go').onclick = async () => {
-    const fd = new FormData();
-    fd.append('platform', cur); fd.append('notes', \$('notes').value);
-    fd.append('cost', \$('cost').value); fd.append('email', AUTH.email);
-    fd.append('device_token', deviceToken());
-    const r = await fetch(API_BASE+'/api/dispute',{method:'POST',body:fd});
-    const d = await r.json();
-    \$('trialCount').textContent = d.trials_left;
-    \$('result').innerHTML = `<div class="claim-box">${d.claim}</div><button class="action-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(d.claim)});toast('Copied!');">Copy claim</button>`;
+  \$('themeBtn').onclick = () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('lc_theme', next);
   };
-}
 
-$('fbOpen').onclick = () =>$('fbModal').hidden=false;
-$('fbClose').onclick = () =>$('fbModal').hidden=true;
-\$('fbSend').onclick = async () => {
-  await fetch(API_BASE+'/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:\$('fbMsg').value,email:AUTH.email,workspace:AUTH.ws})});
-  toast('Feedback sent!'); \$('fbModal').hidden=true;
-};
+  function getDeviceToken() {
+    let t = localStorage.getItem('lc_token');
+    if (!t) { t = 'dev_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('lc_token', t); }
+    return t;
+  }
 
-if(store.get('lc_user')){
-  try{AUTH.email=JSON.parse(store.get('lc_user')).email;}catch{}
-  AUTH.ws=store.get('lc_workspace');
-  if(AUTH.ws) enterDashboard();
-}
+  if (localStorage.getItem('lc_user')) {
+    showPage('pg-dash');
+    initDash();
+  }
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
+    document.body.classList.toggle('wide-view', id === 'pg-auth' && !\$('v-plans').hidden);
+  }
+
+  $('tabSignup').onclick = () => {$('tabSignup').classList.add('on'); $('tabLogin').classList.remove('on'); };$('tabLogin').onclick = () => { $('tabLogin').classList.add('on');$('tabSignup').classList.remove('on'); };
+
+  // Google Sign-In Initialization
+  window.onload = function() {
+    if (typeof google !== 'undefined') {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleResponse
+      });
+    }
+  };
+
+  \$('googleBtn').onclick = () => {
+    if (typeof google !== 'undefined') {
+      google.accounts.id.prompt();
+    } else {
+      toast('Google Sign-In loading...');
+    }
+  };
+
+  async function handleGoogleResponse(response) {
+    try {
+      const res = await fetch(API_BASE + '/api/auth/google', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: response.credential })
+      });
+      const data = await res.json();
+      localStorage.setItem('lc_temp_email', data.email);
+      \$('v-email').hidden = true;
+      \$('v-terms').hidden = false;
+      $('st1').className = 'st done';$('st2').className = 'st on';
+      toast('Google account authenticated!');
+    } catch {
+      toast('Google authentication failed.');
+    }
+  }
+
+  // Email Code Flow
+  \$('emailGo').onclick = async () => {
+    const email = \$('emailInp').value.trim();
+    if (!validEmail(email)) { $('emailErr').textContent = 'Enter a valid email address.'; return; }$('emailErr').textContent = '';
+
+    const res = await fetch(API_BASE + '/api/auth/send-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.status === 'success') {
+      localStorage.setItem('lc_temp_email', email);
+      \$('codeTarget').textContent = email;
+      \$('v-email').hidden = true;
+      \$('v-code').hidden = false;
+      toast('Verification code sent! Check Render logs.');
+    }
+  };
+
+  \$('codeGo').onclick = async () => {
+    const email = localStorage.getItem('lc_temp_email');
+    const code = \$('codeInp').value.trim();
+    if (code.length !== 6) { $('codeErr').textContent = 'Enter 6-digit code.'; return; }$('codeErr').textContent = '';
+
+    const res = await fetch(API_BASE + '/api/auth/verify-code', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code })
+    });
+    if (res.ok) {
+      \$('v-code').hidden = true;
+      \$('v-terms').hidden = false;
+      $('st1').className = 'st done';$('st2').className = 'st on';
+      toast('Email verified successfully!');
+    } else {
+      \$('codeErr').textContent = 'Invalid verification code.';
+    }
+  };
+
+  let gmailConnected = false;
+  \$('gmailBtn').onclick = async () => {
+    gmailConnected = !gmailConnected;
+    $('gmailCard').classList.toggle('connected', gmailConnected);$('gmailBtn').textContent = gmailConnected ? 'Connected' : 'Connect';
+    const email = localStorage.getItem('lc_temp_email') || 'user@gmail.com';
+    await fetch(API_BASE + '/api/auth/connect-gmail', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, connected: gmailConnected })
+    });
+    toast(gmailConnected ? 'Gmail connection established!' : 'Gmail disconnected.');
+  };
+
+  \$('termsGo').onclick = () => {
+    const ws = \$('wsName').value.trim();
+    if (!ws) { \$('wsErr').textContent = 'Enter business name.'; return; }
+    localStorage.setItem('lc_temp_ws', ws);
+    \$('v-terms').hidden = true;
+    \$('v-plans').hidden = false;
+    document.body.classList.add('wide-view');
+    $('st2').className = 'st done';$('st3').className = 'st on';
+    renderPlans();
+  };
+
+  function renderPlans() {
+    \$('plansGrid').innerHTML = PLANS_DEF.map(p => `
+      <article class="plan ${p.pop ? 'pop' : ''}">
+        ${p.pop ? '<div class="pop-tag">MOST POPULAR</div>' : ''}
+        <h2>${p.name}</h2>
+        <div class="price">$${p.price}<span style="font-size:16px; font-weight:500; color:var(--mu);">/mo</span></div>
+        <ul>${p.features.map(f => `<li>✓ <span>\${f}</span></li>`).join('')}</ul>
+        <button class="btn" onclick="selectPlan('${p.id}')" style="margin-top:auto;">Select Plan</button>
+      </article>
+    `).join('');
+  }
+
+  window.selectPlan = async (planId) => {
+    const email = localStorage.getItem('lc_temp_email') || 'user@gmail.com';
+    const workspace = localStorage.getItem('lc_temp_ws') || 'My Workspace';
+    
+    await fetch(API_BASE + '/api/auth/setup-workspace', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, workspace, plan: planId, device_token: getDeviceToken() })
+    });
+
+    localStorage.setItem('lc_user', email);
+    localStorage.setItem('lc_workspace', workspace);
+    localStorage.setItem('lc_plan', planId);
+
+    document.body.classList.remove('wide-view');
+    showPage('pg-dash');
+    initDash();
+    toast('Workspace ready!');
+  };
+
+  \$('fbOpen').onclick = () => { $('fbModal').hidden = false; };$('fbClose').onclick = () => { $('fbModal').hidden = true; };$('fbSend').onclick = async () => {
+    const message = \$('fbMsg').value.trim();
+    if (!message) { toast('Enter a message'); return; }
+
+    await fetch(API_BASE + '/api/feedback', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: localStorage.getItem('lc_user') || 'anon', workspace: localStorage.getItem('lc_workspace') || '', message })
+    });
+
+    toast('Feedback logged to database!');
+    $('fbMsg').value = '';$('fbModal').hidden = true;
+  };
+
+  \$('backBtn').onclick = () => { localStorage.clear(); location.reload(); };
+
+  function initDash() {
+    \$('dashWsName').textContent = localStorage.getItem('lc_workspace') || 'LeadClaw Workspace';
+    const platforms = ['Angi', 'Thumbtack', 'Porch', 'Networx'];
+    let curPlat = 'Angi';
+
+    \$('platforms').innerHTML = platforms.map(p => `
+      <button type="button" class="btn ${p === curPlat ? '' : 'sec'}" onclick="setPlat('${p}', this)">${p}</button>
+    `).join('');
+
+    window.setPlat = (p, btn) => {
+      curPlat = p;
+      Array.from(\$('platforms').children).forEach(c => { c.className = 'btn sec'; });
+      btn.className = 'btn';
+    };
+
+    \$('notes').oninput = () => { $('go').disabled = !$('notes').value.trim(); };
+
+    \$('go').onclick = async () => {
+      const fd = new FormData();
+      fd.append('platform', curPlat);
+      fd.append('notes', \$('notes').value);
+      fd.append('cost', \$('cost').value);
+      fd.append('email', localStorage.getItem('lc_user') || '');
+      fd.append('device_token', getDeviceToken());
+
+      const res = await fetch(API_BASE + '/api/dispute', { method: 'POST', body: fd });
+      const data = await res.json();
+      \$('trialCount').textContent = data.trials_left;
+
+      \$('result').innerHTML = `
+        <div class="claim-box">${data.claim}</div>
+        <button class="btn" onclick="navigator.clipboard.writeText(${JSON.stringify(data.claim)});toast('Copied claim to clipboard!');">Copy Dispute Claim</button>
+      `;
+    };
+  }
 })();
 </script>
 </body>
