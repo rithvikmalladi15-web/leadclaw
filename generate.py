@@ -501,9 +501,8 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-// ── CONFIG ── Replace with your actual Google Client ID from Google Cloud Console ──
-const API_BASE         = 'http://localhost:8000'; // or your Render URL
-const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; 
+const API_BASE         = 'https://leadclaw-api.onrender.com'
+const GOOGLE_CLIENT_ID = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com'; 
 // ─────────────────────────────────────────────────────────────────────────
 
 (()=>{
