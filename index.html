@@ -372,7 +372,7 @@ html[data-theme=light] textarea,html[data-theme=light] .cost input{background:#f
 .why b{color:var(--err)}
 .actions{display:flex;gap:9px;flex-wrap:wrap}
 .action-btn{flex:1;min-width:140px;display:inline-flex;align-items:center;justify-content:center;gap:7px;
-  padding:11px 13px;border-radius:9px;font-weight:600;cursor:pointer;
+  padding:11px 13px;border-radius:999px;font-weight:600;cursor:pointer;
   border:1px solid var(--bdr2);background:var(--surf2);transition:all .15s;color:var(--tx)}
 .action-btn:hover{border-color:var(--blue);background:var(--tint)}
 .action-btn.copied{background:var(--okbg);border-color:var(--ok);color:var(--ok);animation:bump .25s}
@@ -381,7 +381,7 @@ html[data-theme=dark] .action-btn.primary{background:var(--surf2)}
 .action-btn:disabled{opacity:.5;cursor:default}
 .result-note{margin:10px 0 0;color:var(--dim);font-size:12.5px}
 
-/* delivery card (pro: gmail / basic: manual) */
+/* delivery card */
 .delivery-card{background:var(--surf2);border:1.5px solid var(--bdr);border-radius:10px;
   padding:16px;margin-top:14px;animation:pop .2s ease}
 .delivery-card h4{margin:0 0 6px;font-size:14.5px}
@@ -417,7 +417,7 @@ html[data-theme=dark] .ledger b{color:#eef3fc}
 /* toast */
 .toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));
   transform:translate(-50%,20px);background:#0f172a;color:#fff;border:1px solid #2a3759;
-  padding:10px 16px;border-radius:9px;opacity:0;pointer-events:none;
+  padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;
   transition:all .2s;font-size:14px;font-weight:500;z-index:90;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f7d}
@@ -458,14 +458,14 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
 </header>
 
 <!-- AUTH PAGE -->
-<div class="page" id="pg-auth">
+<div class="page active" id="pg-auth">
 <div class="auth-wrap">
   <div class="brand">
     <div class="logo-m"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4c3 3 4 8 3 16M11 4c3 3 4 8 3 16M17 4c3 3 4 8 3 16"/></svg></div>
     LeadClaw
   </div>
   <ol class="stepper" id="stepper">
-    <li class="st"><i><span>1</span></i><span>Account</span></li>
+    <li class="st on"><i><span>1</span></i><span>Account</span></li>
     <li class="st"><i><span>2</span></i><span>Workspace</span></li>
     <li class="st"><i><span>3</span></i><span>Plan</span></li>
   </ol>
@@ -501,7 +501,7 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
       <h1>Check your inbox</h1>
       <p class="sub">We sent a link to <b id="sentTo" style="color:var(--tx)"></b>. Click it then come back.</p>
       <div class="stack">
-        <button class="btn" id="verifiedBtn" type="button">I've verified — continue</button>
+        <button class="btn" id="verifiedBtn" type="button">I have verified — continue</button>
         <button class="btn sec sm" id="resendBtn" type="button">Resend link</button>
         <button class="link-btn" id="diffEmailBtn" type="button">Use a different email</button>
       </div>
@@ -544,7 +544,7 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
       <div class="field">
         <button class="check-row" id="agreeBtn" type="button" role="checkbox" aria-checked="false">
           <span class="cbox"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>
-          <div><span style="font-weight:600;font-size:14px">I agree to LeadClaw's Terms &amp; Policies</span>
+          <div><span style="font-weight:600;font-size:14px">I agree to LeadClaw Terms &amp; Policies</span>
             <p>Includes Terms of Service, Privacy Policy, and Refund Dispute Policies for Angi, Thumbtack, Porch and Networx.</p></div>
         </button>
         <p class="err-msg" id="termsErr" role="alert"></p></div>
@@ -558,7 +558,7 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
         Free Trial — 3 AI Disputes Included · No Card Required
       </div>
       <div class="plans" id="plansGrid"></div>
-      <div class="back-row"><button class="link-btn" id="plansBack" type="button">← Back</button></div>
+      <div class="back-row"><button class="link-btn" id="plansBack" type="button">&larr; Back</button></div>
     </div>
 
   </div>
@@ -585,9 +585,9 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
   <main>
     <section class="panel" aria-labelledby="h">
       <h1 id="h">Lead credit request</h1>
-      <p class="sub">Fill in the details. We check the platform's refund policy and write the claim if it qualifies.</p>
+      <p class="sub">Fill in the details. We check the platform refund policy and write the claim if it qualifies.</p>
 
-      <!-- AI model selector (Growth Pro / Enterprise only) -->
+      <!-- AI model selector -->
       <div class="field" id="modelSection" hidden>
         <span class="lbl">AI model <span class="pro-badge">Pro</span></span>
         <div class="model-sel" id="modelSel">
@@ -605,7 +605,7 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
       <div class="field"><label for="transcript">Transcript <span style="color:var(--dim);font-weight:400">optional</span></label>
         <textarea id="transcript" placeholder="Paste a call transcript here."></textarea></div>
 
-      <!-- File upload: Growth Pro and Enterprise only -->
+      <!-- File upload -->
       <div class="field" id="fileSection">
         <span class="lbl">Evidence <span style="color:var(--dim);font-weight:400">MP3, WAV or PDF</span></span>
         <div id="fileGate">
@@ -639,7 +639,7 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
     <section class="panel result" id="result" aria-live="polite"></section>
   </main>
 
-  <!-- quick tour -->
+  <!-- Quick tour -->
   <aside class="tour" id="tour" role="dialog" aria-label="Quick tour" hidden>
     <div class="tour-h"><span id="tourCount">Step 1 of 7</span><button type="button" id="tourX" aria-label="Close">&times;</button></div>
     <div class="tour-bar"><i id="tourBar"></i></div>
@@ -678,7 +678,7 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
       <div class="field"><label for="fbType">Type</label>
         <select class="inp" id="fbType"><option>Feature request</option><option>Feedback</option><option>Support question</option><option>Bug report</option></select></div>
       <div class="field"><label for="fbMsg">Message</label>
-        <textarea class="inp" id="fbMsg" rows="4" placeholder="Tell us what would improve LeadClaw…"></textarea>
+        <textarea class="inp" id="fbMsg" rows="4" placeholder="Tell us what would improve LeadClaw..."></textarea>
         <p class="err-msg" id="fbErr" role="alert"></p></div>
       <div class="field"><label for="fbEmail">Reply-to email <span style="color:var(--mu);font-weight:400">(optional)</span></label>
         <input class="inp" id="fbEmail" type="email" placeholder="you@company.com"></div>
@@ -698,50 +698,79 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
 // ── CONFIG ────────────────────────────────────────────────────────────────────
 const API_BASE          = 'https://leadclaw-api.onrender.com';
 const GOOGLE_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com'; 
-const GMAIL_SCOPES      = 'https://www.googleapis.com/auth/gmail.readonly';
 // ─────────────────────────────────────────────────────────────────────────────
 
-(()=>{
+(function(){
 'use strict';
-const $ = id => document.getElementById(id);
-const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
-const esc = s => s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const money = n => '$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const $ = function(id){ return document.getElementById(id); };
+const validEmail = function(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e); };
+const esc = function(s){ return s ? String(s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }) : ''; };
+const money = function(n){ return '$' + (+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); };
 const store = {
-  get(k){try{return localStorage.getItem(k)}catch{return null}},
-  set(k,v){try{localStorage.setItem(k,v)}catch{}},
-  del(k){try{localStorage.removeItem(k)}catch{}}
+  get: function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set: function(k,v){ try{ localStorage.setItem(k,v); }catch(e){} },
+  del: function(k){ try{ localStorage.removeItem(k); }catch(e){} }
 };
 
 let toastT;
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2400);}
+function toast(m){
+  const t = $('toast');
+  if(!t) return;
+  t.textContent = m;
+  t.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(function(){ t.classList.remove('show'); }, 2400);
+}
 
 // ── THEME ──────────────────────────────────────────────────────────────────
 const root = document.documentElement;
 function setTheme(t){
-  root.setAttribute('data-theme',t);store.set('lc_theme',t);
-  const b=$('themeBtn'),l='Switch to '+(t==='dark'?'light':'dark')+' mode';
-  b.setAttribute('aria-label',l);b.title=l;
+  root.setAttribute('data-theme', t);
+  store.set('lc_theme', t);
+  const b = $('themeBtn');
+  if(b){
+    const l = 'Switch to ' + (t === 'dark' ? 'light' : 'dark') + ' mode';
+    b.setAttribute('aria-label', l);
+    b.title = l;
+  }
 }
-$('themeBtn').onclick = () => setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
-setTheme(root.getAttribute('data-theme')==='dark'?'dark':'light');
+if($('themeBtn')){
+  $('themeBtn').onclick = function(){
+    setTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  };
+}
+setTheme(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
 
 // ── PAGE ROUTING ───────────────────────────────────────────────────────────
 function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-$('backBtn').onclick = () => {
-  if($('pg-dash').classList.contains('active')){
-    if(confirm('Sign out of LeadClaw?')) logout();
-  } else {
-    showPage('pg-auth'); syncStepper('email');
+  const pages = document.querySelectorAll('.page');
+  let found = false;
+  pages.forEach(function(p){
+    const isTarget = p.id === id;
+    p.classList.toggle('active', isTarget);
+    if(isTarget) found = true;
+  });
+  if(!found && pages.length > 0){
+    pages[0].classList.add('active');
   }
-};
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+if($('backBtn')){
+  $('backBtn').onclick = function(){
+    if($('pg-dash') && $('pg-dash').classList.contains('active')){
+      if(confirm('Sign out of LeadClaw?')) logout();
+    } else {
+      showPage('pg-auth');
+      syncStepper('email');
+      showView('email');
+    }
+  };
+}
 
 // ── SESSION STATE ──────────────────────────────────────────────────────────
 const TRIAL_MAX = 3;
-const AUTH = {email:'',method:'',ws:'',industry:'',gmail:false,agreed:false,plan:''};
+const AUTH = {email:'', method:'', ws:'', industry:'', gmail:false, agreed:false, plan:''};
 const PLANS_DEF = [
   {id:'solo',  name:'Solo Contractor',         price:29,  tier:1,
    features:['25 AI disputes per month','Text notes & quick-reason chips','Fully formatted dispute email (copy & paste)','Recovered money ledger tracking','Email support']},
@@ -751,43 +780,62 @@ const PLANS_DEF = [
    features:['Everything in Growth Pro','Multi-user seats & team dispatch','Platform analytics (Angi vs Thumbtack)','Custom dispute templates','Bulk dispute processing','White-glove onboarding']}
 ];
 
-function getPlan(){return store.get('lc_plan')||'solo';}
-function getPlanTier(){return (PLANS_DEF.find(p=>p.id===getPlan())||PLANS_DEF[0]).tier;}
-function getTrialLeft(){return parseInt(store.get('lc_trial_left')||TRIAL_MAX);}
-function setTrialLeft(n){store.set('lc_trial_left',Math.max(0,n));}
+function getPlan(){ return store.get('lc_plan') || 'solo'; }
+function getPlanTier(){ return (PLANS_DEF.find(function(p){ return p.id === getPlan(); }) || PLANS_DEF[0]).tier; }
+function getTrialLeft(){ return parseInt(store.get('lc_trial_left') || TRIAL_MAX); }
+function setTrialLeft(n){ store.set('lc_trial_left', Math.max(0, n)); }
 
 function updateTrialBadge(){
-  const n=getTrialLeft(),b=$('trialBadge'),c=$('trialCount');
-  c.textContent=n;b.className='trial-badge';
-  if(n<=0)b.classList.add('gone');
-  else if(n===1)b.classList.add('warn');
-  if(store.get('lc_plan_unlimited')==='1'){b.hidden=true;}
+  const n = getTrialLeft(), b = $('trialBadge'), c = $('trialCount');
+  if(!b || !c) return;
+  c.textContent = n;
+  b.className = 'trial-badge';
+  if(n <= 0) b.classList.add('gone');
+  else if(n === 1) b.classList.add('warn');
+  if(store.get('lc_plan_unlimited') === '1'){ b.hidden = true; }
 }
+
 function updatePlanChip(){
-  const p=getPlan(),chip=$('planChip');
-  chip.className='plan-chip';
-  if(p==='growth'){chip.textContent='Growth Pro';chip.classList.add('pro');}
-  else if(p==='crew'){chip.textContent='Enterprise';chip.classList.add('ent');}
-  else{chip.textContent='Solo';}
+  const p = getPlan(), chip = $('planChip');
+  if(!chip) return;
+  chip.className = 'plan-chip';
+  if(p === 'growth'){ chip.textContent = 'Growth Pro'; chip.classList.add('pro'); }
+  else if(p === 'crew'){ chip.textContent = 'Enterprise'; chip.classList.add('ent'); }
+  else{ chip.textContent = 'Solo'; }
 }
+
 function applyPlanGating(){
-  const tier=getPlanTier();
-  $('fileLock').hidden = tier>=2;
-  $('dropWrap').hidden = tier<2;
-  $('modelSection').hidden = tier<2;
-  if($('gmailDashCard')) $('gmailDashCard').hidden = tier<2;
+  const tier = getPlanTier();
+  if($('fileLock')) $('fileLock').hidden = tier >= 2;
+  if($('dropWrap')) $('dropWrap').hidden = tier < 2;
+  if($('modelSection')) $('modelSection').hidden = tier < 2;
+  if($('gmailDashCard')) $('gmailDashCard').hidden = tier < 2;
 }
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 function boot(){
-  initGoogleAuth();
-  const u=store.get('lc_user');
-  if(u){
-    try{const d=JSON.parse(u);AUTH.email=d.email||'';AUTH.method=d.method||'';}catch{}
-    AUTH.ws=store.get('lc_workspace')||'';AUTH.plan=getPlan();
-    if(AUTH.ws&&AUTH.plan){enterDashboard();return;}
+  try {
+    initGoogleAuth();
+    const u = store.get('lc_user');
+    if(u){
+      try{
+        const d = JSON.parse(u);
+        AUTH.email = d.email || '';
+        AUTH.method = d.method || '';
+      }catch(e){}
+      AUTH.ws = store.get('lc_workspace') || '';
+      AUTH.plan = getPlan();
+      if(AUTH.ws && AUTH.plan){
+        enterDashboard();
+        return;
+      }
+    }
+  } catch(err) {
+    console.warn('Boot warning:', err);
   }
-  showPage('pg-auth');syncStepper('email');showView('email');
+  showPage('pg-auth');
+  syncStepper('email');
+  showView('email');
 }
 
 // ── GOOGLE AUTH INTEGRATION ───────────────────────────────────────────────
@@ -836,198 +884,318 @@ function initGoogleAuth() {
   }
 }
 
-$('googleBtn').onclick = () => {
-  if (window.google && google.accounts) {
-    google.accounts.id.prompt((notification) => {
-      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        google.accounts.id.renderButton(
-          $('googleBtn'),
-          { theme: 'outline', size: 'large', width: '100%' }
-        );
-        toast('Click the Google button again to select your account.');
-      }
-    });
-  } else {
-    AUTH.email = 'user@gmail.com';
-    AUTH.method = 'google';
-    const existingWs = store.get('lc_workspace');
-    if (existingWs) {
-      saveSession();
-      enterDashboard();
+if($('googleBtn')) {
+  $('googleBtn').onclick = function(){
+    if (window.google && google.accounts) {
+      google.accounts.id.prompt(function(notification){
+        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+          google.accounts.id.renderButton(
+            $('googleBtn'),
+            { theme: 'outline', size: 'large', width: '100%' }
+          );
+          toast('Click the Google button again to select your account.');
+        }
+      });
     } else {
-      showView('terms');
+      AUTH.email = 'user@gmail.com';
+      AUTH.method = 'google';
+      const existingWs = store.get('lc_workspace');
+      if (existingWs) {
+        saveSession();
+        enterDashboard();
+      } else {
+        showView('terms');
+      }
     }
-  }
-};
+  };
+}
 
 // ── STEPPER ────────────────────────────────────────────────────────────────
-const VIEW_STEP={email:1,sent:1,pass:1,terms:2,plans:3};
+const VIEW_STEP = {email:1, sent:1, pass:1, terms:2, plans:3};
 function syncStepper(v){
-  const n=VIEW_STEP[v]||1;
-  document.querySelectorAll('.st').forEach((el,i)=>{
-    el.classList.toggle('on',i+1===n);
-    el.classList.toggle('done',i+1<n);
+  const n = VIEW_STEP[v] || 1;
+  document.querySelectorAll('.st').forEach(function(el, i){
+    el.classList.toggle('on', i + 1 === n);
+    el.classList.toggle('done', i + 1 < n);
   });
 }
 
 // ── VIEW SWITCHER ──────────────────────────────────────────────────────────
 function showView(v){
-  ['email','sent','pass','terms','plans'].forEach(id=>{
-    const el=$('v-'+id);if(el)el.hidden=id!==v;
+  ['email','sent','pass','terms','plans'].forEach(function(id){
+    const el = $('v-' + id);
+    if(el) el.hidden = id !== v;
   });
-  document.body.classList.toggle('wide-view',v==='plans');
+  document.body.classList.toggle('wide-view', v === 'plans');
   syncStepper(v);
-  const first=document.querySelector('#v-'+v+' .inp, #v-'+v+' .btn');
-  if(first)setTimeout(()=>first.focus({preventScroll:true}),80);
+  const first = document.querySelector('#v-' + v + ' .inp, #v-' + v + ' .btn');
+  if(first) setTimeout(function(){ first.focus({preventScroll:true}); }, 80);
 }
 
 // ── AUTH TABS ──────────────────────────────────────────────────────────────
-let isSignup=true;
+let isSignup = true;
 function setMode(signup){
-  isSignup=signup;
-  $('tabSignup').classList.toggle('on',signup);
-  $('tabLogin').classList.toggle('on',!signup);
-  $('authTitle').textContent=signup?'Create your account':'Welcome back';
-  $('authSub').textContent=signup?'Start with 3 free AI disputes — no card needed.':'Sign in to your LeadClaw workspace.';
-  $('pwLoginField').hidden=signup;
-  $('emailGo').textContent=signup?'Continue':'Sign in';
-  $('emailErr').textContent='';$('loginErr').textContent='';
+  isSignup = signup;
+  if($('tabSignup')) $('tabSignup').classList.toggle('on', signup);
+  if($('tabLogin')) $('tabLogin').classList.toggle('on', !signup);
+  if($('authTitle')) $('authTitle').textContent = signup ? 'Create your account' : 'Welcome back';
+  if($('authSub')) $('authSub').textContent = signup ? 'Start with 3 free AI disputes — no card needed.' : 'Sign in to your LeadClaw workspace.';
+  if($('pwLoginField')) $('pwLoginField').hidden = signup;
+  if($('emailGo')) $('emailGo').textContent = signup ? 'Continue' : 'Sign in';
+  if($('emailErr')) $('emailErr').textContent = '';
+  if($('loginErr')) $('loginErr').textContent = '';
 }
-$('tabSignup').onclick=()=>setMode(true);
-$('tabLogin').onclick=()=>setMode(false);
+if($('tabSignup')) $('tabSignup').onclick = function(){ setMode(true); };
+if($('tabLogin')) $('tabLogin').onclick = function(){ setMode(false); };
 
 // ── EMAIL FLOW ─────────────────────────────────────────────────────────────
 function tryEmailGo(){
-  const em=$('emailInp').value.trim();
-  if(!validEmail(em)){$('emailErr').textContent='Enter a valid email.';$('emailInp').classList.add('bad');return;}
-  $('emailErr').textContent='';$('emailInp').classList.remove('bad');
-  AUTH.email=em;AUTH.method='email';
-  if(!isSignup){
-    const saved=store.get('lc_user');
-    if(!saved){$('loginErr').textContent='No account found — sign up first.';return;}
-    AUTH.ws=store.get('lc_workspace')||'';AUTH.plan=getPlan();
-    if(!$('pwLogin').value){$('pwLoginField').hidden=false;$('pwLogin').focus();return;}
-    saveSession();enterDashboard();return;
+  const em = $('emailInp').value.trim();
+  if(!validEmail(em)){
+    $('emailErr').textContent = 'Enter a valid email.';
+    $('emailInp').classList.add('bad');
+    return;
   }
-  $('sentTo').textContent=em;
-  showView('sent');startCooldown();
+  $('emailErr').textContent = '';
+  $('emailInp').classList.remove('bad');
+  AUTH.email = em;
+  AUTH.method = 'email';
+  if(!isSignup){
+    const saved = store.get('lc_user');
+    if(!saved){
+      $('loginErr').textContent = 'No account found — sign up first.';
+      return;
+    }
+    AUTH.ws = store.get('lc_workspace') || '';
+    AUTH.plan = getPlan();
+    if(!$('pwLogin').value){
+      $('pwLoginField').hidden = false;
+      $('pwLogin').focus();
+      return;
+    }
+    saveSession();
+    enterDashboard();
+    return;
+  }
+  $('sentTo').textContent = em;
+  showView('sent');
+  startCooldown();
 }
-$('emailGo').onclick=tryEmailGo;
-$('emailInp').addEventListener('keydown',e=>{if(e.key==='Enter')tryEmailGo();});
-$('emailInp').addEventListener('input',()=>{$('emailInp').classList.remove('bad');$('emailErr').textContent='';});
-$('pwLogin').addEventListener('keydown',e=>{if(e.key==='Enter')tryEmailGo();});
-$('pwLoginShow').onclick=()=>{const i=$('pwLogin'),h=i.type==='password';i.type=h?'text':'password';$('pwLoginShow').textContent=h?'Hide':'Show';};
 
-let coolTimer,coolLeft=0;
+if($('emailGo')) $('emailGo').onclick = tryEmailGo;
+if($('emailInp')) $('emailInp').addEventListener('keydown', function(e){ if(e.key === 'Enter') tryEmailGo(); });
+if($('emailInp')) $('emailInp').addEventListener('input', function(){ $('emailInp').classList.remove('bad'); $('emailErr').textContent = ''; });
+if($('pwLogin')) $('pwLogin').addEventListener('keydown', function(e){ if(e.key === 'Enter') tryEmailGo(); });
+if($('pwLoginShow')) $('pwLoginShow').onclick = function(){
+  const i = $('pwLogin'), h = i.type === 'password';
+  i.type = h ? 'text' : 'password';
+  $('pwLoginShow').textContent = h ? 'Hide' : 'Show';
+};
+
+let coolTimer, coolLeft = 0;
 function startCooldown(){
-  coolLeft=30;clearInterval(coolTimer);const b=$('resendBtn');b.disabled=true;
-  function tick(){b.textContent=coolLeft>0?`Resend (${coolLeft}s)`:'Resend link';if(coolLeft<=0){clearInterval(coolTimer);b.disabled=false;}coolLeft--;}
-  tick();coolTimer=setInterval(tick,1000);
+  coolLeft = 30;
+  clearInterval(coolTimer);
+  const b = $('resendBtn');
+  if(!b) return;
+  b.disabled = true;
+  function tick(){
+    b.textContent = coolLeft > 0 ? 'Resend (' + coolLeft + 's)' : 'Resend link';
+    if(coolLeft <= 0){
+      clearInterval(coolTimer);
+      b.disabled = false;
+    }
+    coolLeft--;
+  }
+  tick();
+  coolTimer = setInterval(tick, 1000);
 }
-$('resendBtn').onclick=()=>{$('resendMsg').textContent='New link sent to '+AUTH.email+'.';startCooldown();};
-$('diffEmailBtn').onclick=()=>{clearInterval(coolTimer);showView('email');};
-$('verifiedBtn').onclick=()=>showView('pass');
 
-// password
-function pwScore(p){let s=0;if(p.length>=8)s++;if(p.length>=12)s++;if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;return s;}
-$('pw1').addEventListener('input',()=>{
-  const p=$('pw1').value,sc=pwScore(p),bar=$('meterBar');
-  bar.style.width=Math.min(100,sc*20)+'%';
-  bar.style.background=sc<=1?'var(--err)':sc<=2?'#f97316':sc===3?'#eab308':'var(--ok)';
-  $('pwHint').textContent=!p?'Use 8+ characters with letters, numbers and a symbol.':p.length<8?'Too short.':sc<3?'Add numbers, symbols or mixed case.':sc===3?'Good.':'Strong.';
+if($('resendBtn')) $('resendBtn').onclick = function(){ $('resendMsg').textContent = 'New link sent to ' + AUTH.email + '.'; startCooldown(); };
+if($('diffEmailBtn')) $('diffEmailBtn').onclick = function(){ clearInterval(coolTimer); showView('email'); };
+if($('verifiedBtn')) $('verifiedBtn').onclick = function(){ showView('pass'); };
+
+// Password
+function pwScore(p){
+  let s = 0;
+  if(p.length >= 8) s++;
+  if(p.length >= 12) s++;
+  if(/[a-z]/.test(p) && /[A-Z]/.test(p)) s++;
+  if(/\d/.test(p)) s++;
+  if(/[^A-Za-z0-9]/.test(p)) s++;
+  return s;
+}
+
+if($('pw1')) $('pw1').addEventListener('input', function(){
+  const p = $('pw1').value, sc = pwScore(p), bar = $('meterBar');
+  if(bar){
+    bar.style.width = Math.min(100, sc * 20) + '%';
+    bar.style.background = sc <= 1 ? 'var(--err)' : sc <= 2 ? '#f97316' : sc === 3 ? '#eab308' : 'var(--ok)';
+  }
+  if($('pwHint')) $('pwHint').textContent = !p ? 'Use 8+ characters with letters, numbers and a symbol.' : p.length < 8 ? 'Too short.' : sc < 3 ? 'Add numbers, symbols or mixed case.' : sc === 3 ? 'Good.' : 'Strong.';
   checkPwReady();
 });
-$('pw2').addEventListener('input',()=>{$('pw2Err').textContent='';checkPwReady();});
-function checkPwReady(){const p=$('pw1').value,p2=$('pw2').value;$('pwGo').disabled=!(p.length>=8&&pwScore(p)>=3&&(p2===''||p===p2));}
-$('pw1Show').onclick=()=>{const i=$('pw1'),h=i.type==='password';i.type=h?'text':'password';$('pw1Show').textContent=h?'Hide':'Show';$('pw2').type=i.type;};
-$('pw2').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('pwGo').disabled)$('pwGo').click();});
-$('pwGo').onclick=()=>{
-  const p=$('pw1').value,p2=$('pw2').value;
-  if(p2&&p!==p2){$('pw2Err').textContent='Passwords do not match.';$('pw2').focus();return;}
-  $('pw1').value='';$('pw2').value='';showView('terms');
+
+if($('pw2')) $('pw2').addEventListener('input', function(){ $('pw2Err').textContent = ''; checkPwReady(); });
+function checkPwReady(){
+  const p = $('pw1').value, p2 = $('pw2').value;
+  if($('pwGo')) $('pwGo').disabled = !(p.length >= 8 && pwScore(p) >= 3 && (p2 === '' || p === p2));
+}
+
+if($('pw1Show')) $('pw1Show').onclick = function(){
+  const i = $('pw1'), h = i.type === 'password';
+  i.type = h ? 'text' : 'password';
+  $('pw1Show').textContent = h ? 'Hide' : 'Show';
+  $('pw2').type = i.type;
+};
+
+if($('pw2')) $('pw2').addEventListener('keydown', function(e){ if(e.key === 'Enter' && !$('pwGo').disabled) $('pwGo').click(); });
+if($('pwGo')) $('pwGo').onclick = function(){
+  const p = $('pw1').value, p2 = $('pw2').value;
+  if(p2 && p !== p2){
+    $('pw2Err').textContent = 'Passwords do not match.';
+    $('pw2').focus();
+    return;
+  }
+  $('pw1').value = '';
+  $('pw2').value = '';
+  showView('terms');
 };
 
 // ── STEP 2: WORKSPACE ─────────────────────────────────────────────────────
-function checkTermsReady(){$('termsGo').disabled=!($('wsName').value.trim().length>=2&&AUTH.agreed);}
-$('wsName').addEventListener('input',()=>{$('wsErr').textContent='';checkTermsReady();});
-$('agreeBtn').onclick=()=>{AUTH.agreed=!AUTH.agreed;$('agreeBtn').setAttribute('aria-checked',AUTH.agreed);$('termsErr').textContent='';checkTermsReady();};
-$('gmailAuthBtn').onclick=()=>{
-  AUTH.gmail=!AUTH.gmail;
-  $('gmailCardAuth').classList.toggle('connected',AUTH.gmail);
-  $('gmailAuthBtn').textContent=AUTH.gmail?'✓ Connected':'Connect';
-  toast(AUTH.gmail?'Gmail connected (stub)':'Gmail disconnected');
+function checkTermsReady(){
+  if($('termsGo')) $('termsGo').disabled = !($('wsName').value.trim().length >= 2 && AUTH.agreed);
+}
+
+if($('wsName')) $('wsName').addEventListener('input', function(){ $('wsErr').textContent = ''; checkTermsReady(); });
+if($('agreeBtn')) $('agreeBtn').onclick = function(){
+  AUTH.agreed = !AUTH.agreed;
+  $('agreeBtn').setAttribute('aria-checked', AUTH.agreed);
+  $('termsErr').textContent = '';
+  checkTermsReady();
 };
-$('termsGo').onclick=()=>{
-  const ws=$('wsName').value.trim();
-  if(ws.length<2){$('wsErr').textContent='Enter your business name.';$('wsName').focus();return;}
-  if(!AUTH.agreed){$('termsErr').textContent='You must agree to continue.';return;}
-  AUTH.ws=ws;AUTH.industry=$('industry').value;
+
+if($('gmailAuthBtn')) $('gmailAuthBtn').onclick = function(){
+  AUTH.gmail = !AUTH.gmail;
+  $('gmailCardAuth').classList.toggle('connected', AUTH.gmail);
+  $('gmailAuthBtn').textContent = AUTH.gmail ? '✓ Connected' : 'Connect';
+  toast(AUTH.gmail ? 'Gmail connected (stub)' : 'Gmail disconnected');
+};
+
+if($('termsGo')) $('termsGo').onclick = function(){
+  const ws = $('wsName').value.trim();
+  if(ws.length < 2){
+    $('wsErr').textContent = 'Enter your business name.';
+    $('wsName').focus();
+    return;
+  }
+  if(!AUTH.agreed){
+    $('termsErr').textContent = 'You must agree to continue.';
+    return;
+  }
+  AUTH.ws = ws;
+  AUTH.industry = $('industry').value;
   showView('plans');
 };
 
 // ── STEP 3: PLANS ─────────────────────────────────────────────────────────
-const CHK=`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>`;
-$('plansGrid').innerHTML=PLANS_DEF.map(p=>`<article class="plan${p.pop?' pop':''}">
-  ${p.pop?'<span class="pop-tag">Most Popular</span>':''}
-  <h2>${p.name}</h2>
-  <div class="price">$${p.price}<small>/mo</small></div>
-  <div class="trial-note">3 free disputes · no card needed</div>
-  <ul>${p.features.map(f=>`<li>${CHK}<span>${f}</span></li>`).join('')}</ul>
-  <button class="btn${p.pop?'':' sec'}" data-plan="${p.id}" type="button">Start Free Trial</button>
-</article>`).join('');
-$('plansGrid').addEventListener('click',e=>{const b=e.target.closest('[data-plan]');if(b)finishOnboarding(b.dataset.plan);});
-$('plansBack').onclick=()=>showView('terms');
+const CHK = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>';
+if($('plansGrid')){
+  $('plansGrid').innerHTML = PLANS_DEF.map(function(p){
+    return '<article class="plan' + (p.pop ? ' pop' : '') + '">' +
+      (p.pop ? '<span class="pop-tag">Most Popular</span>' : '') +
+      '<h2>' + p.name + '</h2>' +
+      '<div class="price">$' + p.price + '<small>/mo</small></div>' +
+      '<div class="trial-note">3 free disputes · no card needed</div>' +
+      '<ul>' + p.features.map(function(f){ return '<li>' + CHK + '<span>' + f + '</span></li>'; }).join('') + '</ul>' +
+      '<button class="btn' + (p.pop ? '' : ' sec') + '" data-plan="' + p.id + '" type="button">Start Free Trial</button>' +
+    '</article>';
+  }).join('');
+  
+  $('plansGrid').addEventListener('click', function(e){
+    const b = e.target.closest('[data-plan]');
+    if(b) finishOnboarding(b.dataset.plan);
+  });
+}
 
-let selUpgrade='growth';
-$('upPlans').innerHTML=PLANS_DEF.map(p=>`<div class="mp${p.id===selUpgrade?' sel':''}" data-up="${p.id}">
-  <h3>$${p.price}/mo — ${p.name}${p.pop?'<span class="tag">Popular</span>':''}</h3>
-  <p>${p.features.slice(0,3).join(' · ')}</p>
-</div>`).join('');
-$('upPlans').addEventListener('click',e=>{
-  const d=e.target.closest('[data-up]');if(!d)return;
-  selUpgrade=d.dataset.up;
-  $('upPlans').querySelectorAll('.mp').forEach(m=>m.classList.toggle('sel',m.dataset.up===selUpgrade));
-  $('upSelect').disabled=false;
-});
-$('upSelect').onclick=()=>{
-  AUTH.plan=selUpgrade;store.set('lc_plan',selUpgrade);
-  if(selUpgrade!=='solo'){store.set('lc_plan_unlimited','1');}
-  $('upgradeModal').hidden=true;
-  updateTrialBadge();updatePlanChip();applyPlanGating();
-  toast('Plan upgraded to '+(PLANS_DEF.find(p=>p.id===selUpgrade)||{name:selUpgrade}).name+'!');
+if($('plansBack')) $('plansBack').onclick = function(){ showView('terms'); };
+
+let selUpgrade = 'growth';
+if($('upPlans')){
+  $('upPlans').innerHTML = PLANS_DEF.map(function(p){
+    return '<div class="mp' + (p.id === selUpgrade ? ' sel' : '') + '" data-up="' + p.id + '">' +
+      '<h3>$' + p.price + '/mo — ' + p.name + (p.pop ? '<span class="tag">Popular</span>' : '') + '</h3>' +
+      '<p>' + p.features.slice(0, 3).join(' · ') + '</p>' +
+    '</div>';
+  }).join('');
+  
+  $('upPlans').addEventListener('click', function(e){
+    const d = e.target.closest('[data-up]');
+    if(!d) return;
+    selUpgrade = d.dataset.up;
+    $('upPlans').querySelectorAll('.mp').forEach(function(m){ m.classList.toggle('sel', m.dataset.up === selUpgrade); });
+    if($('upSelect')) $('upSelect').disabled = false;
+  });
+}
+
+if($('upSelect')) $('upSelect').onclick = function(){
+  AUTH.plan = selUpgrade;
+  store.set('lc_plan', selUpgrade);
+  if(selUpgrade !== 'solo'){ store.set('lc_plan_unlimited', '1'); }
+  if($('upgradeModal')) $('upgradeModal').hidden = true;
+  updateTrialBadge();
+  updatePlanChip();
+  applyPlanGating();
+  toast('Plan upgraded to ' + ((PLANS_DEF.find(function(p){ return p.id === selUpgrade; }) || {name:selUpgrade}).name) + '!');
 };
-$('upClose').onclick=()=>$('upgradeModal').hidden=true;
+
+if($('upClose')) $('upClose').onclick = function(){ $('upgradeModal').hidden = true; };
 
 // ── SESSION ────────────────────────────────────────────────────────────────
 function saveSession(){
-  store.set('lc_user',JSON.stringify({email:AUTH.email,method:AUTH.method}));
-  store.set('lc_workspace',AUTH.ws);store.set('lc_plan',AUTH.plan);
-  store.set('lc_industry',AUTH.industry);store.set('lc_gmail',AUTH.gmail?'1':'0');
-  if(!store.get('lc_trial_left'))store.set('lc_trial_left',TRIAL_MAX);
+  store.set('lc_user', JSON.stringify({email:AUTH.email, method:AUTH.method}));
+  store.set('lc_workspace', AUTH.ws);
+  store.set('lc_plan', AUTH.plan);
+  store.set('lc_industry', AUTH.industry);
+  store.set('lc_gmail', AUTH.gmail ? '1' : '0');
+  if(!store.get('lc_trial_left')) store.set('lc_trial_left', TRIAL_MAX);
 }
+
 function logout(){
-  ['lc_user','lc_workspace','lc_plan','lc_plan_unlimited','lc_trial_left','lc_tour','lc_gmail'].forEach(k=>store.del(k));
-  AUTH.email='';AUTH.ws='';AUTH.plan='';AUTH.agreed=false;AUTH.gmail=false;
-  $('wsSw').classList.remove('visible');
-  showPage('pg-auth');setMode(true);showView('email');
+  ['lc_user','lc_workspace','lc_plan','lc_plan_unlimited','lc_trial_left','lc_tour','lc_gmail'].forEach(function(k){ store.del(k); });
+  AUTH.email = ''; AUTH.ws = ''; AUTH.plan = ''; AUTH.agreed = false; AUTH.gmail = false;
+  if($('wsSw')) $('wsSw').classList.remove('visible');
+  showPage('pg-auth');
+  setMode(true);
+  showView('email');
 }
-function finishOnboarding(planId){AUTH.plan=planId;saveSession();enterDashboard();}
+
+function finishOnboarding(planId){
+  AUTH.plan = planId;
+  saveSession();
+  enterDashboard();
+}
 
 function enterDashboard(){
-  const ws=AUTH.ws||store.get('lc_workspace')||'My Workspace';
-  $('dashWsName').textContent=ws;$('wsSwName').textContent=ws;
-  $('wsSw').classList.add('visible');
-  updateTrialBadge();updatePlanChip();applyPlanGating();
-  showPage('pg-dash');dashInit();
-  if(!store.get('lc_tour'))setTimeout(tourOpen,900);
+  const ws = AUTH.ws || store.get('lc_workspace') || 'My Workspace';
+  if($('dashWsName')) $('dashWsName').textContent = ws;
+  if($('wsSwName')) $('wsSwName').textContent = ws;
+  if($('wsSw')) $('wsSw').classList.add('visible');
+  updateTrialBadge();
+  updatePlanChip();
+  applyPlanGating();
+  showPage('pg-dash');
+  dashInit();
+  if(!store.get('lc_tour')) setTimeout(tourOpen, 900);
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────────────────────
-let dashReady=false;
+let dashReady = false;
 function dashInit(){
-  if(dashReady)return;dashReady=true;
-  const PLATFORMS=['Angi','Thumbtack','Porch','Networx'];
-  const CHIPS=[
+  if(dashReady) return;
+  dashReady = true;
+  const PLATFORMS = ['Angi','Thumbtack','Porch','Networx'];
+  const CHIPS = [
     ['Wrong number','Wrong number: the contact number was invalid or belonged to someone else. '],
     ['Disconnected','Phone was disconnected or out of service on every attempt. '],
     ['Outside service area','Customer is located outside our service area. '],
@@ -1035,127 +1203,223 @@ function dashInit(){
     ['Spam or fake','Lead appears to be spam or a fake inquiry. '],
     ['Not a homeowner','Contact was a renter with no authority to hire. ']
   ];
-  const POLICY={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
-  const st={platform:'Angi',files:[],tags:new Set(),claim:'',amount:0,model:'gemini',gmailConnected:store.get('lc_gmail')==='1'};
+  const POLICY = {
+    Angi: 'Angi Lead Credit Policy',
+    Thumbtack: 'Thumbtack Lead Price Credit Terms',
+    Porch: 'Porch Pro Lead Guarantee',
+    Networx: 'Networx Lead Dispute Terms'
+  };
+  const st = {platform:'Angi', files:[], tags:new Set(), claim:'', amount:0, model:'gemini', gmailConnected:store.get('lc_gmail') === '1'};
 
-  $('modelSel').addEventListener('click',e=>{
-    const opt=e.target.closest('[data-model]');if(!opt)return;
-    st.model=opt.dataset.model;
-    $('modelSel').querySelectorAll('.model-opt').forEach(o=>o.classList.toggle('sel',o.dataset.model===st.model));
+  if($('modelSel')) $('modelSel').addEventListener('click', function(e){
+    const opt = e.target.closest('[data-model]');
+    if(!opt) return;
+    st.model = opt.dataset.model;
+    $('modelSel').querySelectorAll('.model-opt').forEach(function(o){ o.classList.toggle('sel', o.dataset.model === st.model); });
   });
 
-  let total=parseFloat(store.get('lc_total'))||0;
-  function showTotal(from,to){const t0=performance.now(),d=600;(function f(t){const p=Math.min(1,(t-t0)/d);$('total').textContent=money(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0);}
-  showTotal(0,total);
-
-  const pl=$('platforms');
-  PLATFORMS.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p;b.setAttribute('role','radio');b.setAttribute('aria-checked',p===st.platform);
-    b.onclick=()=>{st.platform=p;[...pl.children].forEach(x=>x.setAttribute('aria-checked',x===b));};pl.appendChild(b);});
-
-  CHIPS.forEach(([label,text])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=label;b.setAttribute('aria-pressed','false');
-    b.onclick=()=>{const n=$('notes');const on=!st.tags.has(label);
-      if(on){st.tags.add(label);n.value=(n.value&&!/\s$/.test(n.value)?n.value+' ':n.value)+text;}
-      else{st.tags.delete(label);n.value=n.value.replace(text,'');}
-      b.setAttribute('aria-pressed',on);n.focus();sync();};$('chips').appendChild(b);});
-
-  const drop=$('drop'),fi=$('file');
-  if(drop){
-    drop.onclick=()=>fi.click();
-    drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fi.click();}};
-    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
-    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
-    drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
-    fi.onchange=()=>{addFiles(fi.files);fi.value='';};
+  let total = parseFloat(store.get('lc_total')) || 0;
+  function showTotal(from, to){
+    const t0 = performance.now(), d = 600;
+    (function f(t){
+      const p = Math.min(1, (t - t0) / d);
+      if($('total')) $('total').textContent = money(from + (to - from) * (1 - Math.pow(1 - p, 3)));
+      if(p < 1) requestAnimationFrame(f);
+    })(t0);
   }
-  $('upgradeFromFile').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
+  showTotal(0, total);
 
-  function addFiles(list){let bad=0;[...list].forEach(f=>{
-    if(!/\.(mp3|wav|pdf)$/i.test(f.name)){bad++;return;}
-    if(f.size>25*1024*1024){toast(f.name+' exceeds 25 MB');return;}
-    if(!st.files.some(x=>x.name===f.name&&x.size===f.size))st.files.push(f);});
-    if(bad)toast('Only MP3, WAV and PDF files are accepted.');
-    renderFiles();sync();}
-  function renderFiles(){const c=$('files');c.innerHTML='';
-    st.files.forEach((f,i)=>{const ext=f.name.split('.').pop().toLowerCase();
-      const d=document.createElement('div');d.className='file';
-      d.innerHTML=`<div class="ico ${ext==='pdf'?'pdf':''}">${ext.toUpperCase()}</div><div class="nm">${esc(f.name)}</div><div class="sz">${(f.size/1048576).toFixed(1)}MB</div><button aria-label="Remove">&times;</button>`;
-      d.querySelector('button').onclick=()=>{st.files.splice(i,1);renderFiles();sync();};c.appendChild(d);});}
+  const pl = $('platforms');
+  if(pl){
+    PLATFORMS.forEach(function(p){
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = p;
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', p === st.platform);
+      b.onclick = function(){
+        st.platform = p;
+        Array.from(pl.children).forEach(function(x){ x.setAttribute('aria-checked', x.textContent === b.textContent); });
+      };
+      pl.appendChild(b);
+    });
+  }
+
+  if($('chips')){
+    CHIPS.forEach(function(pair){
+      const label = pair[0], text = pair[1];
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'chip';
+      b.textContent = label;
+      b.setAttribute('aria-pressed', 'false');
+      b.onclick = function(){
+        const n = $('notes');
+        if(!n) return;
+        const on = !st.tags.has(label);
+        if(on){
+          st.tags.add(label);
+          n.value = (n.value && !/\s$/.test(n.value) ? n.value + ' ' : n.value) + text;
+        } else {
+          st.tags.delete(label);
+          n.value = n.value.replace(text, '');
+        }
+        b.setAttribute('aria-pressed', on);
+        n.focus();
+        sync();
+      };
+      $('chips').appendChild(b);
+    });
+  }
+
+  const drop = $('drop'), fi = $('file');
+  if(drop && fi){
+    drop.onclick = function(){ fi.click(); };
+    drop.onkeydown = function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fi.click(); } };
+    ['dragenter','dragover'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.add('over'); }); });
+    ['dragleave','drop'].forEach(function(ev){ drop.addEventListener(ev, function(e){ e.preventDefault(); drop.classList.remove('over'); }); });
+    drop.addEventListener('drop', function(e){ addFiles(e.dataTransfer.files); });
+    fi.onchange = function(){ addFiles(fi.files); fi.value = ''; };
+  }
+
+  if($('upgradeFromFile')) $('upgradeFromFile').onclick = function(){
+    $('upgradeModal').hidden = false;
+    if($('upSelect')) $('upSelect').disabled = true;
+  };
+
+  function addFiles(list){
+    let bad = 0;
+    Array.from(list).forEach(function(f){
+      if(!/\.(mp3|wav|pdf)$/i.test(f.name)){ bad++; return; }
+      if(f.size > 25 * 1024 * 1024){ toast(f.name + ' exceeds 25 MB'); return; }
+      if(!st.files.some(function(x){ return x.name === f.name && x.size === f.size; })) st.files.push(f);
+    });
+    if(bad) toast('Only MP3, WAV and PDF files are accepted.');
+    renderFiles();
+    sync();
+  }
+
+  function renderFiles(){
+    const c = $('files');
+    if(!c) return;
+    c.innerHTML = '';
+    st.files.forEach(function(f, i){
+      const ext = f.name.split('.').pop().toLowerCase();
+      const d = document.createElement('div');
+      d.className = 'file';
+      d.innerHTML = '<div class="ico ' + (ext === 'pdf' ? 'pdf' : '') + '">' + ext.toUpperCase() + '</div>' +
+        '<div class="nm">' + esc(f.name) + '</div>' +
+        '<div class="sz">' + (f.size / 1048576).toFixed(1) + 'MB</div>' +
+        '<button aria-label="Remove">&times;</button>';
+      d.querySelector('button').onclick = function(){
+        st.files.splice(i, 1);
+        renderFiles();
+        sync();
+      };
+      c.appendChild(d);
+    });
+  }
 
   function sync(){
-    const blocked=getTrialLeft()<=0&&store.get('lc_plan_unlimited')!=='1';
-    \$('go').disabled=blocked||!($('notes').value.trim()\vert{}\vert{}$('transcript').value.trim()||st.files.length);
+    const blocked = getTrialLeft() <= 0 && store.get('lc_plan_unlimited') !== '1';
+    const notesVal = $('notes') ? $('notes').value.trim() : '';
+    const transVal = $('transcript') ? $('transcript').value.trim() : '';
+    if($('go')) $('go').disabled = blocked || !(notesVal || transVal || st.files.length);
   }
-  $('notes').addEventListener('input',sync);$('transcript').addEventListener('input',sync);
 
-  const R=\$('result');
-  function empty(){R.innerHTML=`<div class="empty"><div class="ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><h3>Your claim appears here</h3><p>Fill in the form and run the check. Valid leads get a ready-to-send statement.</p></div>`;}
-  const STEPS=['Reading your notes and files','Checking platform refund rules','Drafting the claim'];
-  function loading(){R.innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="step"><i>&#10003;</i>\${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:90%"></div><div class="sk" style="width:76%"></div><div class="sk" style="width:84%"></div><div class="sk" style="width:54%"></div><p style="margin-top:14px;color:var(--mu);font-size:13px">Up to 60 s while the AI warms up (Render free plan).</p>`;}
-  function tick(i){R.querySelectorAll('.step').forEach((s,j)=>{s.classList.toggle('done',j<i);s.classList.toggle('on',j===i);});}
+  if($('notes')) $('notes').addEventListener('input', sync);
+  if($('transcript')) $('transcript').addEventListener('input', sync);
+
+  const R = $('result');
+  function empty(){
+    if(!R) return;
+    R.innerHTML = '<div class="empty"><div class="ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><h3>Your claim appears here</h3><p>Fill in the form and run the check. Valid leads get a ready-to-send statement.</p></div>';
+  }
+
+  const STEPS = ['Reading your notes and files','Checking platform refund rules','Drafting the claim'];
+  function loading(){
+    if(!R) return;
+    R.innerHTML = '<div class="steps">' + STEPS.map(function(s, i){ return '<div class="step"><i>&#10003;</i>' + s.replace('platform', st.platform) + '</div>'; }).join('') + '</div><div class="sk" style="width:90%"></div><div class="sk" style="width:76%"></div><div class="sk" style="width:84%"></div><div class="sk" style="width:54%"></div><p style="margin-top:14px;color:var(--mu);font-size:13px">Up to 60 s while the AI warms up (Render free plan).</p>';
+  }
+
+  function tick(i){
+    if(!R) return;
+    R.querySelectorAll('.step').forEach(function(s, j){
+      s.classList.toggle('done', j < i);
+      s.classList.toggle('on', j === i);
+    });
+  }
+
   function renderError(e){
-    const m=e&&e.name==='AbortError'?'Request timed out after 90 s.':String((e&&e.message)||e);
-    R.innerHTML=`<div class="verdict"><span class="badge no">&#9888; AI unavailable</span></div>
-      <div class="why"><b>Nothing was generated.</b><br>${esc(m)}</div>
-      <p class="result-note">The server may be waking up — wait a moment and try again.</p>
-      <div class="actions"><button class="action-btn" id="retry">Try again</button></div>`;
-    $('retry').onclick=()=>$('go').click();}
+    if(!R) return;
+    const m = e && e.name === 'AbortError' ? 'Request timed out after 90 s.' : String((e && e.message) || e);
+    R.innerHTML = '<div class="verdict"><span class="badge no">&#9888; AI unavailable</span></div>' +
+      '<div class="why"><b>Nothing was generated.</b><br>' + esc(m) + '</div>' +
+      '<p class="result-note">The server may be waking up — wait a moment and try again.</p>' +
+      '<div class="actions"><button class="action-btn" id="retry">Try again</button></div>';
+    if($('retry')) $('retry').onclick = function(){ if($('go')) $('go').click(); };
+  }
 
   function render(r){
-    const ok=r.valid;
+    if(!R) return;
+    const ok = r.valid;
     if(!ok){
-      R.innerHTML=`<div class="verdict"><span class="badge no">&#10005; Not eligible for a credit</span><span class="conf">confidence ${Math.round((r.confidence||.8)*100)}%</span></div>
-        <div class="why"><b>${esc(POLICY[st.platform])}</b><br>${esc(r.reason||'This reason is not covered by the platform refund policy.')}</div>
-        <p class="result-note" style="margin:0 0 12px">Submitting an excluded claim can hurt your standing with ${st.platform}.</p>
-        <div class="actions"><button class="action-btn" id="again">Edit and re-check</button></div>`;
-      $('again').onclick=()=>{$('notes').focus();window.scrollTo({top:0,behavior:'smooth'});};return;}
-
-    st.claim=r.claim;st.amount=r.amount||0;
-    const isPro=getPlanTier()>=2;
-    const gmailConnected=store.get('lc_gmail')==='1';
-
-    R.innerHTML=`
-      <div class="verdict"><span class="badge ok">&#10003; Eligible: policy match</span><span class="conf">confidence ${Math.round((r.confidence||.9)*100)}%</span></div>
-      <div class="facts">
-        <div class="fact"><small>Platform</small><b>${st.platform}</b></div>
-        <div class="fact"><small>Credit at stake</small><b class="g">${money(st.amount)}</b></div>
-        <div class="fact"><small>Policy</small><b style="font-size:12px;font-family:var(--sans)">${esc(POLICY[st.platform])}</b></div>
-      </div>
-      <div class="claim-box" id="claimBox">${esc(r.claim)}</div>
-      <div class="actions">
-        <button class="action-btn" id="copy">Copy formatted claim</button>
-        <button class="action-btn primary" id="rec">Mark as recovered</button>
-      </div>
-      <div class="delivery-card" id="deliveryCard"></div>
-      <p class="result-note">Mark it recovered once the credit lands in your account.</p>`;
-
-    const dc=\$('deliveryCard');
-    if(isPro && gmailConnected){
-      dc.innerHTML=`<h4>&#9889; Send via Gmail <span class="pro-badge">Pro</span></h4>
-        <p>Gmail is connected. Click below to open a pre-filled draft in your Gmail account.</p>
-        <button class="btn sm" id="openGmail" type="button">Open pre-filled draft in Gmail</button>`;
-      \$('openGmail').onclick=()=>openGmailDraft(r.claim,st.platform,st.amount);
-    } else if(isPro && !gmailConnected){
-      dc.innerHTML=`<h4>&#9889; Connect Gmail for one-click sending <span class="pro-badge">Pro</span></h4>
-        <p>Your plan supports Gmail integration. Connect your account to send disputes without leaving LeadClaw.</p>
-        <button class="btn sec sm" id="connectGmailDash" type="button">Connect Gmail</button>`;
-      \$('connectGmailDash').onclick=()=>{store.set('lc_gmail','1');toast('Gmail connected (stub)');render(r);};
-    } else {
-      dc.innerHTML=`<h4>How to submit this claim</h4>
-        <p>Copy the formatted email above, then follow these steps for <b>${st.platform}</b>:</p>
-        <ol class="steps-list">
-          ${getSubmitSteps(st.platform)}
-        </ol>
-        <p style="color:var(--mu);font-size:13px">Want one-click Gmail sending? <button class="link-btn" id="upgToGmail">Upgrade to Growth Pro</button></p>`;
-      \$('upgToGmail').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
+      R.innerHTML = '<div class="verdict"><span class="badge no">&#10005; Not eligible for a credit</span><span class="conf">confidence ' + Math.round((r.confidence || .8) * 100) + '%</span></div>' +
+        '<div class="why"><b>' + esc(POLICY[st.platform]) + '</b><br>' + esc(r.reason || 'This reason is not covered by the platform refund policy.') + '</div>' +
+        '<p class="result-note" style="margin:0 0 12px">Submitting an excluded claim can hurt your standing with ' + st.platform + '.</p>' +
+        '<div class="actions"><button class="action-btn" id="again">Edit and re-check</button></div>';
+      if($('again')) $('again').onclick = function(){ if($('notes')) $('notes').focus(); window.scrollTo({top:0, behavior:'smooth'}); };
+      return;
     }
-    $('copy').onclick=doCopy;$('rec').onclick=doRecover;
+
+    st.claim = r.claim;
+    st.amount = r.amount || 0;
+    const isPro = getPlanTier() >= 2;
+    const gmailConnected = store.get('lc_gmail') === '1';
+
+    R.innerHTML = '<div class="verdict"><span class="badge ok">&#10003; Eligible: policy match</span><span class="conf">confidence ' + Math.round((r.confidence || .9) * 100) + '%</span></div>' +
+      '<div class="facts">' +
+        '<div class="fact"><small>Platform</small><b>' + st.platform + '</b></div>' +
+        '<div class="fact"><small>Credit at stake</small><b class="g">' + money(st.amount) + '</b></div>' +
+        '<div class="fact"><small>Policy</small><b style="font-size:12px;font-family:var(--sans)">' + esc(POLICY[st.platform]) + '</b></div>' +
+      '</div>' +
+      '<div class="claim-box" id="claimBox">' + esc(r.claim) + '</div>' +
+      '<div class="actions">' +
+        '<button class="action-btn" id="copy">Copy formatted claim</button>' +
+        '<button class="action-btn primary" id="rec">Mark as recovered</button>' +
+      '</div>' +
+      '<div class="delivery-card" id="deliveryCard"></div>' +
+      '<p class="result-note">Mark it recovered once the credit lands in your account.</p>';
+
+    const dc = $('deliveryCard');
+    if(dc){
+      if(isPro && gmailConnected){
+        dc.innerHTML = '<h4>&#9889; Send via Gmail <span class="pro-badge">Pro</span></h4>' +
+          '<p>Gmail is connected. Click below to open a pre-filled draft in your Gmail account.</p>' +
+          '<button class="btn sm" id="openGmail" type="button">Open pre-filled draft in Gmail</button>';
+        if($('openGmail')) $('openGmail').onclick = function(){ openGmailDraft(r.claim, st.platform, st.amount); };
+      } else if(isPro && !gmailConnected){
+        dc.innerHTML = '<h4>&#9889; Connect Gmail for one-click sending <span class="pro-badge">Pro</span></h4>' +
+          '<p>Your plan supports Gmail integration. Connect your account to send disputes without leaving LeadClaw.</p>' +
+          '<button class="btn sec sm" id="connectGmailDash" type="button">Connect Gmail</button>';
+        if($('connectGmailDash')) $('connectGmailDash').onclick = function(){ store.set('lc_gmail', '1'); toast('Gmail connected (stub)'); render(r); };
+      } else {
+        dc.innerHTML = '<h4>How to submit this claim</h4>' +
+          '<p>Copy the formatted email above, then follow these steps for <b>' + st.platform + '</b>:</p>' +
+          '<ol class="steps-list">' + getSubmitSteps(st.platform) + '</ol>' +
+          '<p style="color:var(--mu);font-size:13px">Want one-click Gmail sending? <button class="link-btn" id="upgToGmail">Upgrade to Growth Pro</button></p>';
+        if($('upgToGmail')) $('upgToGmail').onclick = function(){ $('upgradeModal').hidden = false; if($('upSelect')) $('upSelect').disabled = true; };
+      }
+    }
+    if($('copy')) $('copy').onclick = doCopy;
+    if($('rec')) $('rec').onclick = doRecover;
   }
 
   function getSubmitSteps(platform){
-    const steps={
+    const steps = {
       Angi:[
         'Log in to your <b>Angi Pro</b> account at pro.angi.com.',
-        'Go to <b>Leads → Manage Leads</b> and find the lead.',
+        'Go to <b>Leads &rarr; Manage Leads</b> and find the lead.',
         'Click the lead, then select <b>Request Credit</b>.',
         'Paste the formatted claim into the message box and submit.'
       ],
@@ -1178,117 +1442,270 @@ function dashInit(){
         'Paste the formatted claim into the message and send.'
       ]
     };
-    return (steps[platform]||steps.Angi).map(s=>`<li>${s}</li>`).join('');
+    return (steps[platform] || steps.Angi).map(function(s){ return '<li>' + s + '</li>'; }).join('');
   }
 
-  function openGmailDraft(claim,platform,amount){
-    const sub=encodeURIComponent(`Lead Credit Request — ${platform}`);
-    const body=encodeURIComponent(claim);
-    const support={Angi:'leadcredits@angi.com',Thumbtack:'support@thumbtack.com',Porch:'prosupport@porch.com',Networx:'support@networx.com'};
-    const to=encodeURIComponent(support[platform]||'');
-    window.open(`https://mail.google.com/mail/?view=cm&to=${to}&su=${sub}&body=${body}`,'_blank');
-    toast('Opening Gmail compose…');
+  function openGmailDraft(claim, platform, amount){
+    const sub = encodeURIComponent('Lead Credit Request — ' + platform);
+    const body = encodeURIComponent(claim);
+    const support = {Angi:'leadcredits@angi.com', Thumbtack:'support@thumbtack.com', Porch:'prosupport@porch.com', Networx:'support@networx.com'};
+    const to = encodeURIComponent(support[platform] || '');
+    window.open('https://mail.google.com/mail/?view=cm&to=' + to + '&su=' + sub + '&body=' + body, '_blank');
+    toast('Opening Gmail compose...');
   }
 
-  async function doCopy(){const b=\$('copy');
-    try{await navigator.clipboard.writeText(st.claim);}catch{const t=document.createElement('textarea');t.value=st.claim;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch{}t.remove();}
-    b.classList.add('copied');b.textContent='Copied!';toast('Claim copied to clipboard.');
-    setTimeout(()=>{b.classList.remove('copied');b.textContent='Copy formatted claim';},1900);}
+  async function doCopy(){
+    const b = $('copy');
+    if(!b) return;
+    try{
+      await navigator.clipboard.writeText(st.claim);
+    }catch(err){
+      const t = document.createElement('textarea');
+      t.value = st.claim;
+      document.body.appendChild(t);
+      t.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      t.remove();
+    }
+    b.classList.add('copied');
+    b.textContent = 'Copied!';
+    toast('Claim copied to clipboard.');
+    setTimeout(function(){ b.classList.remove('copied'); b.textContent = 'Copy formatted claim'; }, 1900);
+  }
 
-  function doRecover(){const b=\$('rec');if(b.disabled)return;
-    const from=total;total+=st.amount;store.set('lc_total',total);showTotal(from,total);
-    b.disabled=true;b.textContent='Added to your total';toast(money(st.amount)+' added to recovered.');
-    setTimeout(()=>{R.classList.add('leaving');setTimeout(()=>{empty();st.claim='';st.amount=0;R.classList.remove('leaving');},350);},1100);}
+  function doRecover(){
+    const b = $('rec');
+    if(!b || b.disabled) return;
+    const from = total;
+    total += st.amount;
+    store.set('lc_total', total);
+    showTotal(from, total);
+    b.disabled = true;
+    b.textContent = 'Added to your total';
+    toast(money(st.amount) + ' added to recovered.');
+    setTimeout(function(){
+      R.classList.add('leaving');
+      setTimeout(function(){ empty(); st.claim = ''; st.amount = 0; R.classList.remove('leaving'); }, 350);
+    }, 1100);
+  }
 
-  const SVC=[['roofing',/roof|shingle|gutter/i,90],['plumbing',/plumb|leak|drain|water heater|pipe/i,60],['electrical',/electric|wiring|panel|outlet/i,55],['HVAC',/hvac|furnace|\bac\b|air condition|heating/i,70],['landscaping',/lawn|landscap|tree|fence/i,40]];
-  const MULT={Angi:1.1,Thumbtack:.9,Porch:.85,Networx:1};
-  function guess(t){let s=SVC.find(x=>x[1].test(t));const base=s?s[2]:50;const a=Math.round(base*MULT[st.platform]);
-    return{amount:a,low:Math.round(a*.75),high:Math.round(a*1.25),basis:(s?s[0]:'general home services')+' on '+st.platform+' (estimated)'};}
-  
-  \$('est').onclick=async()=>{
-    const b=\$('est'),txt=($('notes').value+' '+$('transcript').value).trim();
-    b.disabled=true;b.innerHTML='<span class="spin" style="border-top-color:var(--blue);border-color:rgba(37,99,235,.25)"></span>Estimating…';
+  const SVC = [['roofing',/roof|shingle|gutter/i,90],['plumbing',/plumb|leak|drain|water heater|pipe/i,60],['electrical',/electric|wiring|panel|outlet/i,55],['HVAC',/hvac|furnace|\bac\b|air condition|heating/i,70],['landscaping',/lawn|landscap|tree|fence/i,40]];
+  const MULT = {Angi:1.1, Thumbtack:.9, Porch:.85, Networx:1};
+  function guess(t){
+    let s = SVC.find(function(x){ return x[1].test(t); });
+    const base = s ? s[2] : 50;
+    const a = Math.round(base * MULT[st.platform]);
+    return {amount:a, low:Math.round(a * .75), high:Math.round(a * 1.25), basis:(s ? s[0] : 'general home services') + ' on ' + st.platform + ' (estimated)'};
+  }
+
+  if($('est')) $('est').onclick = async function(){
+    const b = $('est'), txt = (($('notes') ? $('notes').value : '') + ' ' + ($('transcript') ? $('transcript').value : '')).trim();
+    b.disabled = true;
+    b.innerHTML = '<span class="spin" style="border-top-color:var(--blue);border-color:rgba(37,99,235,.25)"></span>Estimating...';
     let res;
-    try{const x=await fetch(API_BASE+'/api/dispute/estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:st.platform,text:txt})});if(!x.ok)throw 0;res=await x.json();if(typeof res.amount!=='number')throw 0;}
-    catch{await new Promise(r=>setTimeout(r,600));res=guess(txt);}
-    $('cost').value=res.amount.toFixed(2);$('estNote').textContent='Est. '+money(res.amount)+(res.low?' (range '+money(res.low)+'–'+money(res.high)+')':'')+(res.basis?', '+res.basis:'')+'. Verify against your lead receipt.';
-    b.disabled=false;b.innerHTML='Estimate with AI';};
+    try{
+      const x = await fetch(API_BASE + '/api/dispute/estimate', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({platform: st.platform, text: txt})
+      });
+      if(!x.ok) throw new Error();
+      res = await x.json();
+      if(typeof res.amount !== 'number') throw new Error();
+    }catch(e){
+      await new Promise(function(r){ setTimeout(r, 600); });
+      res = guess(txt);
+    }
+    if($('cost')) $('cost').value = res.amount.toFixed(2);
+    if($('estNote')) $('estNote').textContent = 'Est. ' + money(res.amount) + (res.low ? ' (range ' + money(res.low) + '–' + money(res.high) + ')' : '') + (res.basis ? ', ' + res.basis : '') + '. Verify against your lead receipt.';
+    b.disabled = false;
+    b.innerHTML = 'Estimate with AI';
+  };
 
   async function callApi(cost){
-    const fd=new FormData();fd.append('platform',st.platform);fd.append('notes',$('notes').value);fd.append('transcript',$('transcript').value);fd.append('cost',cost);fd.append('model',st.model);st.files.forEach(f=>fd.append('files',f));
-    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),90000);
-    const r=await fetch(API_BASE+'/api/dispute',{method:'POST',body:fd,signal:ctl.signal});clearTimeout(to);
-    if(!r.ok){let d='';try{d=(await r.json()).detail||''}catch{}throw new Error('Server error '+r.status+(d?': '+d:''));}
-    const j=await r.json();if(typeof j.valid!=='boolean')throw new Error('Unexpected response shape.');
-    j.amount=j.amount??cost;return j;
+    const fd = new FormData();
+    fd.append('platform', st.platform);
+    fd.append('notes', $('notes') ? $('notes').value : '');
+    fd.append('transcript', $('transcript') ? $('transcript').value : '');
+    fd.append('cost', cost);
+    fd.append('model', st.model);
+    st.files.forEach(function(f){ fd.append('files', f); });
+    
+    const ctl = new AbortController();
+    const to = setTimeout(function(){ ctl.abort(); }, 90000);
+    const r = await fetch(API_BASE + '/api/dispute', {method: 'POST', body: fd, signal: ctl.signal});
+    clearTimeout(to);
+    
+    if(!r.ok){
+      let d = '';
+      try{ d = (await r.json()).detail || ''; }catch(e){}
+      throw new Error('Server error ' + r.status + (d ? ': ' + d : ''));
+    }
+    const j = await r.json();
+    if(typeof j.valid !== 'boolean') throw new Error('Unexpected response shape.');
+    j.amount = j.amount ?? cost;
+    return j;
   }
 
-  \$('go').onclick=async()=>{
-    const unlimited=store.get('lc_plan_unlimited')==='1';
-    const n=getTrialLeft();
-    if(!unlimited&&n<=0){$('upgradeModal').hidden=false;$('upSelect').disabled=true;return;}
-    const g=\$('go');g.disabled=true;
-    \$('goTxt').outerHTML='<span class="spin"></span><span id="goTxt">Analyzing…</span>';
-    loading();tick(0);let i=0;const iv=setInterval(()=>{i=Math.min(i+1,2);tick(i);},1300);
-    const cost=parseFloat(\$('cost').value.replace(/[^0-9.]/g,''))||0;
+  if($('go')) $('go').onclick = async function(){
+    const unlimited = store.get('lc_plan_unlimited') === '1';
+    const n = getTrialLeft();
+    if(!unlimited && n <= 0){
+      if($('upgradeModal')) $('upgradeModal').hidden = false;
+      if($('upSelect')) $('upSelect').disabled = true;
+      return;
+    }
+    const g = $('go');
+    g.disabled = true;
+    if($('goTxt')) $('goTxt').outerHTML = '<span class="spin"></span><span id="goTxt">Analyzing...</span>';
+    loading();
+    tick(0);
+    let i = 0;
+    const iv = setInterval(function(){ i = Math.min(i + 1, 2); tick(i); }, 1300);
+    const cost = parseFloat(($('cost') ? $('cost').value : '').replace(/[^0-9.]/g, '')) || 0;
     let res;
-    try{res=await callApi(cost);}catch(e){clearInterval(iv);renderError(e);g.querySelector('.spin')?.remove();\$('goTxt').textContent='Check & build claim';sync();return;}
-    clearInterval(iv);tick(3);await new Promise(r=>setTimeout(r,350));render(res);
-    if(!unlimited){const newN=Math.max(0,n-1);setTrialLeft(newN);updateTrialBadge();if(newN===0)toast('Trial limit reached. Upgrade to keep filing.');}
-    g.querySelector('.spin')?.remove();\$('goTxt').textContent='Check & build claim';sync();
-    if(innerWidth<=900)R.scrollIntoView({behavior:'smooth',block:'start'});};
+    try{
+      res = await callApi(cost);
+    }catch(e){
+      clearInterval(iv);
+      renderError(e);
+      if(g.querySelector('.spin')) g.querySelector('.spin').remove();
+      if($('goTxt')) $('goTxt').textContent = 'Check & build claim';
+      sync();
+      return;
+    }
+    clearInterval(iv);
+    tick(3);
+    await new Promise(function(r){ setTimeout(r, 350); });
+    render(res);
+    if(!unlimited){
+      const newN = Math.max(0, n - 1);
+      setTrialLeft(newN);
+      updateTrialBadge();
+      if(newN === 0) toast('Trial limit reached. Upgrade to keep filing.');
+    }
+    if(g.querySelector('.spin')) g.querySelector('.spin').remove();
+    if($('goTxt')) $('goTxt').textContent = 'Check & build claim';
+    sync();
+    if(innerWidth <= 900 && R) R.scrollIntoView({behavior:'smooth', block:'start'});
+  };
 
   empty();
 }
 
 // ── QUICK TOUR ──────────────────────────────────────────────────────────────
-const TOUR=[
-  ['Welcome to LeadClaw',()=>\$('h'),'Lead platforms like Angi, Thumbtack, Porch and Networx charge you for every lead — even wrong numbers and fakes. LeadClaw checks each one against the platform\'s refund policy and writes the credit request so you don\'t have to.'],
-  ['Choose your plan features',()=>\$('planChip'),'Your plan controls which features are available. Solo gets a formatted email to paste manually. Growth Pro unlocks audio evidence, Gmail one-click sending and AI model choice. Upgrade any time from the plans modal.'],
-  ['Select the platform',()=>\$('platforms').closest('.field'),'Pick where the lead came from. The policy rules are different for each one and we check the right set automatically.'],
-  ['Describe what happened',()=>\$('notes').closest('.field'),'Tap a reason chip to auto-fill your notes, then add detail. Paste a call transcript in the field below for the AI to read.'],
-  ['Add evidence (Pro)',()=>\$('fileSection'),'Growth Pro and Enterprise users can attach call recordings (MP3/WAV) or PDFs. Evidence makes a claim significantly harder for the platform to reject.'],
-  ['Run the check',()=>\$('go'),'Press Check & Build Claim. The AI reads your notes, checks them against the policy and writes the dispute statement. This takes up to 60 seconds on the first request.'],
-  ['Submit your claim',()=>\$('result'),'Solo plan: copy the formatted email and paste it into the platform\'s dispute form using the step-by-step guide. Growth Pro: click Open in Gmail to send directly. Mark as recovered once the credit lands.'],
-  ['Switch themes',()=>\$('themeBtn'),'Use the sun / moon button in the top right to switch between light and dark mode any time. LeadClaw remembers your choice.']
+const TOUR = [
+  ['Welcome to LeadClaw', function(){ return $('h'); }, 'Lead platforms like Angi, Thumbtack, Porch and Networx charge you for every lead — even wrong numbers and fakes. LeadClaw checks each one against the platform refund policy and writes the credit request so you don\'t have to.'],
+  ['Choose your plan features', function(){ return $('planChip'); }, 'Your plan controls which features are available. Solo gets a formatted email to paste manually. Growth Pro unlocks audio evidence, Gmail one-click sending and AI model choice. Upgrade any time from the plans modal.'],
+  ['Select the platform', function(){ return $('platforms') && $('platforms').closest('.field'); }, 'Pick where the lead came from. The policy rules are different for each one and we check the right set automatically.'],
+  ['Describe what happened', function(){ return $('notes') && $('notes').closest('.field'); }, 'Tap a reason chip to auto-fill your notes, then add detail. Paste a call transcript in the field below for the AI to read.'],
+  ['Add evidence (Pro)', function(){ return $('fileSection'); }, 'Growth Pro and Enterprise users can attach call recordings (MP3/WAV) or PDFs. Evidence makes a claim significantly harder for the platform to reject.'],
+  ['Run the check', function(){ return $('go'); }, 'Press Check & Build Claim. The AI reads your notes, checks them against the policy and writes the dispute statement. This takes up to 60 seconds on the first request.'],
+  ['Submit your claim', function(){ return $('result'); }, 'Solo plan: copy the formatted email and paste it into the platform dispute form using the step-by-step guide. Growth Pro: click Open in Gmail to send directly. Mark as recovered once the credit lands.'],
+  ['Switch themes', function(){ return $('themeBtn'); }, 'Use the sun / moon button in the top right to switch between light and dark mode any time. LeadClaw remembers your choice.']
 ];
-let ti=0,spot=null;
-function tourShow(){const t=TOUR[ti];
-  spot&&spot.classList.remove('spot');spot=t[1]();spot&&spot.classList.add('spot');
-  spot&&spot.scrollIntoView({behavior:'smooth',block:'center'});
-  \$('tourCount').textContent='Step '+(ti+1)+' of '+TOUR.length;
-  \$('tourBar').style.width=((ti+1)/TOUR.length*100)+'%';
-  $('tourT').textContent=t[0];$('tourP').textContent=t[2];
-  $('tourBack').disabled=ti===0;$('tourNext').textContent=ti===TOUR.length-1?'Done':'Next';}
-function tourOpen(){ti=0;$('tour').hidden=false;$('tourBtn').setAttribute('aria-expanded','true');tourShow();}
-function tourClose(){$('tour').hidden=true;$('tourBtn').setAttribute('aria-expanded','false');spot&&spot.classList.remove('spot');spot=null;store.set('lc_tour','1');}
-$('tourBtn').onclick=()=>$('tour').hidden?tourOpen():tourClose();
-\$('tourX').onclick=tourClose;
-$('tourBack').onclick=()=>{if(ti>0){ti--;tourShow();}};$('tourNext').onclick=()=>{if(ti<TOUR.length-1){ti++;tourShow();}else tourClose();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!\$('tour').hidden)tourClose();});
+let ti = 0, spot = null;
+
+function tourShow(){
+  const t = TOUR[ti];
+  if(spot) spot.classList.remove('spot');
+  spot = t[1]();
+  if(spot) spot.classList.add('spot');
+  if(spot) spot.scrollIntoView({behavior:'smooth', block:'center'});
+  if($('tourCount')) $('tourCount').textContent = 'Step ' + (ti + 1) + ' of ' + TOUR.length;
+  if($('tourBar')) $('tourBar').style.width = ((ti + 1) / TOUR.length * 100) + '%';
+  if($('tourT')) $('tourT').textContent = t[0];
+  if($('tourP')) $('tourP').textContent = t[2];
+  if($('tourBack')) $('tourBack').disabled = ti === 0;
+  if($('tourNext')) $('tourNext').textContent = ti === TOUR.length - 1 ? 'Done' : 'Next';
+}
+
+function tourOpen(){
+  ti = 0;
+  if($('tour')) $('tour').hidden = false;
+  if($('tourBtn')) $('tourBtn').setAttribute('aria-expanded', 'true');
+  tourShow();
+}
+
+function tourClose(){
+  if($('tour')) $('tour').hidden = true;
+  if($('tourBtn')) $('tourBtn').setAttribute('aria-expanded', 'false');
+  if(spot) spot.classList.remove('spot');
+  spot = null;
+  store.set('lc_tour', '1');
+}
+
+if($('tourBtn')) $('tourBtn').onclick = function(){ if($('tour') && $('tour').hidden) tourOpen(); else tourClose(); };
+if($('tourX')) $('tourX').onclick = tourClose;
+if($('tourBack')) $('tourBack').onclick = function(){ if(ti > 0){ ti--; tourShow(); } };
+if($('tourNext')) $('tourNext').onclick = function(){ if(ti < TOUR.length - 1){ ti++; tourShow(); } else tourClose(); };
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && $('tour') && !$('tour').hidden) tourClose(); });
 
 // ── WORKSPACE SWITCHER ─────────────────────────────────────────────────────
-\$('wsSw').onclick=()=>{
-  const ws=prompt('Workspace name (blank to sign out):');
-  if(ws===null)return;
-  if(!ws){logout();return;}
-  AUTH.ws=ws;store.set('lc_workspace',ws);
-  $('dashWsName').textContent=ws;$('wsSwName').textContent=ws;toast('Switched to '+ws);};
+if($('wsSw')) $('wsSw').onclick = function(){
+  const ws = prompt('Workspace name (blank to sign out):');
+  if(ws === null) return;
+  if(!ws){ logout(); return; }
+  AUTH.ws = ws;
+  store.set('lc_workspace', ws);
+  if($('dashWsName')) $('dashWsName').textContent = ws;
+  if($('wsSwName')) $('wsSwName').textContent = ws;
+  toast('Switched to ' + ws);
+};
 
 // ── FEEDBACK MODAL ─────────────────────────────────────────────────────────
 let prevFocus;
-function openFb(){prevFocus=document.activeElement;\$('fbFormWrap').hidden=false;$('fbOk').hidden=true;$('fbErr').textContent='';$('fbModal').hidden=false;$('fbMsg').focus();}
-function closeFb(){$('fbModal').hidden=true;prevFocus&&prevFocus.focus();}$('fbOpen').onclick=openFb;$('fbClose').onclick=closeFb;$('fbDone').onclick=closeFb;
-$('fbModal').addEventListener('mousedown',e=>{if(e.target===$('fbModal'))closeFb();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fbModal').hidden)closeFb();});$('fbSend').onclick=async()=>{
-  const msg=$('fbMsg').value.trim(),em=$('fbEmail').value.trim();
-  if(msg.length<5){\$('fbErr').textContent='Please write a short message.';return;}
-  if(em&&!validEmail(em)){\$('fbErr').textContent='That reply-to email looks invalid.';return;}
-  const b=$('fbSend');b.disabled=true;b.textContent='Sending…';$('fbErr').textContent='';
-  try{const r=await fetch(API_BASE+'/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:\$('fbType').value,message:msg,email:em,workspace:store.get('lc_workspace')||''})});
-    if(!r.ok)throw 0;\$('fbMsg').value='';$('fbFormWrap').hidden=true;$('fbOk').hidden=false;}
-  catch{\$('fbErr').textContent='Could not send right now. Please try again.';}
-  b.disabled=false;b.textContent='Send feedback';};
+function openFb(){
+  prevFocus = document.activeElement;
+  if($('fbFormWrap')) $('fbFormWrap').hidden = false;
+  if($('fbOk')) $('fbOk').hidden = true;
+  if($('fbErr')) $('fbErr').textContent = '';
+  if($('fbModal')) $('fbModal').hidden = false;
+  if($('fbMsg')) $('fbMsg').focus();
+}
+
+function closeFb(){
+  if($('fbModal')) $('fbModal').hidden = true;
+  if(prevFocus) prevFocus.focus();
+}
+
+if($('fbOpen')) $('fbOpen').onclick = openFb;
+if($('fbClose')) $('fbClose').onclick = closeFb;
+if($('fbDone')) $('fbDone').onclick = closeFb;
+if($('fbModal')) $('fbModal').addEventListener('mousedown', function(e){ if(e.target === $('fbModal')) closeFb(); });
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && $('fbModal') && !$('fbModal').hidden) closeFb(); });
+
+if($('fbSend')) $('fbSend').onclick = async function(){
+  const msg = $('fbMsg') ? $('fbMsg').value.trim() : '';
+  const em = $('fbEmail') ? $('fbEmail').value.trim() : '';
+  if(msg.length < 5){
+    if($('fbErr')) $('fbErr').textContent = 'Please write a short message.';
+    return;
+  }
+  if(em && !validEmail(em)){
+    if($('fbErr')) $('fbErr').textContent = 'That reply-to email looks invalid.';
+    return;
+  }
+  const b = $('fbSend');
+  b.disabled = true;
+  b.textContent = 'Sending...';
+  if($('fbErr')) $('fbErr').textContent = '';
+  try{
+    const r = await fetch(API_BASE + '/api/feedback', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({type: $('fbType') ? $('fbType').value : '', message: msg, email: em, workspace: store.get('lc_workspace') || ''})
+    });
+    if(!r.ok) throw new Error();
+    if($('fbMsg')) $('fbMsg').value = '';
+    if($('fbFormWrap')) $('fbFormWrap').hidden = true;
+    if($('fbOk')) $('fbOk').hidden = false;
+  }catch(e){
+    if($('fbErr')) $('fbErr').textContent = 'Could not send right now. Please try again.';
+  }
+  b.disabled = false;
+  b.textContent = 'Send feedback';
+};
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 boot();
