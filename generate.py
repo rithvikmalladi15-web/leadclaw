@@ -37,7 +37,7 @@ def process_lead_dispute(platform: str, notes: str, transcript: str, cost: float
         
         response_text = completion.choices[0].message.content.strip()
         
-        # Clean up potential markdown code block formatting from LLM response
+        # Clean up markdown code blocks if the model wrapped them
         if response_text.startswith("```json"):
             response_text = response_text[7:]
         if response_text.endswith("```"):
@@ -46,7 +46,6 @@ def process_lead_dispute(platform: str, notes: str, transcript: str, cost: float
         return json.loads(response_text.strip())
 
     except Exception as e:
-        # Fallback dictionary if JSON parsing fails so the app doesn't crash
         return {
             "valid": False,
             "confidence": 0.0,
