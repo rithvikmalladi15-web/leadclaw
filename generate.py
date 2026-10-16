@@ -1,15 +1,14 @@
 import os
+import json
 from groq import Groq
 
-# Initialize Groq client securely using the server environment variable
-groq_api_key = os.environ.get("GROQ_API_KEY")
-client = Groq(api_key=groq_api_key) if groq_api_key else None
-
 def process_lead_dispute(platform: str, notes: str, transcript: str, cost: float, model: str = "gemini"):
-    if not client:
-        raise ValueError("Groq API key is not configured in the server environment variables.")
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key:
+        raise ValueError("GROQ_API_KEY environment variable is not configured on Render.")
 
-    # Format prompt for the contractor lead dispute
+    client = Groq(api_key=api_key)
+
     prompt = f"""
     You are an expert AI assistant for home contractors. 
     Analyze this disputed lead for platform: {platform}.
@@ -18,30 +17,40 @@ def process_lead_dispute(platform: str, notes: str, transcript: str, cost: float
     Call Transcript: {transcript}
 
     Evaluate whether this lead qualifies for a credit or refund based on standard contractor platform policies (Angi, Thumbtack, Porch, Networx).
-    Provide your output in a structured format:
-    - valid: true or false
-    - confidence: decimal between 0.0 and 1.0
-    - amount: numeric value of the credit at stake
-    - reason: explanation of why it qualifies or doesn't
-    - claim: a fully formatted, professional dispute email/statement ready to be submitted.
+    You MUST output valid JSON format with these exact keys:
+    - "valid": boolean (true or false)
+    - "confidence": float between 0.0 and 1.0
+    - "amount": numeric value of the credit at stake
+    - "reason": string explaining why it qualifies or doesn't
+    - "claim": string containing a fully formatted, professional dispute email/statement ready to be submitted.
     """
 
     try:
-        # Use a reliable cloud model via Groq API
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
-                {"role": "system", "content": "You are LeadClaw AI, an objective business assistant for home contractors specializing in platform credit disputes."},
+                {"role": "system", "content": "You are LeadClaw AI, an objective business assistant for home contractors. You must respond strictly in valid JSON format."},
                 {"role": "user", "content": prompt}
             ],
             temperature=0.3
         )
         
-        response_text = completion.choices[0].message.content
+        response_text = completion.choices[0].message.content.strip()
         
-        # In production, ensure your function returns a dictionary matching your frontend expectations:
-        # {"valid": True, "confidence": 0.95, "amount": cost, "reason": "...", "claim": "..."}
-        return response_text
+        # Clean up potential markdown code block formatting from LLM response
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+            
+        return json.loads(response_text.strip())
 
     except Exception as e:
-        raise RuntimeError(f"Groq API inference failed: {str(e)}")
+        # Fallback dictionary if JSON parsing fails so the app doesn't crash
+        return {
+            "valid": False,
+            "confidence": 0.0,
+            "amount": cost,
+            "reason": f"AI evaluation error or invalid JSON response: {str(e)}",
+            "claim": ""
+        }
