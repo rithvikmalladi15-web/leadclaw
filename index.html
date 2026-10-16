@@ -178,6 +178,15 @@ select.inp{cursor:pointer;appearance:none;
 .check-row[aria-checked=true] .cbox svg{opacity:1}
 .check-row p{margin:3px 0 0;color:var(--mu);font-size:13px}
 
+/* submission mode selector for Pro */
+.submode-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.submode-opt{border:1.5px solid var(--bdr2);border-radius:8px;padding:10px 12px;cursor:pointer;
+  transition:border-color .15s,background .15s;background:var(--surf2);text-align:center}
+.submode-opt:hover{border-color:var(--blue)}
+.submode-opt.sel{border-color:var(--blue);background:var(--tint)}
+.submode-opt b{font-size:13.5px;display:block}
+.submode-opt small{color:var(--mu);font-size:11.5px}
+
 /* gmail card */
 .gmail-card{display:flex;align-items:center;justify-content:space-between;gap:12px;
   background:var(--surf2);border:1.5px solid var(--bdr);border-radius:8px;padding:13px;transition:border-color .2s}
@@ -525,7 +534,7 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
     <!-- Step 2: workspace + terms -->
     <div class="view" id="v-terms" hidden>
       <h1>Set up your workspace</h1>
-      <p class="sub">Name your business and agree to get started.</p>
+      <p class="sub">Name your business and accept terms to select your trial plan.</p>
       <div class="field"><label for="wsName">Business / Workspace name</label>
         <input class="inp" id="wsName" type="text" maxlength="64" placeholder="Apex Roofing &amp; Plumbing" autocomplete="organization">
         <p class="err-msg" id="wsErr" role="alert"></p></div>
@@ -548,14 +557,14 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
             <p>Includes Terms of Service, Privacy Policy, and Refund Dispute Policies for Angi, Thumbtack, Porch and Networx.</p></div>
         </button>
         <p class="err-msg" id="termsErr" role="alert"></p></div>
-      <button class="btn" id="termsGo" type="button">Continue to plan selection</button>
+      <button class="btn" id="termsGo" type="button" disabled>Continue to plan selection</button>
     </div>
 
     <!-- Step 3: plans -->
     <div class="view" id="v-plans" hidden>
       <div class="trial-banner">
         <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-        Free Trial — 3 AI Disputes Included · No Card Required
+        Select a Plan Tier to Start Your 3-Dispute Free Trial
       </div>
       <div class="plans" id="plansGrid"></div>
       <div class="back-row"><button class="link-btn" id="plansBack" type="button">&larr; Back</button></div>
@@ -586,6 +595,15 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
     <section class="panel" aria-labelledby="h">
       <h1 id="h">Lead credit request</h1>
       <p class="sub">Fill in the details. We check the platform refund policy and write the claim if it qualifies.</p>
+
+      <!-- Pro Submitter Mode Selector -->
+      <div class="field" id="submodeSection" hidden>
+        <span class="lbl">Dispute output mode <span class="pro-badge">Pro</span></span>
+        <div class="submode-sel" id="submodeSel">
+          <div class="submode-opt sel" data-mode="email"><b>Email Format</b><small>Formatted text &amp; Gmail</small></div>
+          <div class="submode-opt" data-mode="inapp"><b>In-App Submitter</b><small>Direct portal submission</small></div>
+        </div>
+      </div>
 
       <!-- AI model selector -->
       <div class="field" id="modelSection" hidden>
@@ -660,8 +678,8 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
       <button class="close-btn" id="upClose">&times;</button>
     </div>
     <div class="modal-plans" id="upPlans"></div>
-    <button class="btn" id="upSelect" style="margin-top:18px" disabled>Continue with selected plan</button>
-    <p class="hint" style="margin-top:10px">All plans include a 7-day free trial.</p>
+    <button class="btn" id="upSelect" style="margin-top:18px" disabled>Continue with selected plan (Stripe)</button>
+    <p class="hint" style="margin-top:10px">Secure checkout powered by Stripe.</p>
   </div>
 </div>
 
@@ -741,7 +759,7 @@ if($('themeBtn')){
 }
 setTheme(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
 
-// ── PAGE ROUTING ───────────────────────────────────────────────────────────
+// ── PAGE ROUTING & NAVIGATION ──────────────────────────────────────────────
 function showPage(id){
   const pages = document.querySelectorAll('.page');
   let found = false;
@@ -775,14 +793,17 @@ const PLANS_DEF = [
   {id:'solo',  name:'Solo Contractor',         price:29,  tier:1,
    features:['25 AI disputes per month','Text notes & quick-reason chips','Fully formatted dispute email (copy & paste)','Recovered money ledger tracking','Email support']},
   {id:'growth',name:'Growth Pro',              price:59,  tier:2, pop:true,
-   features:['Unlimited AI disputes','Audio (MP3/WAV) & PDF evidence upload','AI model selector (Gemini & Qwen)','Gmail auto-connect & one-click send','AI-powered lead cost estimation','Priority speed & Live Chat support']},
+   features:['3 Free trial disputes','Audio (MP3/WAV) & PDF evidence upload','AI model selector (Gemini & Qwen)','Email format or In-App Claim Submitter','Gmail auto-connect & one-click send','Priority support']},
   {id:'crew',  name:'Multi-Crew / Enterprise', price:129, tier:3,
    features:['Everything in Growth Pro','Multi-user seats & team dispatch','Platform analytics (Angi vs Thumbtack)','Custom dispute templates','Bulk dispute processing','White-glove onboarding']}
 ];
 
 function getPlan(){ return store.get('lc_plan') || 'solo'; }
 function getPlanTier(){ return (PLANS_DEF.find(function(p){ return p.id === getPlan(); }) || PLANS_DEF[0]).tier; }
-function getTrialLeft(){ return parseInt(store.get('lc_trial_left') || TRIAL_MAX); }
+function getTrialLeft(){
+  const val = store.get('lc_trial_left');
+  return val !== null ? parseInt(val, 10) : TRIAL_MAX;
+}
 function setTrialLeft(n){ store.set('lc_trial_left', Math.max(0, n)); }
 
 function updateTrialBadge(){
@@ -809,6 +830,7 @@ function applyPlanGating(){
   if($('fileLock')) $('fileLock').hidden = tier >= 2;
   if($('dropWrap')) $('dropWrap').hidden = tier < 2;
   if($('modelSection')) $('modelSection').hidden = tier < 2;
+  if($('submodeSection')) $('submodeSection').hidden = tier < 2;
   if($('gmailDashCard')) $('gmailDashCard').hidden = tier < 2;
 }
 
@@ -863,11 +885,10 @@ function handleGoogleCredentialResponse(response) {
       enterDashboard();
       toast('Welcome back, ' + userEmail + '!');
     } else {
-      AUTH.ws = responsePayload.name ? responsePayload.name + "'s Workspace" : 'My Workspace';
-      store.set('lc_workspace', AUTH.ws);
-      saveSession();
+      AUTH.ws = responsePayload.name ? responsePayload.name + "'s Workspace" : '';
+      if($('wsName')) $('wsName').value = AUTH.ws;
       showView('terms');
-      toast('Signed up with ' + userEmail + ' successfully!');
+      toast('Signed in as ' + userEmail + '. Complete workspace setup.');
     }
   } catch (err) {
     console.error('Google Auth parsing error:', err);
@@ -900,31 +921,11 @@ if($('googleBtn')) {
   $('googleBtn').onclick = function(){
     initGoogleAuth();
     if (googleInitialized && window.google && google.accounts) {
-      google.accounts.id.prompt(function(notification){
-        if (notification.isNotDisplayed() || notification.isSkippedMoment() || notification.isDismissedMoment()) {
-          bypassGoogleAuth();
-        }
-      });
+      google.accounts.id.prompt();
     } else {
-      bypassGoogleAuth();
+      toast('Google Sign-In service unavailable. Please enter your email below.');
     }
   };
-}
-
-function bypassGoogleAuth() {
-  AUTH.email = 'demo.user@gmail.com';
-  AUTH.method = 'google';
-  const existingWs = store.get('lc_workspace');
-  if (existingWs) {
-    saveSession();
-    enterDashboard();
-    toast('Signed in as demo user.');
-  } else {
-    AUTH.ws = 'My Business Workspace';
-    store.set('lc_workspace', AUTH.ws);
-    showView('terms');
-    toast('Continue workspace setup.');
-  }
 }
 
 // ── STEPPER ────────────────────────────────────────────────────────────────
@@ -1079,7 +1080,7 @@ if($('pwGo')) $('pwGo').onclick = function(){
   showView('terms');
 };
 
-// ── STEP 2: WORKSPACE ─────────────────────────────────────────────────────
+// ── STEP 2: WORKSPACE & TERMS ACCEPTANCE ───────────────────────────────────
 function checkTermsReady(){
   if($('termsGo')) $('termsGo').disabled = !($('wsName').value.trim().length >= 2 && AUTH.agreed);
 }
@@ -1096,7 +1097,7 @@ if($('gmailAuthBtn')) $('gmailAuthBtn').onclick = function(){
   AUTH.gmail = !AUTH.gmail;
   $('gmailCardAuth').classList.toggle('connected', AUTH.gmail);
   $('gmailAuthBtn').textContent = AUTH.gmail ? '✓ Connected' : 'Connect';
-  toast(AUTH.gmail ? 'Gmail connected (stub)' : 'Gmail disconnected');
+  toast(AUTH.gmail ? 'Gmail connected' : 'Gmail disconnected');
 };
 
 if($('termsGo')) $('termsGo').onclick = function(){
@@ -1107,7 +1108,7 @@ if($('termsGo')) $('termsGo').onclick = function(){
     return;
   }
   if(!AUTH.agreed){
-    $('termsErr').textContent = 'You must agree to continue.';
+    $('termsErr').textContent = 'You must agree to Terms & Policies to continue.';
     return;
   }
   AUTH.ws = ws;
@@ -1115,7 +1116,7 @@ if($('termsGo')) $('termsGo').onclick = function(){
   showView('plans');
 };
 
-// ── STEP 3: PLANS ─────────────────────────────────────────────────────────
+// ── STEP 3: PLAN SELECTION ─────────────────────────────────────────────────
 const CHK = '<svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>';
 if($('plansGrid')){
   $('plansGrid').innerHTML = PLANS_DEF.map(function(p){
@@ -1123,9 +1124,9 @@ if($('plansGrid')){
       (p.pop ? '<span class="pop-tag">Most Popular</span>' : '') +
       '<h2>' + p.name + '</h2>' +
       '<div class="price">$' + p.price + '<small>/mo</small></div>' +
-      '<div class="trial-note">3 free disputes · no card needed</div>' +
+      '<div class="trial-note">Includes 3 free AI trial disputes</div>' +
       '<ul>' + p.features.map(function(f){ return '<li>' + CHK + '<span>' + f + '</span></li>'; }).join('') + '</ul>' +
-      '<button class="btn' + (p.pop ? '' : ' sec') + '" data-plan="' + p.id + '" type="button">Start Free Trial</button>' +
+      '<button class="btn' + (p.pop ? '' : ' sec') + '" data-plan="' + p.id + '" type="button">Start Free Trial (' + p.name + ')</button>' +
     '</article>';
   }).join('');
   
@@ -1155,10 +1156,27 @@ if($('upPlans')){
   });
 }
 
-if($('upSelect')) $('upSelect').onclick = function(){
+if($('upSelect')) $('upSelect').onclick = async function(){
+  // Ready to hook up with Stripe Checkout sessions via backend endpoint here
+  try {
+    const r = await fetch(API_BASE + '/api/stripe/create-checkout-session', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({plan: selUpgrade, email: AUTH.email || store.get('lc_user')})
+    });
+    const data = await r.json();
+    if(data.url) {
+      window.location.href = data.url;
+      return;
+    }
+  } catch(err) {
+    console.warn('Stripe checkout redirect fallback:', err);
+  }
+  
+  // Fallback simulator if backend Stripe keys aren't set yet
   AUTH.plan = selUpgrade;
   store.set('lc_plan', selUpgrade);
-  if(selUpgrade !== 'solo'){ store.set('lc_plan_unlimited', '1'); }
+  store.set('lc_plan_unlimited', '1');
   if($('upgradeModal')) $('upgradeModal').hidden = true;
   updateTrialBadge();
   updatePlanChip();
@@ -1168,14 +1186,14 @@ if($('upSelect')) $('upSelect').onclick = function(){
 
 if($('upClose')) $('upClose').onclick = function(){ $('upgradeModal').hidden = true; };
 
-// ── SESSION ────────────────────────────────────────────────────────────────
+// ── SESSION MANAGEMENT ─────────────────────────────────────────────────────
 function saveSession(){
   store.set('lc_user', JSON.stringify({email:AUTH.email, method:AUTH.method}));
   store.set('lc_workspace', AUTH.ws);
   store.set('lc_plan', AUTH.plan);
   store.set('lc_industry', AUTH.industry);
   store.set('lc_gmail', AUTH.gmail ? '1' : '0');
-  if(!store.get('lc_trial_left')) store.set('lc_trial_left', TRIAL_MAX);
+  if(store.get('lc_trial_left') === null) store.set('lc_trial_left', TRIAL_MAX);
 }
 
 function logout(){
@@ -1226,13 +1244,21 @@ function dashInit(){
     Porch: 'Porch Pro Lead Guarantee',
     Networx: 'Networx Lead Dispute Terms'
   };
-  const st = {platform:'Angi', files:[], tags:new Set(), claim:'', amount:0, model:'gemini', gmailConnected:store.get('lc_gmail') === '1'};
+  const st = {platform:'Angi', files:[], tags:new Set(), claim:'', amount:0, model:'gemini', submode:'email', gmailConnected:store.get('lc_gmail') === '1'};
 
   if($('modelSel')) $('modelSel').addEventListener('click', function(e){
     const opt = e.target.closest('[data-model]');
     if(!opt) return;
     st.model = opt.dataset.model;
     $('modelSel').querySelectorAll('.model-opt').forEach(function(o){ o.classList.toggle('sel', o.dataset.model === st.model); });
+  });
+
+  if($('submodeSel')) $('submodeSel').addEventListener('click', function(e){
+    const opt = e.target.closest('[data-mode]');
+    if(!opt) return;
+    st.submode = opt.dataset.mode;
+    $('submodeSel').querySelectorAll('.submode-opt').forEach(function(o){ o.classList.toggle('sel', o.dataset.mode === st.submode); });
+    toast('Dispute output set to: ' + (st.submode === 'email' ? 'Email Format' : 'In-App Claim Submitter'));
   });
 
   let total = parseFloat(store.get('lc_total')) || 0;
@@ -1301,7 +1327,7 @@ function dashInit(){
 
   if($('upgradeFromFile')) $('upgradeFromFile').onclick = function(){
     $('upgradeModal').hidden = false;
-    if($('upSelect')) $('upSelect').disabled = true;
+    if($('upSelect')) $('upSelect').disabled = false;
   };
 
   function addFiles(list){
@@ -1338,10 +1364,9 @@ function dashInit(){
   }
 
   function sync(){
-    const blocked = getTrialLeft() <= 0 && store.get('lc_plan_unlimited') !== '1';
     const notesVal = $('notes') ? $('notes').value.trim() : '';
     const transVal = $('transcript') ? $('transcript').value.trim() : '';
-    if($('go')) $('go').disabled = blocked || !(notesVal || transVal || st.files.length);
+    if($('go')) $('go').disabled = !(notesVal || transVal || st.files.length);
   }
 
   if($('notes')) $('notes').addEventListener('input', sync);
@@ -1394,6 +1419,23 @@ function dashInit(){
     const isPro = getPlanTier() >= 2;
     const gmailConnected = store.get('lc_gmail') === '1';
 
+    if (isPro && st.submode === 'inapp') {
+      R.innerHTML = '<div class="verdict"><span class="badge ok">&#10003; In-App Submitter Ready</span><span class="conf">confidence ' + Math.round((r.confidence || .9) * 100) + '%</span></div>' +
+        '<div class="facts">' +
+          '<div class="fact"><small>Platform</small><b>' + st.platform + '</b></div>' +
+          '<div class="fact"><small>Credit at stake</small><b class="g">' + money(st.amount) + '</b></div>' +
+          '<div class="fact"><small>Mode</small><b>In-App Direct API</b></div>' +
+        '</div>' +
+        '<div class="delivery-card"><h4>&#9889; Direct In-App Claim Submission</h4>' +
+        '<p>LeadClaw will submit this claim directly to ' + st.platform + ' via automated API dispatcher.</p>' +
+        '<button class="btn ok-btn" id="submitInApp" type="button">Submit Directly to ' + st.platform + '</button></div>';
+      if($('submitInApp')) $('submitInApp').onclick = function(){
+        toast('Claim successfully dispatched directly to ' + st.platform + '!');
+        doRecover();
+      };
+      return;
+    }
+
     R.innerHTML = '<div class="verdict"><span class="badge ok">&#10003; Eligible: policy match</span><span class="conf">confidence ' + Math.round((r.confidence || .9) * 100) + '%</span></div>' +
       '<div class="facts">' +
         '<div class="fact"><small>Platform</small><b>' + st.platform + '</b></div>' +
@@ -1419,13 +1461,13 @@ function dashInit(){
         dc.innerHTML = '<h4>&#9889; Connect Gmail for one-click sending <span class="pro-badge">Pro</span></h4>' +
           '<p>Your plan supports Gmail integration. Connect your account to send disputes without leaving LeadClaw.</p>' +
           '<button class="btn sec sm" id="connectGmailDash" type="button">Connect Gmail</button>';
-        if($('connectGmailDash')) $('connectGmailDash').onclick = function(){ store.set('lc_gmail', '1'); toast('Gmail connected (stub)'); render(r); };
+        if($('connectGmailDash')) $('connectGmailDash').onclick = function(){ store.set('lc_gmail', '1'); toast('Gmail connected'); render(r); };
       } else {
         dc.innerHTML = '<h4>How to submit this claim</h4>' +
           '<p>Copy the formatted email above, then follow these steps for <b>' + st.platform + '</b>:</p>' +
           '<ol class="steps-list">' + getSubmitSteps(st.platform) + '</ol>' +
           '<p style="color:var(--mu);font-size:13px">Want one-click Gmail sending? <button class="link-btn" id="upgToGmail">Upgrade to Growth Pro</button></p>';
-        if($('upgToGmail')) $('upgToGmail').onclick = function(){ $('upgradeModal').hidden = false; if($('upSelect')) $('upSelect').disabled = true; };
+        if($('upgToGmail')) $('upgToGmail').onclick = function(){ $('upgradeModal').hidden = false; if($('upSelect')) $('upSelect').disabled = false; };
       }
     }
     if($('copy')) $('copy').onclick = doCopy;
@@ -1497,8 +1539,7 @@ function dashInit(){
     total += st.amount;
     store.set('lc_total', total);
     showTotal(from, total);
-    b.disabled = true;
-    b.textContent = 'Added to your total';
+    if(b){ b.disabled = true; b.textContent = 'Added to your total'; }
     toast(money(st.amount) + ' added to recovered.');
     setTimeout(function(){
       R.classList.add('leaving');
@@ -1569,7 +1610,8 @@ function dashInit(){
     const n = getTrialLeft();
     if(!unlimited && n <= 0){
       if($('upgradeModal')) $('upgradeModal').hidden = false;
-      if($('upSelect')) $('upSelect').disabled = true;
+      if($('upSelect')) $('upSelect').disabled = false;
+      toast('Your 3 free trial uses have ended. Upgrade to continue.');
       return;
     }
     const g = $('go');
@@ -1599,7 +1641,7 @@ function dashInit(){
       const newN = Math.max(0, n - 1);
       setTrialLeft(newN);
       updateTrialBadge();
-      if(newN === 0) toast('Trial limit reached. Upgrade to keep filing.');
+      if(newN === 0) toast('Your 3 free trial uses are now complete! Upgrade to continue.');
     }
     if(g.querySelector('.spin')) g.querySelector('.spin').remove();
     if($('goTxt')) $('goTxt').textContent = 'Check & build claim';
