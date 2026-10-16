@@ -227,8 +227,79 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
 
 <script>
 // Pointing to your Render backend URL
+<!-- Inside your Cloudflare/Frontend index.html -->
+<script>
 const API_BASE         = 'https://leadclaw-api.onrender.com';
 const GOOGLE_CLIENT_ID = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com';
+
+let realGmailToken = '';
+
+// Initialize Google Identity Services SDK on page load
+window.onload = function() {
+  if (typeof google !== 'undefined') {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleRealGoogleLogin
+    });
+    
+    // Render the official Google button if desired, or trigger programmatically
+    google.accounts.id.renderButton(
+      document.getElementById('googleBtnContainer'),
+      { theme: 'outline', size: 'large', width: '100%' }
+    );
+  }
+};
+
+// Triggered when user clicks "Continue with Google"
+async function handleRealGoogleLogin(response) {
+  try {
+    const res = await fetch(API_BASE + '/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: response.credential })
+    });
+    
+    if (!res.ok) throw new Error('Google authorization failed');
+    
+    const data = await res.json();
+    realGmailToken = response.credential;
+    
+    // Automatically save real email and move to workspace setup
+    localStorage.setItem('lc_temp_email', data.email);
+    
+    document.getElementById('v-email').hidden = true;
+    document.getElementById('v-terms').hidden = false;
+    document.getElementById('st1').className = 'st done';
+    document.getElementById('st2').className = 'st on';
+    
+    showToast('Successfully connected to real Gmail account: ' + data.email);
+  } catch (err) {
+    showToast('Error connecting to Google/Gmail.');
+  }
+}
+
+// When finishing workspace setup, send the real token to Render database
+async function finalizeWorkspace(planId) {
+  const email = localStorage.getItem('lc_temp_email');
+  const workspace = document.getElementById('wsName').value.trim();
+  
+  await fetch(API_BASE + '/api/auth/setup-workspace', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      email: email,
+      workspace: workspace,
+      plan: planId,
+      device_token: getDeviceToken(),
+      gmail_token: realGmailToken // Stored securely in Render SQLite
+    })
+  });
+
+  localStorage.setItem('lc_user', email);
+  localStorage.setItem('lc_workspace', workspace);
+  // Proceed to dashboard...
+}
+</script>
 
 const PLANS_DEF = [
   { id: 'solo', name: 'Standard Solo', price: 29, features: ['25 AI disputes per month', 'Formatted text claims', 'SQLite ledger tracking', 'Email support'] },
