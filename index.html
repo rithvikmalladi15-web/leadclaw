@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-<!-- Google Identity Services Script -->
+<!-- Google Identity Services SDK -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -947,7 +947,7 @@ $('pwGo').onclick=()=>{
   $('pw1').value='';$('pw2').value='';showView('terms');
 };
 
-// ── STEP 2: WORKSPACE ────────────────────────────────────────────────     
+// ── STEP 2: WORKSPACE ─────────────────────────────────────────────────────
 function checkTermsReady(){$('termsGo').disabled=!($('wsName').value.trim().length>=2&&AUTH.agreed);}
 $('wsName').addEventListener('input',()=>{$('wsErr').textContent='';checkTermsReady();});
 $('agreeBtn').onclick=()=>{AUTH.agreed=!AUTH.agreed;$('agreeBtn').setAttribute('aria-checked',AUTH.agreed);$('termsErr').textContent='';checkTermsReady();};
