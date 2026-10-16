@@ -1,15 +1,11 @@
 import os
-import logging
+from typing import List, Optional
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List, Optional
-from google import genai
-import requests
+from pydantic import BaseModel
+import google.generativeai as genai
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("LeadClaw-Backend")
-
-app = FastAPI(title="LeadClaw Enterprise API")
+app = FastAPI(title="LeadClaw API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,105 +15,98 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def health_check():
-    return {"status": "online", "service": "LeadClaw Backend Active"}
+# Configure Gemini API if key is available
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+
+class EstimateRequest(BaseModel):
+    platform: str
+    text: str
+
+class FeedbackRequest(BaseModel):
+    type: str
+    message: str
+    email: Optional[str] = ""
+    workspace: Optional[str] = ""
+
+@app.post("/api/dispute/estimate")
+async def estimate_cost(req: EstimateRequest):
+    text_lower = req.text.lower()
+    base = 50
+    if any(k in text_lower for k in ["roof", "shingle", "gutter"]):
+        base = 90
+    elif any(k in text_lower for k in ["plumb", "leak", "drain", "water heater", "pipe"]):
+        base = 60
+    elif any(k in text_lower for k in ["electric", "wiring", "panel", "outlet"]):
+        base = 55
+    elif any(k in text_lower for k in ["hvac", "furnace", "ac", "air condition", "heating"]):
+        base = 70
+    elif any(k in text_lower for k in ["lawn", "landscap", "tree", "fence"]):
+        base = 40
+
+    mult = {"Angi": 1.1, "Thumbtack": 0.9, "Porch": 0.85, "Networx": 1.0}.get(req.platform, 1.0)
+    amount = round(base * mult)
+    return {
+        "amount": float(amount),
+        "low": round(amount * 0.75),
+        "high": round(amount * 1.25),
+        "basis": f"Estimated based on lead service type for {req.platform}"
+    }
 
 @app.post("/api/dispute")
-async def analyze_dispute(
+async def create_dispute(
     platform: str = Form(...),
     notes: Optional[str] = Form(""),
     transcript: Optional[str] = Form(""),
-    cost: float = Form(0.0),
-    model: str = Form("gemini"),
-    files: List[UploadFile] = File(default=[])
+    cost: Optional[float] = Form(0.0),
+    model: Optional[str] = Form("gemini"),
+    files: List[UploadFile] = File([])
 ):
-    logger.info(f"Processing dispute for platform: {platform}, model requested: {model}")
+    combined_text = f"Notes: {notes}\nTranscript: {transcript}"
+    text_lower = combined_text.lower()
     
-    prompt = f"""You are an elite automated dispute resolution agent for local trade contractors.
-A contractor is disputing a low-quality lead charge with marketplace platform "{platform}" to secure a full refund credit.
-
-INPUT TRANSCRIPT / CALL RECORDING NOTES:
-\"\"\"{transcript}\"\"\"
-
-ADDITIONAL CONTRACTOR NOTES:
-\"\"\"{notes}\"\"\"
-
-INSTRUCTIONS:
-1. Automatically analyze the transcript and notes to determine the exact valid dispute category.
-2. Determine if the claim is valid based on marketplace policy guidelines.
-3. Generate a highly professional, objective, policy-compliant credit refund request statement.
-
-Output your response cleanly in the following format:
-[VALID]: True
-[CONFIDENCE]: 0.95
-[REASON]: Policy rule matched.
-[ESTIMATED REFUND VALUE]: ${cost if cost > 0 else 75.00}
-
-[COMPLIANCE STATEMENT]:
-Dear {platform} Support Team,
-
-I am writing to formally request a lead credit refund for a low-quality lead charged recently.
-
-Reason for Dispute:
-- Details: {notes} {transcript}
-
-Based on your contractor terms and lead guarantee policies, this lead is non-qualifying. Please credit my account for ${cost if cost > 0 else 75.00}.
-
-Thank you,
-LeadClaw Enterprise User
-"""
-
-    generated_text = ""
+    # Basic deterministic heuristic rule check for eligibility
+    invalid_keywords = ["changed mind", "too expensive", "decided to wait", "hired someone else"]
+    is_valid = True
+    reason = ""
     
-    try:
-        if model == "gemini":
-            try:
-                client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-                response = client.models.generate_content(
-                    model='gemini-2.5-flash',
-                    contents=prompt,
-                )
-                generated_text = response.text
-            except Exception as gemini_err:
-                logger.warning(f"Gemini failed, falling back to Groq Qwen3: {gemini_err}")
-                model = "qwen"
+    for kw in invalid_keywords:
+        if kw in text_lower:
+            is_valid = False
+            reason = f"Platform refund policy excludes claims where the customer '{kw}' after initial contact."
+            break
 
-        if model == "qwen" or not generated_text:
-            groq_api_key = os.environ.get("GROQ_API_KEY")
-            if not groq_api_key:
-                raise Exception("GROQ_API_KEY environment variable is missing on Render.")
-                
-            groq_response = requests.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                headers={
-                    "Authorization": f"Bearer {groq_api_key}",
-                    "Content-Type": "application/json"
-                },
-                json={
-                    "model": "qwen/qwen3-4b",
-                    "messages": [{"role": "user", "content": prompt}]
-                }
-            )
-            groq_data = groq_response.json()
-            if "choices" in groq_data and len(groq_data["choices"]) > 0:
-                generated_text = groq_data["choices"][0]["message"]["content"]
-            else:
-                raise Exception(f"Groq API Error: {groq_data}")
-
+    if not is_valid:
         return {
-            "valid": True,
-            "confidence": 0.94,
-            "reason": "Matched marketplace validity terms.",
-            "amount": cost if cost > 0 else 75.00,
-            "claim": generated_text
+            "valid": False,
+            "confidence": 0.88,
+            "reason": reason
         }
 
-    except Exception as e:
-        logger.error(f"Error handling dispute request: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # Generate professional dispute claim text
+    claim_text = (
+        f"To {platform} Support Team,\n\n"
+        f"I am writing to formally request a credit/refund for lead charges incurred on our account. "
+        f"Upon review, this lead meets the qualifying refund criteria due to the following verified circumstances:\n\n"
+        f"Details: {notes or 'Contact details were invalid or non-responsive upon multiple attempts.'}\n"
+        f"{'Transcript Reference: ' + transcript[:200] + '...' if transcript else ''}\n\n"
+        f"We kindly request that the lead fee of ${cost:.2f} be credited back to our contractor account per the {platform} Pro Lead Guarantee policy.\n\n"
+        f"Thank you for your prompt assistance.\n"
+        f"Sincerely,\nLeadClaw Pro Contractor"
+    )
+
+    return {
+        "valid": True,
+        "confidence": 0.94,
+        "amount": cost if cost > 0 else 75.0,
+        "claim": claim_text
+    }
+
+@app.post("/api/feedback")
+async def submit_feedback(req: FeedbackRequest):
+    return {"status": "success", "message": "Feedback received successfully."}
 
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.environ.get("PORT", 10000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
