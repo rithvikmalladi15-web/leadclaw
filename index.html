@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-<!-- Google Identity Services Script -->
+<!-- Google Identity Services SDK -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
@@ -807,17 +807,14 @@ function handleGoogleCredentialResponse(response) {
     AUTH.email = userEmail;
     AUTH.method = 'google';
     
-    // Check if user already has an active workspace/plan stored locally (Log In behavior)
     const existingWs = store.get('lc_workspace');
     const existingPlan = getPlan();
 
     if (existingWs && existingPlan) {
-      // Returning user logging back in via Gmail
       saveSession();
       enterDashboard();
       toast('Welcome back, ' + userEmail + '!');
     } else {
-      // New user signing up via Gmail -> forward to Workspace Setup (Step 2)
       AUTH.ws = responsePayload.name ? responsePayload.name + "'s Workspace" : 'My Workspace';
       store.set('lc_workspace', AUTH.ws);
       saveSession();
@@ -843,7 +840,6 @@ $('googleBtn').onclick = () => {
   if (window.google && google.accounts) {
     google.accounts.id.prompt((notification) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-        // Fallback popup UX if One-Tap prompt is blocked or skipped
         google.accounts.id.renderButton(
           document.getElementById('googleBtn'),
           { theme: 'outline', size: 'large', width: '100%' }
@@ -852,7 +848,6 @@ $('googleBtn').onclick = () => {
       }
     });
   } else {
-    // Fallback if script is blocked
     AUTH.email = 'user@gmail.com';
     AUTH.method = 'google';
     const existingWs = store.get('lc_workspace');
@@ -933,7 +928,6 @@ $('resendBtn').onclick=()=>{$('resendMsg').textContent='New link sent to '+AUTH.
 $('diffEmailBtn').onclick=()=>{clearInterval(coolTimer);showView('email');};
 $('verifiedBtn').onclick=()=>showView('pass');
 
-// password
 function pwScore(p){let s=0;if(p.length>=8)s++;if(p.length>=12)s++;if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;return s;}
 $('pw1').addEventListener('input',()=>{
   const p=$('pw1').value,sc=pwScore(p),bar=$('meterBar');
@@ -952,7 +946,6 @@ $('pwGo').onclick=()=>{
   $('pw1').value='';$('pw2').value='';showView('terms');
 };
 
-// ── STEP 2: WORKSPACE ─────────────────────────────────────────────────────
 function checkTermsReady(){$('termsGo').disabled=!($('wsName').value.trim().length>=2&&AUTH.agreed);}
 $('wsName').addEventListener('input',()=>{$('wsErr').textContent='';checkTermsReady();});
 $('agreeBtn').onclick=()=>{AUTH.agreed=!AUTH.agreed;$('agreeBtn').setAttribute('aria-checked',AUTH.agreed);$('termsErr').textContent='';checkTermsReady();};
@@ -970,7 +963,6 @@ $('termsGo').onclick=()=>{
   showView('plans');
 };
 
-// ── STEP 3: PLANS ─────────────────────────────────────────────────────────
 const CHK=`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>`;
 $('plansGrid').innerHTML=PLANS_DEF.map(p=>`<article class="plan${p.pop?' pop':''}">
   ${p.pop?'<span class="pop-tag">Most Popular</span>':''}
@@ -1003,7 +995,6 @@ $('upSelect').onclick=()=>{
 };
 $('upClose').onclick=()=>$('upgradeModal').hidden=true;
 
-// ── SESSION ────────────────────────────────────────────────────────────────
 function saveSession(){
   store.set('lc_user',JSON.stringify({email:AUTH.email,method:AUTH.method}));
   store.set('lc_workspace',AUTH.ws);store.set('lc_plan',AUTH.plan);
@@ -1021,13 +1012,12 @@ function finishOnboarding(planId){AUTH.plan=planId;saveSession();enterDashboard(
 function enterDashboard(){
   const ws=AUTH.ws||store.get('lc_workspace')||'My Workspace';
   $('dashWsName').textContent=ws;$('wsSwName').textContent=ws;
-  $('wsSw').classList.add('visible');
+  \$('wsSw').classList.add('visible');
   updateTrialBadge();updatePlanChip();applyPlanGating();
   showPage('pg-dash');dashInit();
   if(!store.get('lc_tour'))setTimeout(tourOpen,900);
 }
 
-// ── DASHBOARD ──────────────────────────────────────────────────────────────
 let dashReady=false;
 function dashInit(){
   if(dashReady)return;dashReady=true;
@@ -1043,25 +1033,25 @@ function dashInit(){
   const POLICY={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
   const st={platform:'Angi',files:[],tags:new Set(),claim:'',amount:0,model:'gemini',gmailConnected:store.get('lc_gmail')==='1'};
 
-  $('modelSel').addEventListener('click',e=>{
+  \$('modelSel').addEventListener('click',e=>{
     const opt=e.target.closest('[data-model]');if(!opt)return;
     st.model=opt.dataset.model;
-    $('modelSel').querySelectorAll('.model-opt').forEach(o=>o.classList.toggle('sel',o.dataset.model===st.model));
+    \$('modelSel').querySelectorAll('.model-opt').forEach(o=>o.classList.toggle('sel',o.dataset.model===st.model));
   });
 
   let total=parseFloat(store.get('lc_total'))||0;
-  function showTotal(from,to){const t0=performance.now(),d=600;(function f(t){const p=Math.min(1,(t-t0)/d);$('total').textContent=money(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0);}
+  function showTotal(from,to){const t0=performance.now(),d=600;(function f(t){const p=Math.min(1,(t-t0)/d);\$('total').textContent=money(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0);}
   showTotal(0,total);
 
-  const pl=$('platforms');
+  const pl=\$('platforms');
   PLATFORMS.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p;b.setAttribute('role','radio');b.setAttribute('aria-checked',p===st.platform);
     b.onclick=()=>{st.platform=p;[...pl.children].forEach(x=>x.setAttribute('aria-checked',x===b));};pl.appendChild(b);});
 
   CHIPS.forEach(([label,text])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=label;b.setAttribute('aria-pressed','false');
-    b.onclick=()=>{const n=$('notes');const on=!st.tags.has(label);
-      if(on){st.tags.add(label);n.value=(n.value&&!/\s$/.test(n.value)?n.value+' ':n.value)+text;}
+    b.onclick=()=>{const n=\$('notes');const on=!st.tags.has(label);
+      if(on){st.tags.add(label);n.value=(n.value&&!/\s\$/.test(n.value)?n.value+' ':n.value)+text;}
       else{st.tags.delete(label);n.value=n.value.replace(text,'');}
-      b.setAttribute('aria-pressed',on);n.focus();sync();};$('chips').appendChild(b);});
+      b.setAttribute('aria-pressed',on);n.focus();sync();};\$('chips').appendChild(b);});
 
   const drop=$('drop'),fi=$('file');
   if(drop){
@@ -1072,15 +1062,15 @@ function dashInit(){
     drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
     fi.onchange=()=>{addFiles(fi.files);fi.value='';};
   }
-  $('upgradeFromFile').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
+  \$('upgradeFromFile').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
 
   function addFiles(list){let bad=0;[...list].forEach(f=>{
-    if(!/\.(mp3|wav|pdf)$/i.test(f.name)){bad++;return;}
+    if(!/\.(mp3|wav|pdf)\$/i.test(f.name)){bad++;return;}
     if(f.size>25*1024*1024){toast(f.name+' exceeds 25 MB');return;}
     if(!st.files.some(x=>x.name===f.name&&x.size===f.size))st.files.push(f);});
     if(bad)toast('Only MP3, WAV and PDF files are accepted.');
     renderFiles();sync();}
-  function renderFiles(){const c=$('files');c.innerHTML='';
+  function renderFiles(){const c=\$('files');c.innerHTML='';
     st.files.forEach((f,i)=>{const ext=f.name.split('.').pop().toLowerCase();
       const d=document.createElement('div');d.className='file';
       d.innerHTML=`<div class="ico ${ext==='pdf'?'pdf':''}">${ext.toUpperCase()}</div><div class="nm">${esc(f.name)}</div><div class="sz">${(f.size/1048576).toFixed(1)}MB</div><button aria-label="Remove">&times;</button>`;
@@ -1261,7 +1251,6 @@ function dashInit(){
   empty();
 }
 
-// ── QUICK TOUR ──────────────────────────────────────────────────────────────
 const TOUR=[
   ['Welcome to LeadClaw',()=>\$('h'),'Lead platforms like Angi, Thumbtack, Porch and Networx charge you for every lead — even wrong numbers and fakes. LeadClaw checks each one against the platform\'s refund policy and writes the credit request so you don\'t have to.'],
   ['Choose your plan features',()=>\$('planChip'),'Your plan controls which features are available. Solo gets a formatted email to paste manually. Growth Pro unlocks audio evidence, Gmail one-click sending and AI model choice. Upgrade any time from the plans modal.'],
