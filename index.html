@@ -9,6 +9,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<!-- Google Identity Services Script -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -589,8 +591,8 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
       <div class="field" id="modelSection" hidden>
         <span class="lbl">AI model <span class="pro-badge">Pro</span></span>
         <div class="model-sel" id="modelSel">
-          <div class="model-opt sel" data-model="gemini"><b>Gemini 2.5 Flash</b><small>Fast · most accurate</small></div>
-          <div class="model-opt" data-model="qwen"><b>Qwen 3 4B (local)</b><small>Runs on Ollama</small></div>
+          <div class="model-opt sel" data-model="gemini"><b>Gemini 3.5 Flash</b><small>Fast · most accurate</small></div>
+          <div class="model-opt" data-model="qwen"><b>Qwen 3 4B</b><small>Fast open-weights model</small></div>
         </div>
       </div>
 
@@ -694,10 +696,9 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const API_BASE          = 'https://leadclaw-api.onrender.com'; // Your Render URL[cite: 7]
-const GOOGLE_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com'; // Your Google OAuth Client ID[cite: 7]
-const GOOGLE_API_KEY    = ''; // Kept empty as authentication is handled via Client ID[cite: 7]
-const GMAIL_SCOPES      = 'https://www.googleapis.com/auth/gmail.readonly'; //[cite: 7]
+const API_BASE          = 'https://leadclaw-api.onrender.com';
+const GOOGLE_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com'; 
+const GMAIL_SCOPES      = 'https://www.googleapis.com/auth/gmail.readonly';
 // ─────────────────────────────────────────────────────────────────────────────
 
 (()=>{
@@ -779,6 +780,7 @@ function applyPlanGating(){
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
 function boot(){
+  initGoogleAuth();
   const u=store.get('lc_user');
   if(u){
     try{const d=JSON.parse(u);AUTH.email=d.email||'';AUTH.method=d.method||'';}catch{}
@@ -787,6 +789,81 @@ function boot(){
   }
   showPage('pg-auth');syncStepper('email');showView('email');
 }
+
+// ── GOOGLE AUTH (SIGN UP & LOG IN) ─────────────────────────────────────────
+function decodeJwtResponse(token) {
+  let base64Url = token.split('.')[1];
+  let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+  return JSON.parse(jsonPayload);
+}
+
+function handleGoogleCredentialResponse(response) {
+  try {
+    const responsePayload = decodeJwtResponse(response.credential);
+    const userEmail = responsePayload.email;
+    AUTH.email = userEmail;
+    AUTH.method = 'google';
+    
+    // Check if user already has an active workspace/plan stored locally (Log In behavior)
+    const existingWs = store.get('lc_workspace');
+    const existingPlan = getPlan();
+
+    if (existingWs && existingPlan) {
+      // Returning user logging back in via Gmail
+      saveSession();
+      enterDashboard();
+      toast('Welcome back, ' + userEmail + '!');
+    } else {
+      // New user signing up via Gmail -> forward to Workspace Setup (Step 2)
+      AUTH.ws = responsePayload.name ? responsePayload.name + "'s Workspace" : 'My Workspace';
+      store.set('lc_workspace', AUTH.ws);
+      saveSession();
+      showView('terms');
+      toast('Signed up with ' + userEmail + ' successfully!');
+    }
+  } catch (err) {
+    console.error('Google Auth parsing error:', err);
+    toast('Google authentication failed. Please try again.');
+  }
+}
+
+function initGoogleAuth() {
+  if (window.google && google.accounts) {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredentialResponse
+    });
+  }
+}
+
+$('googleBtn').onclick = () => {
+  if (window.google && google.accounts) {
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Fallback popup UX if One-Tap prompt is blocked or skipped
+        google.accounts.id.renderButton(
+          document.getElementById('googleBtn'),
+          { theme: 'outline', size: 'large', width: '100%' }
+        );
+        toast('Click the Google button again to select your account.');
+      }
+    });
+  } else {
+    // Fallback if script is blocked
+    AUTH.email = 'user@gmail.com';
+    AUTH.method = 'google';
+    const existingWs = store.get('lc_workspace');
+    if (existingWs) {
+      saveSession();
+      enterDashboard();
+    } else {
+      showView('terms');
+    }
+  }
+};
 
 // ── STEPPER ────────────────────────────────────────────────────────────────
 const VIEW_STEP={email:1,sent:1,pass:1,terms:2,plans:3};
@@ -823,22 +900,6 @@ function setMode(signup){
 }
 $('tabSignup').onclick=()=>setMode(true);
 $('tabLogin').onclick=()=>setMode(false);
-
-// ── GOOGLE AUTH INTEGRATION (Fixed Handler) ─────────────────────────────
-$('googleBtn').onclick = () => {
-  if (window.google && google.accounts) {
-    google.accounts.id.prompt();
-  } else {
-    AUTH.email = 'user@gmail.com';
-    AUTH.method = 'google';
-    if(!isSignup){
-      AUTH.ws = store.get('lc_workspace') || '';
-      AUTH.plan = getPlan();
-      if(AUTH.ws && AUTH.plan){ saveSession(); enterDashboard(); return; }
-    }
-    showView('terms');
-  }
-};
 
 // ── EMAIL FLOW ─────────────────────────────────────────────────────────────
 function tryEmailGo(){
@@ -1027,14 +1088,14 @@ function dashInit(){
 
   function sync(){
     const blocked=getTrialLeft()<=0&&store.get('lc_plan_unlimited')!=='1';
-    $('go').disabled=blocked||!($('notes').value.trim()\vert{}\vert{}$('transcript').value.trim()||st.files.length);
+    \$('go').disabled=blocked||!($('notes').value.trim()\vert{}\vert{}$('transcript').value.trim()||st.files.length);
   }
   $('notes').addEventListener('input',sync);$('transcript').addEventListener('input',sync);
 
-  const R=$('result');
+  const R=\$('result');
   function empty(){R.innerHTML=`<div class="empty"><div class="ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><h3>Your claim appears here</h3><p>Fill in the form and run the check. Valid leads get a ready-to-send statement.</p></div>`;}
   const STEPS=['Reading your notes and files','Checking platform refund rules','Drafting the claim'];
-  function loading(){R.innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="step"><i>&#10003;</i>${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:90%"></div><div class="sk" style="width:76%"></div><div class="sk" style="width:84%"></div><div class="sk" style="width:54%"></div><p style="margin-top:14px;color:var(--mu);font-size:13px">Up to 60 s while the AI warms up (Render free plan).</p>`;}
+  function loading(){R.innerHTML=`<div class="steps">${STEPS.map((s,i)=>`<div class="step"><i>&#10003;</i>\${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:90%"></div><div class="sk" style="width:76%"></div><div class="sk" style="width:84%"></div><div class="sk" style="width:54%"></div><p style="margin-top:14px;color:var(--mu);font-size:13px">Up to 60 s while the AI warms up (Render free plan).</p>`;}
   function tick(i){R.querySelectorAll('.step').forEach((s,j)=>{s.classList.toggle('done',j<i);s.classList.toggle('on',j===i);});}
   function renderError(e){
     const m=e&&e.name==='AbortError'?'Request timed out after 90 s.':String((e&&e.message)||e);
@@ -1072,17 +1133,17 @@ function dashInit(){
       <div class="delivery-card" id="deliveryCard"></div>
       <p class="result-note">Mark it recovered once the credit lands in your account.</p>`;
 
-    const dc=$('deliveryCard');
+    const dc=\$('deliveryCard');
     if(isPro && gmailConnected){
       dc.innerHTML=`<h4>&#9889; Send via Gmail <span class="pro-badge">Pro</span></h4>
         <p>Gmail is connected. Click below to open a pre-filled draft in your Gmail account.</p>
         <button class="btn sm" id="openGmail" type="button">Open pre-filled draft in Gmail</button>`;
-      $('openGmail').onclick=()=>openGmailDraft(r.claim,st.platform,st.amount);
+      \$('openGmail').onclick=()=>openGmailDraft(r.claim,st.platform,st.amount);
     } else if(isPro && !gmailConnected){
       dc.innerHTML=`<h4>&#9889; Connect Gmail for one-click sending <span class="pro-badge">Pro</span></h4>
         <p>Your plan supports Gmail integration. Connect your account to send disputes without leaving LeadClaw.</p>
         <button class="btn sec sm" id="connectGmailDash" type="button">Connect Gmail</button>`;
-      $('connectGmailDash').onclick=()=>{store.set('lc_gmail','1');toast('Gmail connected (stub)');render(r);};
+      \$('connectGmailDash').onclick=()=>{store.set('lc_gmail','1');toast('Gmail connected (stub)');render(r);};
     } else {
       dc.innerHTML=`<h4>How to submit this claim</h4>
         <p>Copy the formatted email above, then follow these steps for <b>${st.platform}</b>:</p>
@@ -1090,7 +1151,7 @@ function dashInit(){
           ${getSubmitSteps(st.platform)}
         </ol>
         <p style="color:var(--mu);font-size:13px">Want one-click Gmail sending? <button class="link-btn" id="upgToGmail">Upgrade to Growth Pro</button></p>`;
-      $('upgToGmail').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
+      \$('upgToGmail').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
     }
     $('copy').onclick=doCopy;$('rec').onclick=doRecover;
   }
@@ -1134,12 +1195,12 @@ function dashInit(){
     toast('Opening Gmail compose…');
   }
 
-  async function doCopy(){const b=$('copy');
+  async function doCopy(){const b=\$('copy');
     try{await navigator.clipboard.writeText(st.claim);}catch{const t=document.createElement('textarea');t.value=st.claim;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch{}t.remove();}
     b.classList.add('copied');b.textContent='Copied!';toast('Claim copied to clipboard.');
     setTimeout(()=>{b.classList.remove('copied');b.textContent='Copy formatted claim';},1900);}
 
-  function doRecover(){const b=$('rec');if(b.disabled)return;
+  function doRecover(){const b=\$('rec');if(b.disabled)return;
     const from=total;total+=st.amount;store.set('lc_total',total);showTotal(from,total);
     b.disabled=true;b.textContent='Added to your total';toast(money(st.amount)+' added to recovered.');
     setTimeout(()=>{R.classList.add('leaving');setTimeout(()=>{empty();st.claim='';st.amount=0;R.classList.remove('leaving');},350);},1100);}
@@ -1149,8 +1210,8 @@ function dashInit(){
   function guess(t){let s=SVC.find(x=>x[1].test(t));const base=s?s[2]:50;const a=Math.round(base*MULT[st.platform]);
     return{amount:a,low:Math.round(a*.75),high:Math.round(a*1.25),basis:(s?s[0]:'general home services')+' on '+st.platform+' (estimated)'};}
   
-  $('est').onclick=async()=>{
-    const b=$('est'),txt=($('notes').value+' '+$('transcript').value).trim();
+  \$('est').onclick=async()=>{
+    const b=\$('est'),txt=($('notes').value+' '+$('transcript').value).trim();
     b.disabled=true;b.innerHTML='<span class="spin" style="border-top-color:var(--blue);border-color:rgba(37,99,235,.25)"></span>Estimating…';
     let res;
     try{const x=await fetch(API_BASE+'/api/dispute/estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:st.platform,text:txt})});if(!x.ok)throw 0;res=await x.json();if(typeof res.amount!=='number')throw 0;}
@@ -1158,12 +1219,11 @@ function dashInit(){
     $('cost').value=res.amount.toFixed(2);$('estNote').textContent='Est. '+money(res.amount)+(res.low?' (range '+money(res.low)+'–'+money(res.high)+')':'')+(res.basis?', '+res.basis:'')+'. Verify against your lead receipt.';
     b.disabled=false;b.innerHTML='Estimate with AI';};
 
-  // ── Fixed Backend API Request Function ──────────────────────────────────
   async function callApi(cost){
     const fd = new FormData();
     fd.append('platform', st.platform);
-    fd.append('notes', $('notes').value);
-    fd.append('transcript', $('transcript').value);
+    fd.append('notes', \$('notes').value);
+    fd.append('transcript', \$('transcript').value);
     fd.append('cost', cost);
     fd.append('model', st.model);
     st.files.forEach(f => fd.append('files', f));
@@ -1183,19 +1243,19 @@ function dashInit(){
     j.amount=j.amount??cost;return j;
   }
 
-  $('go').onclick=async()=>{
+  \$('go').onclick=async()=>{
     const unlimited=store.get('lc_plan_unlimited')==='1';
     const n=getTrialLeft();
     if(!unlimited&&n<=0){$('upgradeModal').hidden=false;$('upSelect').disabled=true;return;}
-    const g=$('go');g.disabled=true;
-    $('goTxt').outerHTML='<span class="spin"></span><span id="goTxt">Analyzing…</span>';
+    const g=\$('go');g.disabled=true;
+    \$('goTxt').outerHTML='<span class="spin"></span><span id="goTxt">Analyzing…</span>';
     loading();tick(0);let i=0;const iv=setInterval(()=>{i=Math.min(i+1,2);tick(i);},1300);
-    const cost=parseFloat($('cost').value.replace(/[^0-9.]/g,''))||0;
+    const cost=parseFloat(\$('cost').value.replace(/[^0-9.]/g,''))||0;
     let res;
-    try{res=await callApi(cost);}catch(e){clearInterval(iv);renderError(e);g.querySelector('.spin')?.remove();$('goTxt').textContent='Check & build claim';sync();return;}
+    try{res=await callApi(cost);}catch(e){clearInterval(iv);renderError(e);g.querySelector('.spin')?.remove();\$('goTxt').textContent='Check & build claim';sync();return;}
     clearInterval(iv);tick(3);await new Promise(r=>setTimeout(r,350));render(res);
     if(!unlimited){const newN=Math.max(0,n-1);setTrialLeft(newN);updateTrialBadge();if(newN===0)toast('Trial limit reached. Upgrade to keep filing.');}
-    g.querySelector('.spin')?.remove();$('goTxt').textContent='Check & build claim';sync();
+    g.querySelector('.spin')?.remove();\$('goTxt').textContent='Check & build claim';sync();
     if(innerWidth<=900)R.scrollIntoView({behavior:'smooth',block:'start'});};
 
   empty();
@@ -1203,31 +1263,31 @@ function dashInit(){
 
 // ── QUICK TOUR ──────────────────────────────────────────────────────────────
 const TOUR=[
-  ['Welcome to LeadClaw',()=>$('h'),'Lead platforms like Angi, Thumbtack, Porch and Networx charge you for every lead — even wrong numbers and fakes. LeadClaw checks each one against the platform\'s refund policy and writes the credit request so you don\'t have to.'],
-  ['Choose your plan features',()=>$('planChip'),'Your plan controls which features are available. Solo gets a formatted email to paste manually. Growth Pro unlocks audio evidence, Gmail one-click sending and AI model choice. Upgrade any time from the plans modal.'],
-  ['Select the platform',()=>$('platforms').closest('.field'),'Pick where the lead came from. The policy rules are different for each one and we check the right set automatically.'],
-  ['Describe what happened',()=>$('notes').closest('.field'),'Tap a reason chip to auto-fill your notes, then add detail. Paste a call transcript in the field below for the AI to read.'],
-  ['Add evidence (Pro)',()=>$('fileSection'),'Growth Pro and Enterprise users can attach call recordings (MP3/WAV) or PDFs. Evidence makes a claim significantly harder for the platform to reject.'],
-  ['Run the check',()=>$('go'),'Press Check & Build Claim. The AI reads your notes, checks them against the policy and writes the dispute statement. This takes up to 60 seconds on the first request.'],
-  ['Submit your claim',()=>$('result'),'Solo plan: copy the formatted email and paste it into the platform\'s dispute form using the step-by-step guide. Growth Pro: click Open in Gmail to send directly. Mark as recovered once the credit lands.'],
-  ['Switch themes',()=>$('themeBtn'),'Use the sun / moon button in the top right to switch between light and dark mode any time. LeadClaw remembers your choice.']
+  ['Welcome to LeadClaw',()=>\$('h'),'Lead platforms like Angi, Thumbtack, Porch and Networx charge you for every lead — even wrong numbers and fakes. LeadClaw checks each one against the platform\'s refund policy and writes the credit request so you don\'t have to.'],
+  ['Choose your plan features',()=>\$('planChip'),'Your plan controls which features are available. Solo gets a formatted email to paste manually. Growth Pro unlocks audio evidence, Gmail one-click sending and AI model choice. Upgrade any time from the plans modal.'],
+  ['Select the platform',()=>\$('platforms').closest('.field'),'Pick where the lead came from. The policy rules are different for each one and we check the right set automatically.'],
+  ['Describe what happened',()=>\$('notes').closest('.field'),'Tap a reason chip to auto-fill your notes, then add detail. Paste a call transcript in the field below for the AI to read.'],
+  ['Add evidence (Pro)',()=>\$('fileSection'),'Growth Pro and Enterprise users can attach call recordings (MP3/WAV) or PDFs. Evidence makes a claim significantly harder for the platform to reject.'],
+  ['Run the check',()=>\$('go'),'Press Check & Build Claim. The AI reads your notes, checks them against the policy and writes the dispute statement. This takes up to 60 seconds on the first request.'],
+  ['Submit your claim',()=>\$('result'),'Solo plan: copy the formatted email and paste it into the platform\'s dispute form using the step-by-step guide. Growth Pro: click Open in Gmail to send directly. Mark as recovered once the credit lands.'],
+  ['Switch themes',()=>\$('themeBtn'),'Use the sun / moon button in the top right to switch between light and dark mode any time. LeadClaw remembers your choice.']
 ];
 let ti=0,spot=null;
 function tourShow(){const t=TOUR[ti];
   spot&&spot.classList.remove('spot');spot=t[1]();spot&&spot.classList.add('spot');
   spot&&spot.scrollIntoView({behavior:'smooth',block:'center'});
-  $('tourCount').textContent='Step '+(ti+1)+' of '+TOUR.length;
-  $('tourBar').style.width=((ti+1)/TOUR.length*100)+'%';
+  \$('tourCount').textContent='Step '+(ti+1)+' of '+TOUR.length;
+  \$('tourBar').style.width=((ti+1)/TOUR.length*100)+'%';
   $('tourT').textContent=t[0];$('tourP').textContent=t[2];
   $('tourBack').disabled=ti===0;$('tourNext').textContent=ti===TOUR.length-1?'Done':'Next';}
 function tourOpen(){ti=0;$('tour').hidden=false;$('tourBtn').setAttribute('aria-expanded','true');tourShow();}
 function tourClose(){$('tour').hidden=true;$('tourBtn').setAttribute('aria-expanded','false');spot&&spot.classList.remove('spot');spot=null;store.set('lc_tour','1');}
 $('tourBtn').onclick=()=>$('tour').hidden?tourOpen():tourClose();
-$('tourX').onclick=tourClose;
+\$('tourX').onclick=tourClose;
 $('tourBack').onclick=()=>{if(ti>0){ti--;tourShow();}};$('tourNext').onclick=()=>{if(ti<TOUR.length-1){ti++;tourShow();}else tourClose();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('tour').hidden)tourClose();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!\$('tour').hidden)tourClose();});
 
-$('wsSw').onclick=()=>{
+\$('wsSw').onclick=()=>{
   const ws=prompt('Workspace name (blank to sign out):');
   if(ws===null)return;
   if(!ws){logout();return;}
@@ -1235,17 +1295,17 @@ $('wsSw').onclick=()=>{
   $('dashWsName').textContent=ws;$('wsSwName').textContent=ws;toast('Switched to '+ws);};
 
 let prevFocus;
-function openFb(){prevFocus=document.activeElement;$('fbFormWrap').hidden=false;$('fbOk').hidden=true;$('fbErr').textContent='';$('fbModal').hidden=false;$('fbMsg').focus();}
+function openFb(){prevFocus=document.activeElement;\$('fbFormWrap').hidden=false;$('fbOk').hidden=true;$('fbErr').textContent='';$('fbModal').hidden=false;$('fbMsg').focus();}
 function closeFb(){$('fbModal').hidden=true;prevFocus&&prevFocus.focus();}$('fbOpen').onclick=openFb;$('fbClose').onclick=closeFb;$('fbDone').onclick=closeFb;
 $('fbModal').addEventListener('mousedown',e=>{if(e.target===$('fbModal'))closeFb();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fbModal').hidden)closeFb();});$('fbSend').onclick=async()=>{
   const msg=$('fbMsg').value.trim(),em=$('fbEmail').value.trim();
-  if(msg.length<5){$('fbErr').textContent='Please write a short message.';return;}
-  if(em&&!validEmail(em)){$('fbErr').textContent='That reply-to email looks invalid.';return;}
+  if(msg.length<5){\$('fbErr').textContent='Please write a short message.';return;}
+  if(em&&!validEmail(em)){\$('fbErr').textContent='That reply-to email looks invalid.';return;}
   const b=$('fbSend');b.disabled=true;b.textContent='Sending…';$('fbErr').textContent='';
-  try{const r=await fetch(API_BASE+'/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:$('fbType').value,message:msg,email:em,workspace:store.get('lc_workspace')||''})});
-    if(!r.ok)throw 0;$('fbMsg').value='';$('fbFormWrap').hidden=true;$('fbOk').hidden=false;}
-  catch{$('fbErr').textContent='Could not send right now. Please try again.';}
+  try{const r=await fetch(API_BASE+'/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:\$('fbType').value,message:msg,email:em,workspace:store.get('lc_workspace')||''})});
+    if(!r.ok)throw 0;\$('fbMsg').value='';$('fbFormWrap').hidden=true;$('fbOk').hidden=false;}
+  catch{\$('fbErr').textContent='Could not send right now. Please try again.';}
   b.disabled=false;b.textContent='Send feedback';};
 
 boot();
