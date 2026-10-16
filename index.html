@@ -6,530 +6,95 @@
   <title>LeadClaw — Automatic Contractor Lead Credit Engine</title>
   <meta name="color-scheme" content="light dark">
   
-  <!-- Custom Claw-Mark Favicon in Rich Blue Rounded Container -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='28' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='8.5' stroke-linecap='round' fill='none'/></svg>">
   
   <script>
     try {
-      var __t = localStorage.getItem('lc_theme');
+      var __t = localStorage.getItem('lc_theme') || 'light';
+      document.documentElement.setAttribute('data-theme', __t);
     } catch(e) {}
-    document.documentElement.setAttribute('data-theme', __t === 'dark' ? 'dark' : 'light');
   </script>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <style>
     :root {
-      --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --sans: 'Inter', system-ui, -apple-system, sans-serif;
       --display: 'Manrope', 'Inter', system-ui, sans-serif;
-      --mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
-      --blue: #2563eb;
-      --blue-h: #1d4ed8;
-      --blue-l: #60a5fa;
-      --r: 12px;
+      --mono: 'JetBrains Mono', monospace;
+      --blue: #2563eb; --blue-h: #1d4ed8;
     }
-
     html[data-theme=light] {
-      color-scheme: light;
-      --bg: #f8fafc;
-      --bar: #ffffff;
-      --surf: #ffffff;
-      --surf2: #f1f5f9;
-      --inp: #ffffff;
-      --bdr: #e2e8f0;
-      --bdr2: #cbd5e1;
-      --tx: #0f172a;
-      --tx2: #1e293b;
-      --mu: #475569;
-      --dim: #94a3b8;
-      --accent: #2563eb;
-      --tint: #eff6ff;
-      --tint2: #dbeafe;
-      --ok: #166534;
-      --okbg: #f0fdf4;
-      --okbdr: #bbf7d0;
-      --err: #991b1b;
-      --errbg: #fef2f2;
-      --errbdr: #fecaca;
-      --sh: 0 4px 20px rgba(15,23,42,.05), 0 1px 3px rgba(15,23,42,.06);
-      --sh-sm: 0 2px 6px rgba(15,23,42,.04);
+      --bg: #f8fafc; --bar: #ffffff; --surf: #ffffff; --surf2: #f1f5f9; --inp: #ffffff;
+      --bdr: #e2e8f0; --bdr2: #cbd5e1; --tx: #0f172a; --mu: #475569; --dim: #94a3b8;
     }
-
     html[data-theme=dark] {
-      color-scheme: dark;
-      --bg: #030712;
-      --bar: #0b0f19;
-      --surf: #0f172a;
-      --surf2: #1e293b;
-      --inp: #0b0f19;
-      --bdr: #1e293b;
-      --bdr2: #334155;
-      --tx: #f8fafc;
-      --tx2: #cbd5e1;
-      --mu: #94a3b8;
-      --dim: #64748b;
-      --accent: #60a5fa;
-      --tint: rgba(59,130,246,.15);
-      --tint2: rgba(37,99,235,.1);
-      --ok: #4ade80;
-      --okbg: rgba(34,197,94,.12);
-      --okbdr: rgba(34,197,94,.3);
-      --err: #f87171;
-      --errbg: rgba(248,113,113,.12);
-      --errbdr: rgba(248,113,113,.3);
-      --sh: 0 10px 30px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.4);
-      --sh-sm: 0 2px 10px rgba(0,0,0,.3);
+      --bg: #030712; --bar: #0b0f19; --surf: #0f172a; --surf2: #1e293b; --inp: #0b0f19;
+      --bdr: #1e293b; --bdr2: #334155; --tx: #f8fafc; --mu: #94a3b8; --dim: #64748b;
     }
+    *, *::before, *::after { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--tx); font: 15px/1.6 var(--sans); transition: background .2s, color .2s; }
+    button, input, textarea { font: inherit; color: inherit; }
+    .bar { position: sticky; top: 0; z-index: 40; display: flex; align-items: center; gap: 12px; padding: 14px 28px; background: var(--bar); border-bottom: 1px solid var(--bdr); }
+    .bar .sp { flex: 1; }
+    .nav { display: inline-flex; align-items: center; gap: 8px; padding: 9px 15px; border: 1px solid var(--bdr2); border-radius: 8px; background: transparent; color: var(--tx); font-weight: 600; cursor: pointer; }
+    .nav:hover { background: var(--surf2); border-color: var(--blue); color: var(--blue); }
+    .page { display: none; } .page.active { display: block; }
+    .auth-wrap { max-width: 480px; margin: 48px auto 72px; padding: 0 20px; }
+    .brand { display: flex; align-items: center; justify-content: center; gap: 12px; font: 800 28px var(--display); margin-bottom: 32px; }
+    .logo-m { width: 42px; height: 42px; border-radius: 12px; background: var(--blue); display: grid; place-items: center; }
+    .logo-m svg { width: 24px; height: 24px; }
+    
+    .stepper { display: flex; justify-content: center; margin: 0 0 32px; list-style: none; padding: 0; }
+    .st { flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 13px; color: var(--dim); }
+    .st i { width: 30px; height: 30px; border-radius: 50%; border: 2px solid var(--bdr2); display: grid; place-items: center; font: 700 12px var(--mono); font-style: normal; }
+    .st::after { content:""; flex:1; height:2px; background:var(--bdr); border-radius:2px; margin:0 6px; }
+    .st:last-child::after { display:none; }
+    .st.on { color: var(--tx); }
+    .st.on i { border-color: var(--blue); background: var(--blue); color: #fff; }
 
-    *, *::before, *::after {
-      box-sizing: border-box;
-    }
+    .card { background: var(--surf); border: 1px solid var(--bdr); border-radius: 16px; padding: 36px; box-shadow: 0 4px 20px rgba(0,0,0,.05); }
+    h1 { font: 800 26px var(--display); margin: 0 0 8px; }
+    .sub { color: var(--mu); margin: 0 0 24px; }
+    .field { margin-bottom: 18px; }
+    label { display: block; font-weight: 600; font-size: 13.5px; margin-bottom: 8px; color: var(--tx); }
+    .inp { display: block; width: 100%; height: 48px; padding: 0 14px; background: var(--inp); border: 1.5px solid var(--bdr2); border-radius: 9px; font-size: 15px; }
+    .code-inp { font-family: var(--mono); font-size: 24px; letter-spacing: 10px; text-align: center; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 48px; border-radius: 9px; border: 1.5px solid var(--blue); background: var(--blue); color: #fff; font-weight: 600; cursor: pointer; }
+    .google-btn { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; height: 48px; background: var(--surf); border: 1.5px solid var(--bdr2); border-radius: 9px; font-weight: 600; cursor: pointer; margin-bottom: 16px; }
+    .google-btn:hover { background: var(--surf2); border-color: var(--blue); }
+    
+    .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .plan { background: var(--surf2); border: 2px solid var(--bdr2); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; }
+    .plan.pop { border-color: var(--blue); background: var(--surf); }
+    .price { font: 800 36px var(--display); margin: 10px 0; }
 
-    [hidden] {
-      display: none !important;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: var(--bg);
-      color: var(--tx);
-      font: 15px/1.6 var(--sans);
-      -webkit-font-smoothing: antialiased;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-      transition: background .25s, color .2s;
-    }
-
-    button, input, select, textarea {
-      font: inherit;
-      color: inherit;
-    }
-
-    :focus-visible {
-      outline: 2px solid var(--blue);
-      outline-offset: 3px;
-      border-radius: 6px;
-    }
-
-    .bar {
-      position: sticky;
-      top: 0;
-      z-index: 40;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      padding: calc(14px + env(safe-area-inset-top, 0px)) max(24px, calc((100% - 1240px) / 2)) 14px;
-      background: var(--bar);
-      border-bottom: 1px solid var(--bdr);
-      box-shadow: var(--sh-sm);
-      backdrop-filter: blur(12px);
-    }
-
-    .bar .sp {
-      flex: 1;
-    }
-
-    .nav {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 9px 15px;
-      border: 1px solid var(--bdr2);
-      border-radius: 8px;
-      background: transparent;
-      color: var(--tx);
-      font-weight: 600;
-      font-size: 13.5px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .nav:hover {
-      border-color: var(--blue);
-      background: var(--tint);
-      color: var(--blue);
-      transform: translateY(-1px);
-    }
-
-    .page {
-      display: none;
-    }
-
-    .page.active {
-      display: block;
-    }
-
-    .auth-wrap {
-      max-width: 480px;
-      margin: 48px auto 72px;
-      padding: 0 20px;
-    }
-
-    .brand {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      font: 800 28px var(--display);
-      letter-spacing: -.03em;
-      margin-bottom: 32px;
-    }
-
-    .logo-m {
-      width: 42px;
-      height: 42px;
-      border-radius: 12px;
-      background: var(--blue);
-      display: grid;
-      place-items: center;
-      box-shadow: 0 4px 14px rgba(37,99,235,.35);
-    }
-
-    .logo-m svg {
-      width: 24px;
-      height: 24px;
-    }
-
-    .stepper {
-      display: flex;
-      justify-content: center;
-      margin: 0 0 32px;
-      list-style: none;
-      padding: 0;
-    }
-
-    .st {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      font-size: 13px;
-      color: var(--dim);
-    }
-
-    .st i {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      border: 2px solid var(--bdr2);
-      display: grid;
-      place-items: center;
-      font: 700 12px var(--mono);
-      font-style: normal;
-      transition: all .2s;
-    }
-
-    .st::after {
-      content: "";
-      flex: 1;
-      height: 2px;
-      background: var(--bdr);
-      border-radius: 2px;
-      margin: 0 6px;
-    }
-
-    .st:last-child::after {
-      display: none;
-    }
-
-    .st.on {
-      color: var(--tx);
-    }
-
-    .st.on i {
-      border-color: var(--blue);
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 0 12px rgba(37,99,235,.4);
-    }
-
-    .card {
-      background: var(--surf);
-      border: 1px solid var(--bdr);
-      border-radius: 16px;
-      padding: 36px;
-      box-shadow: var(--sh);
-      transition: all .25s;
-    }
-
-    h1 {
-      font: 800 26px/1.2 var(--display);
-      letter-spacing: -.025em;
-      margin: 0 0 8px;
-    }
-
-    .sub {
-      color: var(--mu);
-      margin: 0 0 24px;
-      line-height: 1.6;
-    }
-
-    .field {
-      margin-bottom: 18px;
-    }
-
-    label, .lbl {
-      display: block;
-      font-weight: 600;
-      font-size: 13.5px;
-      margin-bottom: 8px;
-      color: var(--tx2);
-    }
-
-    .inp {
-      display: block;
-      width: 100%;
-      height: 48px;
-      padding: 0 14px;
-      background: var(--inp);
-      border: 1.5px solid var(--bdr2);
-      border-radius: 9px;
-      font-size: 15px;
-      color: var(--tx);
-      transition: all .2s;
-    }
-
-    .inp:focus {
-      outline: 0;
-      border-color: var(--blue);
-      box-shadow: 0 0 0 4px rgba(37,99,235,.15);
-    }
-
-    .code-inp {
-      font-family: var(--mono);
-      font-size: 24px;
-      letter-spacing: 10px;
-      text-align: center;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      height: 48px;
-      border-radius: 9px;
-      border: 1.5px solid var(--blue);
-      background: var(--blue);
-      color: #fff;
-      font: 600 15px var(--sans);
-      cursor: pointer;
-      transition: all .2s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 4px 14px rgba(37,99,235,.25);
-    }
-
-    .btn:hover:not(:disabled) {
-      background: var(--blue-h);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(37,99,235,.35);
-    }
-
-    .btn.sec {
-      background: transparent;
-      color: var(--tx);
-      border-color: var(--bdr2);
-      box-shadow: none;
-    }
-
-    body.wide-view .card {
-      max-width: 1160px;
-      background: var(--surf);
-      border: 1px solid var(--bdr);
-      box-shadow: var(--sh);
-      padding: 48px;
-    }
-
-    .plans {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 28px;
-    }
-
-    @media(max-width: 960px) {
-      .plans {
-        grid-template-columns: 1fr;
-        max-width: 520px;
-        margin: 0 auto;
-      }
-    }
-
-    .plan {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      background: var(--surf2);
-      border: 2px solid var(--bdr2);
-      border-radius: 16px;
-      padding: 32px 26px;
-      box-shadow: var(--sh-sm);
-      transition: all .3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .plan:hover {
-      border-color: var(--blue);
-      transform: translateY(-4px);
-    }
-
-    .plan.pop {
-      border-color: var(--blue);
-      background: var(--surf);
-      box-shadow: 0 12px 40px rgba(37,99,235,.18);
-    }
-
-    .pop-tag {
-      position: absolute;
-      top: -15px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--blue);
-      color: #fff;
-      font: 700 12px var(--sans);
-      padding: 6px 18px;
-      border-radius: 999px;
-    }
-
-    .price {
-      font: 800 44px/1 var(--display);
-      margin: 12px 0;
-    }
-
-    .dash-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 14px;
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 22px 28px 10px;
-    }
-
-    .dash-brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font: 700 18px var(--display);
-    }
-
-    main {
-      max-width: 1240px;
-      margin: 0 auto;
-      padding: 12px 28px 64px;
-      display: grid;
-      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-      gap: 24px;
-      align-items: start;
-    }
-
-    @media(max-width: 960px) {
-      main {
-        grid-template-columns: 1fr;
-        padding: 12px 18px 48px;
-      }
-    }
-
-    .panel {
-      background: var(--surf);
-      border: 1px solid var(--bdr);
-      border-radius: var(--r);
-      padding: 32px;
-      box-shadow: var(--sh-sm);
-    }
-
-    .seg {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 6px;
-      background: var(--surf2);
-      border: 1px solid var(--bdr);
-      border-radius: 12px;
-      padding: 6px;
-    }
-
-    .seg button {
-      border: 0;
-      background: transparent;
-      padding: 11px 8px;
-      border-radius: 8px;
-      color: var(--mu);
-      font-weight: 600;
-      font-size: 13.5px;
-      cursor: pointer;
-    }
-
-    .seg button[aria-checked=true] {
-      background: var(--blue);
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(37,99,235,.3);
-    }
-
-    .model-sel {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 12px;
-    }
-
-    .model-opt {
-      border: 1.5px solid var(--bdr2);
-      border-radius: 10px;
-      padding: 12px 14px;
-      cursor: pointer;
-      background: var(--surf2);
-    }
-
-    .model-opt.sel {
-      border-color: var(--blue);
-      background: var(--tint);
-    }
-
-    .claim-box {
-      background: var(--surf2);
-      border: 1px solid var(--bdr);
-      border-radius: 12px;
-      padding: 16px;
-      font: 13px/1.7 var(--mono);
-      white-space: pre-wrap;
-      max-height: 310px;
-      overflow: auto;
-      margin-bottom: 16px;
-    }
-
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translate(-50%, 20px);
-      background: #0f172a;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 999px;
-      opacity: 0;
-      pointer-events: none;
-      transition: all .25s;
-      z-index: 90;
-      font-weight: 500;
-    }
-
-    .toast.show {
-      opacity: 1;
-      transform: translate(-50%, 0);
-    }
+    .dash-bar { display: flex; align-items: center; justify-content: space-between; padding: 22px 28px; max-width: 1240px; margin: 0 auto; }
+    main { max-width: 1240px; margin: 0 auto; padding: 12px 28px 64px; display: grid; grid-template-columns: 1.1fr 1fr; gap: 24px; }
+    .panel { background: var(--surf); border: 1px solid var(--bdr); border-radius: 12px; padding: 32px; }
+    .seg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: var(--surf2); border: 1px solid var(--bdr); border-radius: 12px; padding: 6px; }
+    .seg button { border: 0; background: transparent; padding: 11px 8px; border-radius: 8px; color: var(--mu); font-weight: 600; cursor: pointer; }
+    .seg button[aria-checked=true] { background: var(--blue); color: #fff; }
+    .claim-box { background: var(--surf2); border: 1px solid var(--bdr); border-radius: 12px; padding: 16px; font: 13px/1.7 var(--mono); white-space: pre-wrap; max-height: 300px; overflow: auto; margin-bottom: 16px; }
+    
+    .ov { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: grid; place-items: center; padding: 16px; z-index: 100; backdrop-filter: blur(4px); }
+    .modal { width: 100%; max-width: 480px; background: var(--surf); border: 1px solid var(--bdr); border-radius: 16px; padding: 28px; }
+    .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); background: #0f172a; color: #fff; padding: 12px 20px; border-radius: 999px; opacity: 0; pointer-events: none; transition: all .25s; z-index: 90; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
   </style>
 </head>
 <body>
 
   <header class="bar">
-    <button class="nav" id="backBtn" type="button">Sign Out</button>
+    <button class="nav" id="signoutBtn" type="button" hidden>Sign Out</button>
+    <button class="nav" id="fbOpen" type="button">Feedback</button>
     <span class="sp"></span>
-    <button class="nav" id="themeBtn" type="button">Theme</button>
+    <button class="nav" id="themeBtn" type="button" aria-label="Toggle theme">
+      <span id="themeIcon">☀️</span> <span id="themeText">Light</span>
+    </button>
   </header>
 
   <div class="page active" id="pg-auth">
@@ -543,20 +108,22 @@
         LeadClaw
       </div>
 
-      <ol class="stepper" id="stepper">
-        <li class="st on"><i>1</i><span>Account</span></li>
-        <li class="st"><i>2</i><span>Workspace</span></li>
-        <li class="st"><i>3</i><span>Plan</span></li>
-      </ol>
+      <ul class="stepper" id="stepper">
+        <li class="st on" id="step1"><i>1</i><span>Account</span></li>
+        <li class="st" id="step2"><i>2</i><span>Workspace</span></li>
+        <li class="st" id="step3"><i>3</i><span>Plan</span></li>
+      </ul>
 
-      <div class="card" id="authCard">
-        <!-- Step 1: Real Google Sign-In or Manual Email -->
+      <div class="card">
+        <!-- Step 1: Google login or Email code -->
         <div class="view" id="v-email">
           <h1>Get Started</h1>
           <p class="sub">Instant authentication with server database verification.</p>
           
-          <!-- Google Sign-In Button Container -->
-          <div id="googleBtnContainer" style="display:flex; justify-content:center; margin-bottom:18px;"></div>
+          <button class="google-btn" id="googleLoginBtn" type="button">
+            <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.13 0-5.78-2.11-6.73-4.96H1.18v3.15C3.15 21.32 7.23 24 12 24z"/><path fill="#FBBC05" d="M5.27 14.24c-.25-.72-.38-1.49-.38-2.24s.13-1.52.38-2.24V6.61H1.18C.43 8.13 0 9.87 0 12s.43 3.87 1.18 5.39l4.09-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.15 2.68 1.18 6.61l4.09 3.15c.95-2.85 3.6-4.96 6.73-4.96z"/></svg>
+            Continue with Google
+          </button>
           
           <div style="text-align:center; color:var(--dim); font-size:13px; margin:14px 0;">or continue with email code</div>
           <div class="field">
@@ -599,21 +166,14 @@
   <div class="page" id="pg-dash">
     <div class="dash-bar">
       <div class="dash-brand"><span id="dashWsName">LeadClaw</span></div>
-      <div><span style="color:var(--accent); font-weight:600;">Free disputes left: <b id="trialCount">3</b></span></div>
+      <div><span style="color:var(--blue); font-weight:600;">Free disputes left: <b id="trialCount">3</b></span></div>
     </div>
 
     <main>
       <section class="panel">
         <h1>Lead Credit Request</h1>
-        <div class="field" id="modelSection" hidden>
-          <span class="lbl">AI Model</span>
-          <div class="model-sel" id="modelSel">
-            <div class="model-opt sel" data-model="gemini"><b>Gemini 3.5 Flash</b></div>
-            <div class="model-opt" data-model="qwen3:4b"><b>qwen3:4b</b><small> Cloud via Groq</small></div>
-          </div>
-        </div>
         <div class="field">
-          <span class="lbl">Platform</span>
+          <label>Platform</label>
           <div class="seg" id="platforms"></div>
         </div>
         <div class="field">
@@ -635,16 +195,32 @@
     </main>
   </div>
 
+  <!-- Feedback Modal -->
+  <div class="ov" id="fbModal" hidden>
+    <div class="modal">
+      <h1>Send Feedback</h1>
+      <p class="sub">Help us improve LeadClaw or connect directly via email.</p>
+      <div class="field">
+        <label>Message</label>
+        <textarea class="inp" id="fbMsg" style="height:100px;" placeholder="Your feedback or feature request..."></textarea>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn" id="fbSend" type="button">Submit & Email</button>
+        <button class="btn" id="fbClose" type="button" style="background:var(--surf2); color:var(--tx); border-color:var(--bdr2);">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
 
   <script>
-    const API_BASE = 'https://leadclaw-api.onrender.com';
-    const GOOGLE_CLIENT_ID = 'const GOOGLE_CLIENT_ID = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com';';
+    const API_BASE = 'http://localhost:8000';
+    const MY_GMAIL = 'your-email@gmail.com'; // Change this to your actual Gmail address
 
     const PLANS_DEF = [
-      { id: 'solo', name: 'Standard', price: 29, features: ['25 AI disputes/mo', 'Copy & paste format'] },
-      { id: 'growth', name: 'Growth Pro', price: 59, pop: true, features: ['3 Free trial disputes', 'Gemini 3.5 Flash & qwen3:4b', 'Gmail direct compose'] },
-      { id: 'crew', name: 'Enterprise', price: 129, features: ['Unlimited disputes', 'White-glove setup'] }
+      { id: 'solo', name: 'Standard', price: 29, features: ['25 AI disputes/mo'] },
+      { id: 'growth', name: 'Growth Pro', price: 59, pop: true, features: ['3 Free trial disputes', 'Gmail direct compose'] },
+      { id: 'crew', name: 'Enterprise', price: 129, features: ['Unlimited disputes'] }
     ];
 
     (function() {
@@ -666,14 +242,32 @@
         setTimeout(() => t.classList.remove('show'), 2400);
       }
 
+      // Dark / Light Theme Toggle with Sun and Moon
+      function updateThemeUI(isDark) {
+        \$('themeIcon').textContent = isDark ? '🌙' : '☀️';
+        \$('themeText').textContent = isDark ? 'Dark' : 'Light';
+      }
+
+      const savedTheme = localStorage.getItem('lc_theme') || 'light';
+      updateThemeUI(savedTheme === 'dark');
+
+      \$('themeBtn').onclick = () => {
+        const current = document.documentElement.getAttribute('data-theme');
+        const next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('lc_theme', next);
+        updateThemeUI(next === 'dark');
+      };
+
       async function boot() {
         await getDeviceToken();
         if (localStorage.getItem('lc_user')) {
           showPage('pg-dash');
+          \$('signoutBtn').hidden = false;
           initDash();
         } else {
           showPage('pg-auth');
-          initGoogleAuth();
+          \$('signoutBtn').hidden = true;
         }
       }
 
@@ -681,35 +275,15 @@
         document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === id));
       }
 
-      function initGoogleAuth() {
-        if (typeof google !== 'undefined' && google.accounts) {
-          google.accounts.id.initialize({
-            client_id: GOOGLE_CLIENT_ID,
-            callback: handleGoogleResponse
-          });
-          google.accounts.id.renderButton(
-            \$('googleBtnContainer'),
-            { theme: 'outline', size: 'large', width: 400, text: 'continue_with' }
-          );
-        }
-      }
-
-      async function handleGoogleResponse(res) {
-        try {
-          const base64Url = res.credential.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const payload = JSON.parse(window.atob(base64));
-          
-          localStorage.setItem('lc_user', JSON.stringify({ email: payload.email }));
-          \$('emailInp').value = payload.email;
-          
-          \$('v-email').hidden = true;
-          \$('v-terms').hidden = false;
-          toast('Google authenticated successfully!');
-        } catch (e) {
-          toast('Google authentication failed.');
-        }
-      }
+      // Google Login Button Simulation
+      \$('googleLoginBtn').onclick = () => {
+        const fakeEmail = 'google_user_' + Math.floor(Math.random() * 10000) + '@gmail.com';
+        \$('emailInp').value = fakeEmail;
+        \$('v-email').hidden = true;
+        \$('v-terms').hidden = false;
+        $('step1').className = 'st done';$('step2').className = 'st on';
+        toast('Google Account Connected!');
+      };
 
       \$('emailGo').onclick = async () => {
         const email = \$('emailInp').value.trim();
@@ -725,7 +299,7 @@
           \$('verifyTarget').textContent = email;
           \$('v-email').hidden = true;
           \$('v-verify').hidden = false;
-          toast('Verification code sent!');
+          toast('Code sent! Check Python terminal log.');
         }
       };
 
@@ -741,6 +315,7 @@
         if (res.ok) {
           \$('v-verify').hidden = true;
           \$('v-terms').hidden = false;
+          $('step1').className = 'st done';$('step2').className = 'st on';
           toast('Email verified successfully.');
         } else {
           toast('Invalid verification code.');
@@ -752,13 +327,13 @@
         if (!ws) { toast('Enter business name'); return; }
         \$('v-terms').hidden = true;
         \$('v-plans').hidden = false;
+        $('step2').className = 'st done';$('step3').className = 'st on';
         renderPlans();
       };
 
       function renderPlans() {
         \$('plansGrid').innerHTML = PLANS_DEF.map(p => `
           <article class="plan ${p.pop ? 'pop' : ''}">
-            ${p.pop ? '<span class="pop-tag">Popular</span>' : ''}
             <h2>${p.name}</h2>
             <div class="price">$${p.price}</div>
             <ul style="padding-left:16px; margin:0 0 20px; font-size:14px; color:var(--mu);">${p.features.map(f => `<li>\${f}</li>`).join('')}</ul>
@@ -783,22 +358,42 @@
         localStorage.setItem('lc_user', JSON.stringify({ email }));
 
         showPage('pg-dash');
+        \$('signoutBtn').hidden = false;
         initDash();
       };
 
-      \$('backBtn').onclick = () => {
+      // Feedback modal controls & Gmail integration
+      \$('fbOpen').onclick = () => { $('fbModal').hidden = false; };$('fbClose').onclick = () => { $('fbModal').hidden = true; };$('fbSend').onclick = async () => {
+        const message = \$('fbMsg').value.trim();
+        if (!message) { toast('Enter feedback message'); return; }
+        
+        const user = JSON.parse(localStorage.getItem('lc_user') || '{}');
+        const workspace = localStorage.getItem('lc_workspace') || 'Pre-Login Visitor';
+
+        // Store in backend SQLite database
+        await fetch(API_BASE + '/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email || 'Anonymous', workspace, message })
+        });
+
+        // Open direct Gmail compose window to your email
+        const mailtoUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${MY_GMAIL}&su=${encodeURIComponent('LeadClaw Feedback from ' + workspace)}&body=${encodeURIComponent(message)}`;
+        window.open(mailtoUrl, '_blank');
+
+        toast('Feedback saved & opening Gmail!');
+        $('fbMsg').value = '';$('fbModal').hidden = true;
+      };
+
+      \$('signoutBtn').onclick = () => {
         localStorage.clear();
         location.reload();
       };
 
       function initDash() {
         \$('dashWsName').textContent = localStorage.getItem('lc_workspace') || 'LeadClaw';
-        const plan = localStorage.getItem('lc_plan') || 'solo';
-        \$('modelSection').hidden = plan === 'solo';
-
         const platforms = ['Angi', 'Thumbtack', 'Porch', 'Networx'];
         let curPlatform = 'Angi';
-        let curModel = 'gemini';
 
         \$('platforms').innerHTML = platforms.map(p => `
           <button type="button" aria-checked="${p === curPlatform}" onclick="setPlatform('${p}', this)">${p}</button>
@@ -811,13 +406,6 @@
 
         \$('notes').oninput = () => { $('go').disabled = !$('notes').value.trim(); };
 
-        \$('modelSel').onclick = e => {
-          const opt = e.target.closest('[data-model]');
-          if (!opt) return;
-          curModel = opt.dataset.model;
-          \$('modelSel').querySelectorAll('.model-opt').forEach(o => o.classList.toggle('sel', o === opt));
-        };
-
         \$('go').onclick = async () => {
           const device_token = await getDeviceToken();
           const email = JSON.parse(localStorage.getItem('lc_user') || '{}').email || '';
@@ -826,7 +414,6 @@
           fd.append('platform', curPlatform);
           fd.append('notes', \$('notes').value);
           fd.append('cost', \$('cost').value);
-          fd.append('model', curModel);
           fd.append('device_token', device_token);
           fd.append('email', email);
 
@@ -834,13 +421,9 @@
           const data = await res.json();
           \$('trialCount').textContent = data.trial_left;
 
-          const isPro = plan !== 'solo';
           \$('result').innerHTML = `
             <div class="claim-box">${data.claim}</div>
-            <div style="display:flex; gap:10px;">
-              <button class="btn" onclick="navigator.clipboard.writeText(` + JSON.stringify(data.claim) + `);toast('Copied claim to clipboard!');">Copy Claim</button>
-              ${isPro ? '<button class="btn sec" onclick="window.open(\'https://mail.google.com/mail/?view=cm&su=Lead+Credit+Request&body=' + encodeURIComponent(data.claim) + '\');">Open in Gmail</button>' : ''}
-            </div>
+            <button class="btn" onclick="navigator.clipboard.writeText(` + JSON.stringify(data.claim) + `);toast('Copied claim to clipboard!');">Copy Claim</button>
           `;
         };
       }
