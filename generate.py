@@ -499,3 +499,126 @@ async def submit_feedback(req: FeedbackRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+// ── CONFIG ── Replace with your actual Google Client ID from Google Cloud Console ──
+const API_BASE         = 'http://localhost:8000'; // or your Render URL
+const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com'; 
+// ─────────────────────────────────────────────────────────────────────────
+
+(()=>{
+'use strict';
+const $ = id => document.getElementById(id);
+const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
+const store = {
+  get(k){try{return localStorage.getItem(k)}catch{return null}},
+  set(k,v){try{localStorage.setItem(k,v)}catch{}},
+  del(k){try{localStorage.removeItem(k)}catch{}}
+};
+
+let toastT;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+
+// ── THEME & ROUTING (Keep your existing helper functions) ──
+const root = document.documentElement;
+function setTheme(t){ root.setAttribute('data-theme',t); store.set('lc_theme',t); }
+$('themeBtn').onclick = () => setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
+setTheme(store.get('lc_theme')||'light');
+
+function deviceToken(){
+  let t=store.get('lc_device_token');
+  if(!t){t='lc_'+Math.random().toString(36).slice(2,11)+'_'+Date.now();store.set('lc_device_token',t);}
+  return t;
+}
+
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));window.scrollTo({top:0,behavior:'smooth'});}
+
+const VIEW_STEP={email:1,code:1,pass:1,terms:2,plans:3};
+function syncStepper(v){
+  const n=VIEW_STEP[v]||1;
+  document.querySelectorAll('.st').forEach((el,i)=>{
+    el.classList.toggle('on',i+1===n);el.classList.toggle('done',i+1<n);
+  });
+}
+function showView(v){
+  ['email','code','pass','terms','plans'].forEach(id=>{const el=$('v-'+id);if(el)el.hidden=id!==v;});
+  document.body.classList.toggle('wide-view',v==='plans');
+  syncStepper(v);
+}
+
+const AUTH = {email:'',method:'',ws:'',industry:'',gmail:false,agreed:false,plan:''};
+
+// ── GOOGLE SIGN-IN INITIALIZATION ──────────────────────────────────────────
+window.onload = function() {
+  if (typeof google !== 'undefined' && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleResponse
+    });
+    google.accounts.id.renderButton(
+      $('googleBtn'),
+      { theme: 'outline', size: 'large', width: '100%', text: 'continue_with' }
+    );
+  }
+};
+
+async function handleGoogleResponse(response) {
+  try {
+    const res = await fetch(API_BASE + '/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: response.credential })
+    });
+    if (!res.ok) throw new Error('Google auth failed');
+    const data = await res.json();
+    AUTH.email = data.email;
+    AUTH.method = 'google';
+    toast('Google Sign-In successful!');
+    showView('terms');
+  } catch (err) {
+    toast('Google authentication failed on server.');
+  }
+}
+
+// ── EMAIL: Send Code ──────────────────────────────────────────────────────
+async function trySendCode(){
+  const em=$('emailInp').value.trim();
+  if(!validEmail(em)){$('emailErr').textContent='Enter a valid email address.';$('emailInp').classList.add('bad');return;}
+  $('emailErr').textContent='';$('emailInp').classList.remove('bad');AUTH.email=em;
+  const b=$('emailGo');b.disabled=true;b.textContent='Sending...';
+  try{
+    const r=await fetch(API_BASE+'/api/auth/send-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});
+    if(!r.ok)throw new Error('Server error '+r.status);
+    const d=await r.json();
+    $('codeTarget').textContent=em;
+    showView('code'); // Switches to the verification code typing screen!
+    if(d.debug_code) toast('Verification code (Dev): ' + d.debug_code);
+  }catch(e){
+    $('emailErr').textContent='Could not send code. Is the backend running?';
+  }finally{
+    b.disabled=false;b.textContent='Send verification code';
+  }
+}
+$('emailGo').onclick=trySendCode;
+
+// ── EMAIL: Verify Code ────────────────────────────────────────────────────
+async function tryVerify(){
+  const code=$('codeInp').value.trim();
+  if(code.length!==6){$('codeErr').textContent='Enter the 6-digit code.';return;}
+  $('codeErr').textContent='';const b=$('codeGo');b.disabled=true;b.textContent='Verifying...';
+  try{
+    const r=await fetch(API_BASE+'/api/auth/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,code})});
+    if(!r.ok){$('codeErr').textContent='Invalid code. Try again.';return;}
+    showView('terms'); // Moves to workspace setup after code confirmation
+  }catch{
+    $('codeErr').textContent='Server error during verification.';
+  }finally{
+    b.disabled=false;b.textContent='Confirm code';
+  }
+}
+$('codeGo').onclick=tryVerify;
+$('codeInp').addEventListener('input',()=>{$('codeErr').textContent='';if($('codeInp').value.length===6)tryVerify();});
+
+// Keep your workspace, dashboard, and other logic below...
+})();
+</script>
