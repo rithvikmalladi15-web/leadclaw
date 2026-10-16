@@ -7,7 +7,6 @@ from fastapi import FastAPI, Form, File, UploadFile, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
-import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("LeadClaw")
@@ -38,11 +37,12 @@ def init_db():
                     email TEXT PRIMARY KEY,
                     code TEXT
                 )''')
-    c.execute('''CREATE TABLE IF NOT EXISTS feedback (
+    c.execute('''CREATE TABLE IF NOT EXISTS feedback_entries (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     email TEXT,
                     workspace TEXT,
-                    message TEXT
+                    message TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )''')
     conn.commit()
     conn.close()
@@ -52,8 +52,6 @@ init_db()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 
 class EmailVerifyRequest(BaseModel):
     email: str
@@ -116,18 +114,18 @@ async def setup_workspace(req: WorkspaceSetupRequest):
 async def submit_feedback(req: FeedbackRequest):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("INSERT INTO feedback (email, workspace, message) VALUES (?, ?, ?)", (req.email, req.workspace, req.message))
+    c.execute("INSERT INTO feedback_entries (email, workspace, message) VALUES (?, ?, ?)", 
+              (req.email, req.workspace, req.message))
     conn.commit()
     conn.close()
-    return {"status": "success", "message": "Feedback recorded successfully."}
+    logger.info(f"Feedback entry stored for {req.email or 'Anonymous'}")
+    return {"status": "success", "message": "Feedback saved successfully."}
 
 @app.post("/api/dispute")
 async def create_dispute(
     platform: str = Form(...),
     notes: Optional[str] = Form(""),
-    transcript: Optional[str] = Form(""),
     cost: Optional[float] = Form(0.0),
-    model: Optional[str] = Form("gemini"),
     device_token: Optional[str] = Form("default_device"),
     email: Optional[str] = Form("")
 ):
