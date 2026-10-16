@@ -1157,7 +1157,6 @@ if($('upPlans')){
 }
 
 if($('upSelect')) $('upSelect').onclick = async function(){
-  // Ready to hook up with Stripe Checkout sessions via backend endpoint here
   try {
     const r = await fetch(API_BASE + '/api/stripe/create-checkout-session', {
       method: 'POST',
@@ -1173,7 +1172,6 @@ if($('upSelect')) $('upSelect').onclick = async function(){
     console.warn('Stripe checkout redirect fallback:', err);
   }
   
-  // Fallback simulator if backend Stripe keys aren't set yet
   AUTH.plan = selUpgrade;
   store.set('lc_plan', selUpgrade);
   store.set('lc_plan_unlimited', '1');
