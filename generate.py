@@ -1,54 +1,42 @@
 import os
-import json
-from groq import Groq
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from typing import List, Optional
+from generate import process_lead_dispute
 
-def process_lead_dispute(platform: str, notes: str, transcript: str, cost: float, model: str = "gemini"):
-    api_key = os.environ.get("GROQ_API_KEY")
-    if not api_key:
-        raise ValueError("GROQ_API_KEY environment variable is not configured on Render.")
+app = FastAPI(title="LeadClaw Backend")
 
-    client = Groq(api_key=api_key)
+# Enable CORS for frontend requests
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    prompt = f"""
-    You are an expert AI assistant for home contractors. 
-    Analyze this disputed lead for platform: {platform}.
-    Lead Cost: ${cost}
-    Call Notes: {notes}
-    Call Transcript: {transcript}
+@app.get("/")
+def health_check():
+    return {"status": "online", "service": "LeadClaw API"}
 
-    Evaluate whether this lead qualifies for a credit or refund based on standard contractor platform policies (Angi, Thumbtack, Porch, Networx).
-    You MUST output valid JSON format with these exact keys:
-    - "valid": boolean (true or false)
-    - "confidence": float between 0.0 and 1.0
-    - "amount": numeric value of the credit at stake
-    - "reason": string explaining why it qualifies or doesn't
-    - "claim": string containing a fully formatted, professional dispute email/statement ready to be submitted.
-    """
-
+@app.post("/api/dispute")
+async def analyze_dispute(
+    platform: str = Form(...),
+    notes: Optional[str] = Form(""),
+    transcript: Optional[str] = Form(""),
+    cost: float = Form(0.0),
+    model: str = Form("gemini"),
+    files: List[UploadFile] = File(default=[])
+):
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You are LeadClaw AI, an objective business assistant for home contractors. You must respond strictly in valid JSON format."},
-                {"role": "user", "content": prompt}
-            ],
-            temperature=0.3
+        # Call your generation logic in generate.py
+        result = process_lead_dispute(
+            platform=platform,
+            notes=notes,
+            transcript=transcript,
+            cost=cost,
+            model=model
         )
-        
-        response_text = completion.choices[0].message.content.strip()
-        
-        if response_text.startswith("```json"):
-            response_text = response_text[7:]
-        if response_text.endswith("```"):
-            response_text = response_text[:-3]
-            
-        return json.loads(response_text.strip())
-
+        return result
     except Exception as e:
-        return {
-            "valid": False,
-            "confidence": 0.0,
-            "amount": cost,
-            "reason": f"AI evaluation error or invalid JSON response: {str(e)}",
-            "claim": ""
-        }
+        raise HTTPException(status_code=500, detail=str(e))
