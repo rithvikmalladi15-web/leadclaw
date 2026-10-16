@@ -694,9 +694,10 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-const API_BASE          = 'https://leadclaw-api.onrender.com';
-const GOOGLE_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com';   // replace before going live
-const GOOGLE_API_KEY    = '';      // replace before going live
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const API_BASE          = 'https://leadclaw-api.onrender.com'; // Your Render URL
+const GOOGLE_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com'; // Your Google OAuth Client ID
+const GOOGLE_API_KEY    = ''; // Kept empty as authentication is handled via Client ID
 const GMAIL_SCOPES      = 'https://www.googleapis.com/auth/gmail.readonly';
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1257,3 +1258,36 @@ boot();
 </script>
 </body>
 </html>
+// Triggers explicit Google Sign-In prompt on click
+document.getElementById('googleBtn').onclick = () => {
+  if (window.google && google.accounts) {
+    google.accounts.id.prompt();
+  } else {
+    // Fallback or demo login action
+    AUTH.email = 'user@gmail.com';
+    AUTH.method = 'google';
+    showView('terms');
+  }
+};
+async function callApi(cost) {
+  const fd = new FormData();
+  fd.append('platform', st.platform);
+  fd.append('notes', $('notes').value);
+  fd.append('transcript', $('transcript').value);
+  fd.append('cost', cost);
+  fd.append('model', st.model);
+  st.files.forEach(f => fd.append('files', f));
+
+  const ctl = new AbortController();
+  const to = setTimeout(() => ctl.abort(), 90000);
+  
+  const r = await fetch(API_BASE + '/api/dispute', {
+    method: 'POST',
+    body: fd,
+    signal: ctl.signal
+  });
+  
+  clearTimeout(to);
+  if (!r.ok) throw new Error('Server error ' + r.status);
+  return await r.json();
+}
