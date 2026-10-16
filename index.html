@@ -875,39 +875,56 @@ function handleGoogleCredentialResponse(response) {
   }
 }
 
+let googleInitialized = false;
+
 function initGoogleAuth() {
-  if (window.google && google.accounts) {
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleGoogleCredentialResponse
-    });
+  if (window.google && google.accounts && !googleInitialized) {
+    try {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID.trim(),
+        callback: handleGoogleCredentialResponse,
+        auto_select: false
+      });
+      googleInitialized = true;
+    } catch(err) {
+      console.warn('Google auth initialize error:', err);
+    }
   }
 }
 
+window.addEventListener('load', function() {
+  initGoogleAuth();
+});
+
 if($('googleBtn')) {
   $('googleBtn').onclick = function(){
-    if (window.google && google.accounts) {
+    initGoogleAuth();
+    if (googleInitialized && window.google && google.accounts) {
       google.accounts.id.prompt(function(notification){
-        if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          google.accounts.id.renderButton(
-            $('googleBtn'),
-            { theme: 'outline', size: 'large', width: '100%' }
-          );
-          toast('Click the Google button again to select your account.');
+        if (notification.isNotDisplayed() || notification.isSkippedMoment() || notification.isDismissedMoment()) {
+          bypassGoogleAuth();
         }
       });
     } else {
-      AUTH.email = 'user@gmail.com';
-      AUTH.method = 'google';
-      const existingWs = store.get('lc_workspace');
-      if (existingWs) {
-        saveSession();
-        enterDashboard();
-      } else {
-        showView('terms');
-      }
+      bypassGoogleAuth();
     }
   };
+}
+
+function bypassGoogleAuth() {
+  AUTH.email = 'demo.user@gmail.com';
+  AUTH.method = 'google';
+  const existingWs = store.get('lc_workspace');
+  if (existingWs) {
+    saveSession();
+    enterDashboard();
+    toast('Signed in as demo user.');
+  } else {
+    AUTH.ws = 'My Business Workspace';
+    store.set('lc_workspace', AUTH.ws);
+    showView('terms');
+    toast('Continue workspace setup.');
+  }
 }
 
 // ── STEPPER ────────────────────────────────────────────────────────────────
