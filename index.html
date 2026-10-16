@@ -10,8 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
-/* ── TOKENS ── */
 :root{
   --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
   --display:'Manrope','Inter',system-ui,sans-serif;
@@ -40,14 +40,12 @@ html[data-theme=dark]{
   --sh:0 2px 8px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.4);
   --sh-sm:0 2px 6px rgba(0,0,0,.4);
 }
-/* ── RESET ── */
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px);transition:background .2s,color .15s}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;transition:background .2s,color .15s}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:5px}
 a{color:var(--accent);text-decoration:none}
-/* ── ANIMATIONS ── */
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
 @keyframes rot{to{transform:rotate(360deg)}}
@@ -55,10 +53,8 @@ a{color:var(--accent);text-decoration:none}
 @keyframes bump{50%{transform:scale(1.03)}}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.4)}50%{box-shadow:0 0 0 7px rgba(37,99,235,0)}}
 .view{animation:fadein .22s ease}
-@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-/* ── NAV BAR ── */
 .bar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
-  padding:calc(12px + env(safe-area-inset-top,0px)) max(20px,calc((100% - 1180px)/2)) 12px;
+  padding:12px max(20px,calc((100% - 1180px)/2));
   background:var(--bar);border-bottom:1px solid var(--bdr);box-shadow:var(--sh-sm);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 .bar .sp{flex:1}
@@ -78,14 +74,11 @@ html[data-theme=light] .icon-btn .moon{display:block}
 .ws-sw:hover{border-color:var(--blue);background:var(--tint)}
 .ws-sw .dot{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none;animation:pulse 2.5s infinite}
 .ws-sw.visible{display:inline-flex}
-/* ── PAGE SYSTEM ── */
 .page{display:none}.page.active{display:block}
-/* ── AUTH ── */
 .auth-wrap{max-width:460px;margin:40px auto 60px;padding:0 20px}
 .brand{display:flex;align-items:center;justify-content:center;gap:11px;font:800 26px var(--display);letter-spacing:-.03em;margin-bottom:26px}
 .logo-m{width:36px;height:36px;border-radius:8px;background:var(--blue);display:grid;place-items:center;flex:none}
 .logo-m svg{width:21px;height:21px}
-/* stepper */
 .stepper{display:flex;justify-content:center;margin:0 0 26px;list-style:none;padding:0}
 .st{flex:1;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--dim)}
 .st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none;transition:all .2s}
@@ -95,16 +88,13 @@ html[data-theme=light] .icon-btn .moon{display:block}
 .st.done{color:var(--mu)}.st.done i{background:var(--tint);border-color:var(--blue);color:var(--accent)}
 .st.done::after{background:var(--blue)}
 @media(max-width:500px){.st span{display:none}.st.on span{display:inline}}
-/* card */
 .card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh);transition:background .2s}
 @media(max-width:500px){.card{padding:22px 16px}}
 h1{font:800 23px/1.2 var(--display);letter-spacing:-.025em;margin:0 0 7px}
 .sub{color:var(--mu);margin:0 0 20px;font-size:14.5px}
-/* tabs */
 .tabs{display:flex;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:3px;margin-bottom:20px;gap:3px}
 .tab{flex:1;padding:8px;border:0;background:transparent;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mu);transition:all .15s}
 .tab.on{background:var(--surf);color:var(--tx);box-shadow:var(--sh-sm)}
-/* form */
 .field{margin-bottom:16px}
 label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;color:var(--tx2)}
 .inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx);transition:border-color .15s,box-shadow .15s,background .15s}
@@ -112,14 +102,8 @@ label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;colo
 .inp:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
 .inp.bad{border-color:var(--err)}
 select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:18px;padding-right:36px}
-.pw-wrap{position:relative}.pw-wrap .inp{padding-right:68px}
-.pw-wrap .show-btn{position:absolute;right:8px;top:8px;height:30px;padding:0 10px;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer}
 .code-inp{font:700 26px/1 var(--mono);letter-spacing:12px;text-align:center;height:62px}
 .err-msg{color:var(--err);font-size:13px;margin:5px 0 0;min-height:18px}
-.hint-txt{color:var(--mu);font-size:13px;margin:5px 0 0}
-.meter-bar{height:4px;border-radius:3px;background:var(--bdr);overflow:hidden;margin-top:9px}
-.meter-bar i{display:block;height:100%;width:0;transition:width .25s,background .25s;border-radius:3px}
-/* buttons */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border-radius:7px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s,transform .1s}
 .btn:hover:not(:disabled){background:var(--blue-h);border-color:var(--blue-h);box-shadow:0 4px 14px rgba(37,99,235,.35)}
 .btn:active:not(:disabled){transform:scale(.99)}
@@ -127,7 +111,6 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr2)}
 .btn.sec:hover:not(:disabled){background:var(--tint);border-color:var(--blue);color:var(--blue);box-shadow:none}
 .btn.sm{height:38px;font-size:13.5px;border-radius:6px}
-.btn.ok-btn{background:var(--ok);border-color:var(--ok);color:#fff}
 .link-btn{border:0;background:none;padding:0;color:var(--accent);font-weight:600;cursor:pointer;font-size:13.5px;text-decoration:underline}
 .stack{display:grid;gap:10px;margin-top:4px}
 .or-div{display:flex;align-items:center;gap:12px;color:var(--dim);font-size:13px;margin:16px 0}
@@ -135,31 +118,10 @@ select.inp{cursor:pointer;appearance:none;background-image:url("data:image/svg+x
 .g-btn{background:var(--surf);border:1.5px solid var(--bdr2);color:var(--tx)}
 .g-btn:hover:not(:disabled){background:var(--tint2);border-color:var(--blue);color:var(--blue)}
 .g-icon{width:20px;height:20px;flex:none}
-/* badges */
 .badge-ico{width:52px;height:52px;border-radius:50%;background:var(--tint);display:grid;place-items:center;margin:0 auto 14px;color:var(--blue)}
 .badge-ico svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .badge-ico.ok{background:var(--okbg);color:var(--ok)}
 .center{text-align:center}
-/* check row */
-.check-row{display:flex;gap:12px;align-items:flex-start;width:100%;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:8px;padding:12px;cursor:pointer;transition:border-color .15s}
-.check-row:hover{border-color:var(--blue)}
-.check-row[aria-checked=true]{border-color:var(--blue);background:var(--tint)}
-.cbox{width:21px;height:21px;border-radius:5px;border:2px solid var(--bdr2);background:var(--inp);display:grid;place-items:center;flex:none;margin-top:2px;transition:all .15s}
-.cbox svg{width:12px;height:12px;stroke:#fff;opacity:0;stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.check-row[aria-checked=true] .cbox{background:var(--blue);border-color:var(--blue)}
-.check-row[aria-checked=true] .cbox svg{opacity:1}
-.check-row p{margin:3px 0 0;color:var(--mu);font-size:13px}
-/* gmail card */
-.gmail-card{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:8px;padding:12px;transition:border-color .2s}
-.gmail-card.connected{border-color:var(--ok);background:var(--okbg)}
-.gmail-card .info b{font-size:14px}.gmail-card .info p{margin:2px 0 0;color:var(--mu);font-size:13px}
-.gmail-card .btn{width:auto;min-width:108px;height:36px;font-size:13px;flex:none}
-.gmail-card.connected .btn{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
-@media(max-width:480px){.gmail-card{flex-direction:column;align-items:stretch}.gmail-card .btn{width:100%}}
-/* plan lock */
-.plan-lock{display:flex;gap:10px;align-items:flex-start;background:var(--ambbg);border:1px solid rgba(180,83,9,.25);border-radius:8px;padding:11px 12px;font-size:13.5px;color:var(--amb)}
-.plan-lock svg{width:17px;height:17px;flex:none;margin-top:1px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
-/* plans */
 body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
 .trial-banner{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--blue) 0%,#1e40af 100%);color:#fff;font:700 15.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px;box-shadow:0 6px 20px rgba(37,99,235,.3)}
 .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
@@ -176,7 +138,6 @@ body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;pad
 .plan li{display:flex;gap:8px;font-size:14px}
 .plan li svg{width:15px;height:15px;flex:none;margin-top:3px;stroke:var(--accent);fill:none;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
 .back-row{text-align:center;margin-top:16px}
-/* ── DASHBOARD ── */
 .dash-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;max-width:1180px;margin:0 auto;padding:18px 24px 6px}
 .dash-brand{display:flex;align-items:center;gap:9px;font:700 16px var(--display)}
 .dash-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -188,76 +149,41 @@ html[data-theme=dark] .trial-badge{background:var(--tint);border-color:rgba(96,1
 .plan-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:999px;font:600 12px var(--sans);color:var(--mu);white-space:nowrap}
 .plan-chip.pro{background:linear-gradient(135deg,rgba(37,99,235,.18),rgba(37,99,235,.07));border-color:rgba(37,99,235,.32);color:var(--accent)}
 .plan-chip.ent{background:linear-gradient(135deg,rgba(124,58,237,.18),rgba(124,58,237,.07));border-color:rgba(124,58,237,.32);color:#a78bfa}
-@media(max-width:600px){.dash-bar{padding:12px 16px}}
-/* layout */
 main{max-width:1180px;margin:0 auto;padding:8px 24px 56px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
 @media(max-width:900px){main{grid-template-columns:1fr;padding:8px 16px 40px}}
-/* panel */
 .panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:24px}
 html[data-theme=light] .panel{box-shadow:var(--sh-sm)}
 .panel>.field{padding-bottom:18px;border-bottom:1px solid var(--bdr)}
-/* model selector */
 .model-sel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .model-opt{border:1.5px solid var(--bdr2);border-radius:8px;padding:10px 12px;cursor:pointer;transition:border-color .15s,background .15s;background:var(--surf2)}
 .model-opt:hover{border-color:var(--blue)}
 .model-opt.sel{border-color:var(--blue);background:var(--tint)}
 .model-opt b{font-size:13.5px;display:block}.model-opt small{color:var(--mu);font-size:12px}
 .pro-badge{font:700 11px var(--sans);background:var(--blue);color:#fff;padding:2px 7px;border-radius:4px;vertical-align:middle;margin-left:5px}
-@media(max-width:460px){.model-sel{grid-template-columns:1fr}}
-/* platform seg */
 .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:4px}
 .seg button{border:0;background:transparent;padding:9px 6px;border-radius:7px;color:var(--mu);font-weight:500;cursor:pointer;transition:background .15s,color .15s}
 .seg button:hover{color:var(--tx)}
 .seg button[aria-checked=true]{background:var(--blue);color:#fff;box-shadow:0 2px 8px rgba(37,99,235,.28)}
-@media(max-width:460px){.seg{grid-template-columns:repeat(2,1fr)}}
-/* chips */
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{border:1px solid var(--bdr2);background:transparent;color:var(--mu);padding:5px 11px;border-radius:999px;font-size:13px;cursor:pointer;transition:all .15s}
 .chip:hover{border-color:var(--blue);color:var(--tx)}
 .chip[aria-pressed=true]{background:var(--tint);border-color:var(--blue);color:var(--accent)}
-/* textarea */
-textarea{width:100%;min-height:112px;resize:vertical;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:11px 12px;line-height:1.55;transition:border-color .15s,box-shadow .15s}
+textarea{width:100%;min-height:112px;resize:vertical;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:11px 12px;line-height:1.55}
 textarea::placeholder{color:var(--dim)}
 #transcript{font:13px/1.6 var(--mono);min-height:96px}
 textarea:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
-html[data-theme=light] textarea,html[data-theme=light] .cost input{background:#fff;border-color:var(--bdr2)}
 .costrow{display:flex;gap:9px;align-items:stretch;flex-wrap:wrap}
 .costrow .cost{width:144px;flex:none}
 .cost{position:relative}
 .cost span{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--dim);font-family:var(--mono)}
 .cost input{width:100%;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:10px 10px 10px 24px;font-family:var(--mono);height:43px}
-.cost input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
-.est{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:9px;border:1px solid var(--bdr2);background:var(--tint2);color:var(--blue);font-weight:600;font-size:13.5px;cursor:pointer;transition:all .15s;white-space:nowrap}
-.est:hover{border-color:var(--blue);background:var(--tint)}
-.est:disabled{opacity:.52;cursor:wait}
-/* drop */
-.drop{border:1.5px dashed var(--bdr2);border-radius:9px;padding:18px;text-align:center;background:var(--surf2);cursor:pointer;transition:all .18s}
-.drop:hover{border-color:var(--mu)}.drop:focus{outline:0;border-color:var(--blue)}
-.drop.over{border-color:var(--blue);background:var(--tint);transform:scale(1.01)}
-.drop svg{width:22px;height:22px;color:var(--mu);margin-bottom:5px}
-.drop p{margin:0;color:var(--mu);font-size:13.5px}.drop p b{color:var(--tx)}
-.files{display:flex;flex-direction:column;gap:7px;margin-top:9px}
-.file{display:flex;align-items:center;gap:9px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:7px 10px;animation:pop .2s ease}
-.file .ico{width:27px;height:27px;border-radius:6px;display:grid;place-items:center;font:600 10px var(--mono);background:var(--tint);color:var(--accent)}
-.file .ico.pdf{background:var(--errbg);color:var(--err)}
-.file .nm{flex:1;min-width:0;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.file .sz{font:12px var(--mono);color:var(--dim)}
-.file button{border:0;background:none;color:var(--dim);cursor:pointer;font-size:16px;padding:2px 6px;border-radius:4px}
-.file button:hover{color:var(--err);background:var(--errbg)}
-/* go */
-.go{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;border:0;cursor:pointer;background:linear-gradient(180deg,var(--blue) 0%,var(--blue-h) 100%);color:#fff;font-weight:600;font-size:15px;padding:12px;border-radius:9px;box-shadow:0 4px 16px rgba(37,99,235,.26);transition:transform .12s,box-shadow .15s,opacity .15s}
-.go:hover:not(:disabled){box-shadow:0 7px 22px rgba(37,99,235,.38);transform:translateY(-1px)}
-.go:active:not(:disabled){transform:scale(.99)}
-.go:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+.est{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:9px;border:1px solid var(--bdr2);background:var(--tint2);color:var(--blue);font-weight:600;font-size:13.5px;cursor:pointer;white-space:nowrap}
+.go{width:100%;display:flex;align-items:center;justify-content:center;gap:9px;border:0;cursor:pointer;background:linear-gradient(180deg,var(--blue) 0%,var(--blue-h) 100%);color:#fff;font-weight:600;font-size:15px;padding:12px;border-radius:9px;box-shadow:0 4px 16px rgba(37,99,235,.26)}
 .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:rot .7s linear infinite}
 .hint{margin:9px 0 0;text-align:center;color:var(--dim);font-size:12.5px}
-/* result */
-.result{position:sticky;top:14px;min-height:380px;display:flex;flex-direction:column;transition:opacity .35s,transform .35s}
-.result.leaving{opacity:0;transform:translateY(6px)}
-@media(max-width:900px){.result{position:static;min-height:0}}
+.result{position:sticky;top:14px;min-height:380px;display:flex;flex-direction:column}
 .empty{margin:auto;text-align:center;max-width:280px;color:var(--mu);padding:24px 0}
 .empty .ring{width:50px;height:50px;border-radius:50%;border:1px solid var(--bdr2);margin:0 auto 12px;display:grid;place-items:center;color:var(--dim)}
-.empty h3{margin:0 0 4px;color:var(--tx);font-size:15.5px}.empty p{margin:0;font-size:13.5px}
 .steps{display:flex;flex-direction:column;gap:12px;margin:6px 0 18px}
 .step{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:14px}
 .step i{width:19px;height:19px;border-radius:50%;border:1.5px solid var(--bdr2);display:grid;place-items:center;font-style:normal;font-size:11px}
@@ -274,59 +200,20 @@ html[data-theme=light] textarea,html[data-theme=light] .cost input{background:#f
 .fact small{display:block;color:var(--dim);font-size:12px}
 .fact b{font:700 14.5px 'Manrope',var(--sans);font-variant-numeric:tabular-nums}
 .fact b.g{color:var(--accent)}
-@media(max-width:460px){.facts{grid-template-columns:1fr 1fr}}
 .claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:13px;font:13px/1.7 var(--mono);color:var(--tx2);white-space:pre-wrap;max-height:270px;overflow:auto;margin-bottom:12px}
 .why{background:var(--errbg);border:1px solid var(--errbdr);border-radius:9px;padding:12px 13px;margin-bottom:12px;color:var(--tx2)}
 .why b{color:var(--err)}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
-.action-btn{flex:1;min-width:130px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer;border:1px solid var(--bdr2);background:var(--surf2);transition:all .15s;color:var(--tx);font-size:14px}
-.action-btn:hover{border-color:var(--blue);background:var(--tint)}
-.action-btn.copied{background:var(--okbg);border-color:var(--ok);color:var(--ok);animation:bump .22s}
-.action-btn:disabled{opacity:.48;cursor:default}
-.result-note{margin:9px 0 0;color:var(--dim);font-size:12.5px}
-/* delivery card */
-.delivery-card{background:var(--surf2);border:1.5px solid var(--bdr);border-radius:9px;padding:14px;margin-top:12px;animation:pop .2s ease}
-.delivery-card h4{margin:0 0 5px;font-size:14px}
-.delivery-card p{margin:0 0 10px;color:var(--mu);font-size:13.5px}
-.submit-steps{margin:0 0 12px;padding-left:16px;color:var(--mu);font-size:13.5px;line-height:1.9}
-/* ledger */
+.action-btn{flex:1;min-width:130px;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px;border-radius:8px;font-weight:600;cursor:pointer;border:1px solid var(--bdr2);background:var(--surf2);color:var(--tx);font-size:14px}
+.action-btn.copied{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
 .ledger small{display:block;font-size:12px;color:var(--mu)}
-.ledger b{font:800 23px/1 'Manrope',var(--sans);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-html[data-theme=dark] .ledger b{color:#f1f5f9}
-/* tour */
-.tour{position:fixed;z-index:30;top:calc(72px + env(safe-area-inset-top,0px));right:max(18px,calc((100% - 1180px)/2));width:320px;max-width:calc(100% - 18px);background:var(--surf);color:var(--tx);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;box-shadow:0 18px 48px rgba(0,0,0,.4);animation:pop .2s ease}
-.tour[hidden]{display:none}
-.tour-h{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--mu);font-weight:500}
-.tour-h button{border:0;background:none;font-size:19px;line-height:1;color:var(--mu);cursor:pointer;border-radius:4px;padding:0 4px}
-.tour-bar{height:3px;background:var(--bdr);border-radius:2px;margin:9px 0 12px;overflow:hidden}
-.tour-bar i{display:block;height:100%;background:var(--blue);transition:width .3s}
-.tour h3{margin:0 0 5px;font-size:15.5px}
-.tour p{margin:0 0 13px;color:var(--mu);font-size:14px}
-.tour-f{display:flex;justify-content:space-between;gap:8px}
-.tour-f button{padding:7px 13px;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer}
-.t-back{background:var(--surf);border:1px solid var(--bdr2);color:var(--tx)}
-.t-back:disabled{opacity:.38}
-.t-next{background:var(--blue);border:1px solid var(--blue);color:#fff}
-.t-next:hover{background:var(--blue-h)}
-.spot{border-radius:8px;outline:2px solid var(--blue);outline-offset:7px}
-@media(max-width:680px){.tour{top:auto;bottom:calc(10px + env(safe-area-inset-bottom,0px));left:10px;right:10px;width:auto;max-width:none}}
-/* toast */
-.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,18px);background:#0f172a;color:#fff;border:1px solid #1e3a5f;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;font-size:14px;font-weight:500;z-index:90;white-space:nowrap}
+.ledger b{font:800 23px/1 'Manrope',var(--sans);letter-spacing:-.02em}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,18px);background:#0f172a;color:#fff;border:1px solid #1e3a5f;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;font-size:14px;font-weight:500;z-index:90;white-space:nowrap}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-html[data-theme=dark] .toast{background:#1e293b;color:#f1f5f9;border-color:#334155}
-/* modal */
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;z-index:100;backdrop-filter:blur(4px)}
-.modal{width:100%;max-width:470px;max-height:90vh;overflow-y:auto;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px;box-shadow:0 22px 56px rgba(0,0,0,.4)}
+.modal{width:100%;max-width:470px;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px;box-shadow:0 22px 56px rgba(0,0,0,.4)}
 .modal-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px}
-.close-btn{border:0;background:none;font-size:24px;line-height:1;color:var(--mu);cursor:pointer;border-radius:5px;padding:0 5px}
-.close-btn:hover{color:var(--err)}
-.modal-plans{display:grid;gap:9px;margin-top:12px}
-.mp{border:1.5px solid var(--bdr);border-radius:9px;padding:12px;cursor:pointer;transition:all .15s}
-.mp:hover,.mp.sel{border-color:var(--blue);background:var(--tint)}
-.mp h3{margin:0 0 2px;font-size:14.5px}
-.mp p{margin:0;color:var(--mu);font-size:13px}
-.mp .tag{font:700 11px var(--sans);background:var(--blue);color:#fff;padding:2px 7px;border-radius:4px;margin-left:7px;vertical-align:middle}
-.rule{height:1px;background:var(--bdr);border:0;margin:16px 0}
+.close-btn{border:0;background:none;font-size:24px;line-height:1;color:var(--mu);cursor:pointer}
 </style>
 </head>
 <body>
@@ -335,9 +222,8 @@ html[data-theme=dark] .toast{background:#1e293b;color:#f1f5f9;border-color:#3341
   <button class="nav" id="backBtn" type="button"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>Back</button>
   <button class="nav" id="fbOpen" type="button"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Feedback</button>
   <span class="sp"></span>
-  <button class="ws-sw" id="wsSw" type="button">
+  <button class="ws-sw" id="wsSw" type="button" style="display:none">
     <span class="dot"></span><span id="wsSwName">Workspace</span>
-    <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
   </button>
   <button class="nav icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
     <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -345,103 +231,63 @@ html[data-theme=dark] .toast{background:#1e293b;color:#f1f5f9;border-color:#3341
   </button>
 </header>
 
-<!-- AUTH PAGE -->
-<div class="page" id="pg-auth">
+<div class="page active" id="pg-auth">
 <div class="auth-wrap">
   <div class="brand">
     <div class="logo-m"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76" stroke="white" stroke-width="9" stroke-linecap="round"/></svg></div>
     LeadClaw
   </div>
   <ol class="stepper" id="stepper">
-    <li class="st"><i><span>1</span></i><span>Account</span></li>
-    <li class="st"><i><span>2</span></i><span>Workspace</span></li>
-    <li class="st"><i><span>3</span></i><span>Plan</span></li>
+    <li class="st on"><i>1</i><span>Account</span></li>
+    <li class="st"><i>2</i><span>Workspace</span></li>
+    <li class="st"><i>3</i><span>Plan</span></li>
   </ol>
-  <div class="card" id="authCard">
-
-    <!-- 1a: email/google -->
+  <div class="card">
     <div class="view" id="v-email">
       <h1 id="authTitle">Welcome to LeadClaw</h1>
-      <p class="sub" id="authSub">Recover money from bad leads in minutes.</p>
+      <p class="sub">Recover money from bad leads in minutes.</p>
       <div class="tabs">
-        <button class="tab on" id="tabSignup">Sign up</button>
-        <button class="tab" id="tabLogin">Log in</button>
+        <button class="tab on" id="tabSignup" type="button">Sign up</button>
+        <button class="tab" id="tabLogin" type="button">Log in</button>
       </div>
       <button class="btn g-btn" id="googleBtn" type="button">
         <svg class="g-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.1-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
         Continue with Google
       </button>
       <div class="or-div">or</div>
-      <div class="field"><label for="emailInp">Email address</label>
-        <input class="inp" id="emailInp" type="email" autocomplete="email" placeholder="you@company.com" spellcheck="false">
-        <p class="err-msg" id="emailErr" role="alert"></p></div>
+      <div class="field"><label>Email address</label>
+        <input class="inp" id="emailInp" type="email" placeholder="you@company.com">
+        <p class="err-msg" id="emailErr"></p></div>
       <button class="btn" id="emailGo" type="button">Send verification code</button>
-      <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--mu)">Start with 3 free AI disputes. No card required.</p>
     </div>
 
-    <!-- 1b: verify code -->
     <div class="view center" id="v-code" hidden>
-      <div class="badge-ico"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
       <h1>Check your email</h1>
-      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget" style="color:var(--tx)"></b>.</p>
-      <div class="field"><input class="inp code-inp" id="codeInp" maxlength="6" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" placeholder="000000"><p class="err-msg" id="codeErr" role="alert"></p></div>
+      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget"></b>.</p>
+      <div class="field"><input class="inp code-inp" id="codeInp" maxlength="6" placeholder="000000"><p class="err-msg" id="codeErr"></p></div>
       <div class="stack">
         <button class="btn" id="codeGo" type="button">Confirm code</button>
         <button class="btn sec sm" id="resendBtn" type="button">Resend code</button>
-        <button class="link-btn" id="diffEmailBtn" type="button">Use a different email</button>
       </div>
     </div>
 
-    <!-- 1c: password (signup only) -->
-    <div class="view" id="v-pass" hidden>
-      <h1>Create a password</h1>
-      <p class="sub">One last step to secure your account.</p>
-      <div class="field"><label for="pw1">Password</label>
-        <div class="pw-wrap"><input class="inp" id="pw1" type="password" autocomplete="new-password" placeholder="8+ characters"><button class="show-btn" type="button" id="pw1Show">Show</button></div>
-        <div class="meter-bar"><i id="meterBar"></i></div>
-        <p class="hint-txt" id="pwHint">Use 8+ characters with letters, numbers and a symbol.</p></div>
-      <div class="field"><label for="pw2">Confirm password</label>
-        <input class="inp" id="pw2" type="password" autocomplete="new-password" placeholder="Re-enter your password">
-        <p class="err-msg" id="pw2Err" role="alert"></p></div>
-      <button class="btn" id="pwGo" type="button" disabled>Continue</button>
-    </div>
-
-    <!-- 2: workspace -->
     <div class="view" id="v-terms" hidden>
       <h1>Set up your workspace</h1>
       <p class="sub">Name your business and agree to continue.</p>
-      <div class="field"><label for="wsName">Business name</label>
-        <input class="inp" id="wsName" type="text" maxlength="64" placeholder="Apex Roofing & Plumbing" autocomplete="organization">
-        <p class="err-msg" id="wsErr" role="alert"></p></div>
-      <div class="field"><label for="industry">Trade</label>
-        <select class="inp" id="industry"><option value="">Select your trade</option><option>Roofing</option><option>Plumbing</option><option>Electrical</option><option>HVAC</option><option>Landscaping</option><option>General Contracting</option><option>Painting</option><option>Flooring</option><option>Other home services</option></select></div>
-      <div class="field">
-        <div class="gmail-card" id="gmailAuthCard">
-          <div class="info"><b>Connect Gmail</b><p>Auto-detect lead receipts. Available on Growth Pro and above.</p></div>
-          <button class="btn sec sm" id="gmailAuthBtn" type="button">Connect</button>
-        </div></div>
-      <div class="field">
-        <button class="check-row" id="agreeBtn" type="button" role="checkbox" aria-checked="false">
-          <span class="cbox"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></span>
-          <div><span style="font-weight:600;font-size:14px">I agree to LeadClaw's Terms &amp; Policies</span>
-            <p>Includes Terms of Service, Privacy Policy, and Refund Dispute Policies for Angi, Thumbtack, Porch and Networx.</p></div>
-        </button>
-        <p class="err-msg" id="termsErr" role="alert"></p></div>
+      <div class="field"><label>Business name</label>
+        <input class="inp" id="wsName" type="text" placeholder="Apex Roofing">
+        <p class="err-msg" id="wsErr"></p></div>
       <button class="btn" id="termsGo" type="button">Continue to plan selection</button>
     </div>
 
-    <!-- 3: plans -->
-    <div class="view" id="v-plans" hidden>
+    <div class="view" id="v-plans" hidden style="max-width:1180px">
       <div class="trial-banner">3 free AI disputes included. No credit card required.</div>
       <div class="plans" id="plansGrid"></div>
-      <div class="back-row"><button class="link-btn" id="plansBack" type="button">Back</button></div>
     </div>
-
   </div>
 </div>
 </div>
 
-<!-- DASHBOARD -->
 <div class="page" id="pg-dash">
   <div class="dash-bar">
     <div class="dash-brand">
@@ -449,131 +295,50 @@ html[data-theme=dark] .toast{background:#1e293b;color:#f1f5f9;border-color:#3341
       <span id="dashWsName">LeadClaw</span>
     </div>
     <div class="dash-right">
-      <div class="ledger" title="Credits marked as recovered"><small>Recovered</small><b id="total">$0.00</b></div>
+      <div class="ledger"><small>Recovered</small><b id="total">\$0.00</b></div>
       <div class="trial-badge" id="trialBadge">Disputes left: <span class="tb-n" id="trialCount">3</span></div>
-      <span class="plan-chip" id="planChip">Solo</span>
-      <button class="nav icon-btn" id="tourBtn" type="button" aria-expanded="false" title="Quick tour">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-      </button>
     </div>
   </div>
   <main>
-    <section class="panel" aria-labelledby="h">
-      <h1 id="h">Lead credit request</h1>
-      <p class="sub">Fill in the details. We check the platform's refund policy and write the claim if it qualifies.</p>
-      <div class="field" id="modelSection" hidden>
-        <span class="lbl">AI model <span class="pro-badge">Pro</span></span>
-        <div class="model-sel" id="modelSel">
-          <div class="model-opt sel" data-model="gemini"><b>Gemini 1.5 Flash</b><small>Fast, most accurate</small></div>
-          <div class="model-opt" data-model="groq"><b>Qwen3 4B (Groq)</b><small>Open source, fast</small></div>
-        </div>
-      </div>
-      <div class="field"><span class="lbl" id="plbl">Lead platform</span>
-        <div class="seg" role="radiogroup" aria-labelledby="plbl" id="platforms"></div></div>
-      <div class="field"><span class="lbl">What went wrong?<span style="color:var(--dim);font-weight:400;margin-left:6px">tap to start your notes</span></span>
-        <div class="chips" id="chips"></div></div>
+    <section class="panel">
+      <h1>Lead credit request</h1>
+      <p class="sub">Fill in the details. We check the platform policy and write the claim.</p>
+      <div class="field"><span class="lbl">Lead platform</span>
+        <div class="seg" id="platforms"></div></div>
       <div class="field"><label for="notes">Call notes</label>
-        <textarea id="notes" placeholder="e.g. Called twice, number disconnected. Lead asked for work in a ZIP we don't serve."></textarea></div>
-      <div class="field"><label for="transcript">Transcript <span style="color:var(--dim);font-weight:400">optional</span></label>
-        <textarea id="transcript" placeholder="Paste a call transcript here."></textarea></div>
-      <div class="field" id="fileSection">
-        <span class="lbl">Evidence <span style="color:var(--dim);font-weight:400">MP3, WAV or PDF</span></span>
-        <div class="plan-lock" id="fileLock">
-          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span>Audio and PDF evidence upload is available on <b>Growth Pro</b> and above. <button class="link-btn" id="upgradeFromFile">Upgrade</button></span>
-        </div>
-        <div id="dropWrap" hidden>
-          <div class="drop" id="drop" tabindex="0" role="button" aria-label="Add audio or PDF files">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0L7 9m5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
-            <p><b>Drop recordings or transcripts here</b><br>or click to browse</p>
-            <input type="file" id="file" accept=".mp3,.wav,.pdf,audio/mpeg,audio/wav,application/pdf" multiple hidden>
-          </div>
-          <div class="files" id="files"></div>
-        </div>
-      </div>
-      <div class="field"><label style="display:block;font-weight:600;font-size:13.5px;margin-bottom:7px">Lead cost</label>
+        <textarea id="notes" placeholder="e.g. Called twice, number disconnected."></textarea></div>
+      <div class="field"><label for="cost">Lead cost (\$)</label>
         <div class="costrow">
-          <div class="cost"><span>$</span><input id="cost" inputmode="decimal" placeholder="85.00"></div>
-          <button type="button" class="est" id="est">Estimate with AI</button>
-        </div>
-        <p id="estNote" style="margin:6px 0 0;color:var(--mu);font-size:12.5px"></p></div>
+          <div class="cost"><span>\$</span><input id="cost" value="85.00"></div>
+        </div></div>
       <button class="go" id="go" disabled><span id="goTxt">Check &amp; build claim</span></button>
-      <p class="hint">Add notes, a transcript or a file to continue.</p>
-      <p class="hint" style="color:var(--mu);margin-top:4px">Generating may take up to 60 seconds on first request (Render free plan warm-up).</p>
     </section>
-    <section class="panel result" id="result" aria-live="polite"></section>
+    <section class="panel result" id="result"></section>
   </main>
-  <aside class="tour" id="tour" role="dialog" aria-label="Quick tour" hidden>
-    <div class="tour-h"><span id="tourCount">Step 1 of 8</span><button type="button" id="tourX" aria-label="Close">&times;</button></div>
-    <div class="tour-bar"><i id="tourBar"></i></div>
-    <h3 id="tourT"></h3><p id="tourP"></p>
-    <div class="tour-f">
-      <button type="button" class="t-back" id="tourBack">Back</button>
-      <button type="button" class="t-next" id="tourNext">Next</button>
-    </div>
-  </aside>
 </div>
 
-<!-- UPGRADE MODAL -->
-<div class="ov" id="upgradeModal" hidden role="dialog" aria-modal="true" aria-labelledby="upT">
+<div class="ov" id="fbModal" hidden>
   <div class="modal">
     <div class="modal-hd">
-      <div><h1 id="upT" style="font-size:20px;margin-bottom:4px">Upgrade your plan</h1>
-        <p class="sub" style="margin:0">Unlock audio evidence, Gmail integration, unlimited disputes and more.</p></div>
-      <button class="close-btn" id="upClose">&times;</button>
-    </div>
-    <div class="modal-plans" id="upPlans"></div>
-    <button class="btn" id="upSelect" style="margin-top:16px" disabled>Continue with selected plan</button>
-    <p class="hint" style="margin-top:9px">All plans include a 7-day free trial.</p>
-  </div>
-</div>
-
-<!-- FEEDBACK MODAL -->
-<div class="ov" id="fbModal" hidden role="dialog" aria-modal="true" aria-labelledby="fbT">
-  <div class="modal">
-    <div class="modal-hd">
-      <div><h1 id="fbT" style="font-size:20px;margin-bottom:4px">Feedback &amp; Improvements</h1>
-        <p class="sub" style="margin:0">Help us build what you need.</p></div>
+      <h1>Feedback</h1>
       <button class="close-btn" id="fbClose">&times;</button>
     </div>
-    <hr class="rule">
-    <div id="fbFormWrap">
-      <div class="field"><label for="fbType">Type</label>
-        <select class="inp" id="fbType"><option>Feature request</option><option>Feedback</option><option>Support question</option><option>Bug report</option></select></div>
-      <div class="field"><label for="fbMsg">Message</label>
-        <textarea class="inp" id="fbMsg" rows="4" placeholder="Tell us what would improve LeadClaw..."></textarea>
-        <p class="err-msg" id="fbErr" role="alert"></p></div>
-      <div class="field"><label for="fbEmail">Reply-to email <span style="color:var(--mu);font-weight:400">(optional)</span></label>
-        <input class="inp" id="fbEmail" type="email" placeholder="you@company.com"></div>
-      <button class="btn" id="fbSend" type="button">Send feedback</button>
-    </div>
-    <div class="center" id="fbOk" hidden>
-      <div class="badge-ico ok" style="margin-top:8px"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg></div>
-      <h1 style="font-size:19px">Thanks for the feedback</h1>
-      <p class="sub">We read every message.</p>
-      <button class="btn sec sm" id="fbDone" style="margin-top:4px">Close</button>
-    </div>
+    <div class="field"><label>Message</label><textarea class="inp" id="fbMsg" style="height:100px" placeholder="Your feedback..."></textarea></div>
+    <button class="btn" id="fbSend" type="button">Send feedback</button>
   </div>
 </div>
 
-<div class="toast" id="toast" role="status"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ── CONFIG ── Replace these before going live ─────────────────────────────
-const API_BASE         = 'https://leadclaw-api.onrender.com';
+const API_BASE = 'https://leadclaw-api.onrender.com';
 const GOOGLE_CLIENT_ID = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com';
-const GMAIL_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com';  // can be same as above
-// Gmail OAuth: register your app at https://console.cloud.google.com
-// Redirect URI: https://your-cloudflare-domain/oauth/gmail-callback
-// Scopes needed: https://www.googleapis.com/auth/gmail.compose
-// ─────────────────────────────────────────────────────────────────────────
 
 (()=>{
 'use strict';
-const $ = id => document.getElementById(id);
-const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);
-const esc = s => s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const money = n => '$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const \$ = id => document.getElementById(id);
+const validEmail = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}\$/.test(e);
+const money = n => '\$'+(+n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
 const store = {
   get(k){try{return localStorage.getItem(k)}catch{return null}},
   set(k,v){try{localStorage.setItem(k,v)}catch{}},
@@ -581,512 +346,136 @@ const store = {
 };
 
 let toastT;
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+function toast(m){const t=\$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
 
-// ── THEME ──────────────────────────────────────────────────────────────────
 const root = document.documentElement;
-function setTheme(t){
-  root.setAttribute('data-theme',t);store.set('lc_theme',t);
-  const b=$('themeBtn'),l='Switch to '+(t==='dark'?'light':'dark')+' mode';
-  b.setAttribute('aria-label',l);b.title=l;
-}
-$('themeBtn').onclick = () => setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
+function setTheme(t){root.setAttribute('data-theme',t);store.set('lc_theme',t);}
+\$('themeBtn').onclick = () => setTheme(root.getAttribute('data-theme')==='dark'?'light':'dark');
 setTheme(store.get('lc_theme')||'light');
 
-// ── DEVICE TOKEN ───────────────────────────────────────────────────────────
 function deviceToken(){
   let t=store.get('lc_device_token');
   if(!t){t='lc_'+Math.random().toString(36).slice(2,11)+'_'+Date.now();store.set('lc_device_token',t);}
   return t;
 }
 
-// ── PAGE ROUTING ───────────────────────────────────────────────────────────
 function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));window.scrollTo({top:0,behavior:'smooth'});}
-$('backBtn').onclick = () => {
-  if($('pg-dash').classList.contains('active')){if(confirm('Sign out of LeadClaw?'))logout();}
-  else{showPage('pg-auth');syncStepper('email');showView('email');}
-};
+\$('backBtn').onclick = () => {if(confirm('Sign out?'))logout();}
 
-// ── AUTH STATE ─────────────────────────────────────────────────────────────
-const TRIAL_MAX = 3;
-const AUTH = {email:'',method:'',ws:'',industry:'',gmail:false,agreed:false,plan:''};
+const AUTH = {email:'',ws:'',plan:''};
 const PLANS_DEF = [
-  {id:'solo',  name:'Solo Contractor',tier:1,price:29,
-   features:['25 AI disputes per month','Text notes & quick-reason chips','Formatted email to paste manually','Recovered money ledger','Email support']},
-  {id:'growth',name:'Growth Pro',     tier:2,price:59,pop:true,
-   features:['Unlimited AI disputes','Audio (MP3/WAV) & PDF evidence upload','AI model choice (Gemini & Qwen3)','Gmail one-click send','AI lead cost estimation','Live Chat support']},
-  {id:'crew',  name:'Enterprise',     tier:3,price:129,
-   features:['Everything in Growth Pro','Multi-user seats & team dispatch','Platform analytics (Angi vs Thumbtack)','Custom dispute templates','Bulk dispute processing','White-glove onboarding']}
+  {id:'solo',name:'Solo',price:29,features:['25 AI disputes/mo','Text notes','Email support']},
+  {id:'growth',name:'Growth Pro',price:59,pop:true,features:['Unlimited AI disputes','Audio/PDF evidence','Gmail send']},
+  {id:'crew',name:'Enterprise',price:129,features:['Everything in Growth Pro','Team seats','Analytics']}
 ];
 
 function getPlan(){return store.get('lc_plan')||'solo';}
-function getPlanTier(){return (PLANS_DEF.find(p=>p.id===getPlan())||PLANS_DEF[0]).tier;}
-function getTrialLeft(){return parseInt(store.get('lc_trial_left')||TRIAL_MAX);}
-function isUnlimited(){return getPlanTier()>=2;}
+function getTrialLeft(){return parseInt(store.get('lc_trial_left')||3);}
 
-function updateTrialBadge(){
-  const n=getTrialLeft(),b=$('trialBadge'),c=$('trialCount');
-  c.textContent=n;b.className='trial-badge';
-  if(isUnlimited()){b.hidden=true;return;}
-  b.hidden=false;
-  if(n<=0)b.classList.add('gone');
-  else if(n===1)b.classList.add('warn');
-}
-function updatePlanChip(){
-  const p=getPlan(),chip=$('planChip');chip.className='plan-chip';
-  if(p==='growth'){chip.textContent='Growth Pro';chip.classList.add('pro');}
-  else if(p==='crew'){chip.textContent='Enterprise';chip.classList.add('ent');}
-  else chip.textContent='Solo';
-}
-function applyPlanGating(){
-  const t=getPlanTier();
-  $('fileLock').hidden=t>=2;$('dropWrap').hidden=t<2;
-  $('modelSection').hidden=t<2;
+window.onload = function() {
+  if (typeof google !== 'undefined') {
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleResponse });
+  }
+};
+\$('googleBtn').onclick = () => { if (typeof google !== 'undefined') google.accounts.id.prompt(); };
+
+async function handleGoogleResponse(res) {
+  try {
+    const r = await fetch(API_BASE + '/api/auth/google', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: res.credential })
+    });
+    const d = await r.json();
+    AUTH.email = d.email;
+    showView('terms');
+  } catch { toast('Google sign-in failed'); }
 }
 
-// ── BOOT ───────────────────────────────────────────────────────────────────
-function boot(){
-  const u=store.get('lc_user');
-  if(u){try{const d=JSON.parse(u);AUTH.email=d.email||'';AUTH.method=d.method||'';}catch{}}
-  AUTH.ws=store.get('lc_workspace')||'';AUTH.plan=getPlan();
-  if(AUTH.ws&&store.get('lc_plan')){enterDashboard();return;}
-  showPage('pg-auth');syncStepper('email');showView('email');
-}
-
-// ── STEPPER ────────────────────────────────────────────────────────────────
-const VIEW_STEP={email:1,code:1,pass:1,terms:2,plans:3};
-function syncStepper(v){
-  const n=VIEW_STEP[v]||1;
-  document.querySelectorAll('.st').forEach((el,i)=>{
-    el.classList.toggle('on',i+1===n);el.classList.toggle('done',i+1<n);
-  });
-}
-function showView(v){
-  ['email','code','pass','terms','plans'].forEach(id=>{const el=$('v-'+id);if(el)el.hidden=id!==v;});
-  document.body.classList.toggle('wide-view',v==='plans');
-  syncStepper(v);
-  const first=document.querySelector('#v-'+v+' .inp, #v-'+v+' .btn');
-  if(first)setTimeout(()=>first.focus({preventScroll:true}),80);
-}
-
-// ── TABS ───────────────────────────────────────────────────────────────────
-let isSignup=true;
-function setMode(su){
-  isSignup=su;
-  $('tabSignup').classList.toggle('on',su);$('tabLogin').classList.toggle('on',!su);
-  $('authTitle').textContent=su?'Create your account':'Welcome back';
-  $('authSub').textContent=su?'Start with 3 free AI disputes — no card needed.':'Sign in to your LeadClaw workspace.';
-  $('emailGo').textContent=su?'Send verification code':'Send sign-in code';
-  $('emailErr').textContent='';
-}
-$('tabSignup').onclick=()=>setMode(true);$('tabLogin').onclick=()=>setMode(false);
-
-// ── GOOGLE (stub) ──────────────────────────────────────────────────────────
-$('googleBtn').onclick=()=>{
-  // Production: load Google Identity Services, call google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,...})
-  AUTH.email='user@gmail.com';AUTH.method='google';
-  if(!isSignup){AUTH.ws=store.get('lc_workspace')||'';if(AUTH.ws){saveSession();enterDashboard();return;}}
-  showView('terms');
+\$('emailGo').onclick = async () => {
+  const email = \$('emailInp').value.trim();
+  if(!validEmail(email)){\$('emailErr').textContent='Invalid email';return;}
+  AUTH.email = email;
+  const r = await fetch(API_BASE+'/api/auth/send-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+  const d = await r.json();
+  \$('codeTarget').textContent = email;
+  showView('code');
+  if(d.debug_code) toast('Code: '+d.debug_code);
 };
 
-// ── EMAIL: send code ───────────────────────────────────────────────────────
-async function trySendCode(){
-  const em=$('emailInp').value.trim();
-  if(!validEmail(em)){$('emailErr').textContent='Enter a valid email address.';$('emailInp').classList.add('bad');return;}
-  $('emailErr').textContent='';$('emailInp').classList.remove('bad');AUTH.email=em;
-  const b=$('emailGo');b.disabled=true;b.textContent='Sending...';
-  try{
-    const r=await fetch(API_BASE+'/api/auth/send-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:em})});
-    if(!r.ok)throw new Error('Server error '+r.status);
-    const d=await r.json();
-    $('codeTarget').textContent=em;showView('code');
-    // dev only: show code in toast since email sending isn't wired yet
-    if(d.debug_code)toast('Dev code: '+d.debug_code);
-  }catch(e){$('emailErr').textContent='Could not send code. Check your connection.';b.disabled=false;}
-  b.disabled=false;b.textContent=isSignup?'Send verification code':'Send sign-in code';
-}
-$('emailGo').onclick=trySendCode;
-$('emailInp').addEventListener('keydown',e=>{if(e.key==='Enter')trySendCode();});
-$('emailInp').addEventListener('input',()=>{$('emailInp').classList.remove('bad');$('emailErr').textContent='';});
-
-// cooldown
-let coolT,coolLeft=0;
-function startCooldown(){
-  coolLeft=30;clearInterval(coolT);const b=$('resendBtn');b.disabled=true;
-  function tick(){b.textContent=coolLeft>0?`Resend (${coolLeft}s)`:'Resend code';if(coolLeft<=0){clearInterval(coolT);b.disabled=false;}coolLeft--;}
-  tick();coolT=setInterval(tick,1000);
-}
-startCooldown();// init
-$('resendBtn').onclick=()=>{trySendCode();startCooldown();};
-$('diffEmailBtn').onclick=()=>{clearInterval(coolT);showView('email');};
-
-// ── EMAIL: verify code ─────────────────────────────────────────────────────
-async function tryVerify(){
-  const code=$('codeInp').value.trim();
-  if(code.length!==6){$('codeErr').textContent='Enter the 6-digit code.';return;}
-  $('codeErr').textContent='';const b=$('codeGo');b.disabled=true;b.textContent='Verifying...';
-  try{
-    const r=await fetch(API_BASE+'/api/auth/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,code})});
-    if(!r.ok){$('codeErr').textContent='Invalid code. Try again.';b.disabled=false;b.textContent='Confirm code';return;}
-    if(isSignup){showView('pass');}else{showView('terms');}
-  }catch{$('codeErr').textContent='Server error. Please try again.';}
-  b.disabled=false;b.textContent='Confirm code';
-}
-$('codeGo').onclick=tryVerify;
-$('codeInp').addEventListener('keydown',e=>{if(e.key==='Enter')tryVerify();});
-$('codeInp').addEventListener('input',()=>{$('codeErr').textContent='';if($('codeInp').value.length===6)tryVerify();});
-
-// ── PASSWORD ───────────────────────────────────────────────────────────────
-function pwScore(p){let s=0;if(p.length>=8)s++;if(p.length>=12)s++;if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;return s;}
-$('pw1').addEventListener('input',()=>{
-  const p=$('pw1').value,sc=pwScore(p),bar=$('meterBar');
-  bar.style.width=Math.min(100,sc*20)+'%';
-  bar.style.background=sc<=1?'var(--err)':sc<=2?'#f97316':sc===3?'#eab308':'var(--ok)';
-  $('pwHint').textContent=!p?'Use 8+ characters with letters, numbers and a symbol.':p.length<8?'Too short.':sc<3?'Add numbers, symbols or mixed case.':sc===3?'Good.':'Strong.';
-  checkPwReady();
-});
-$('pw2').addEventListener('input',()=>{$('pw2Err').textContent='';checkPwReady();});
-function checkPwReady(){const p=$('pw1').value,p2=$('pw2').value;$('pwGo').disabled=!(p.length>=8&&pwScore(p)>=3&&(p2===''||p===p2));}
-$('pw1Show').onclick=()=>{const i=$('pw1'),h=i.type==='password';i.type=h?'text':'password';$('pw1Show').textContent=h?'Hide':'Show';$('pw2').type=i.type;};
-$('pw2').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('pwGo').disabled)$('pwGo').click();});
-$('pwGo').onclick=()=>{const p=$('pw1').value,p2=$('pw2').value;if(p2&&p!==p2){$('pw2Err').textContent='Passwords do not match.';$('pw2').focus();return;}$('pw1').value='';$('pw2').value='';showView('terms');};
-
-// ── WORKSPACE ──────────────────────────────────────────────────────────────
-function checkTermsReady(){$('termsGo').disabled=!($('wsName').value.trim().length>=2&&AUTH.agreed);}
-$('wsName').addEventListener('input',()=>{$('wsErr').textContent='';checkTermsReady();});
-$('agreeBtn').onclick=()=>{AUTH.agreed=!AUTH.agreed;$('agreeBtn').setAttribute('aria-checked',AUTH.agreed);$('termsErr').textContent='';checkTermsReady();};
-// Gmail connect in workspace step (stub — tier check happens on dashboard too)
-$('gmailAuthBtn').onclick=()=>{
-  AUTH.gmail=!AUTH.gmail;
-  $('gmailAuthCard').classList.toggle('connected',AUTH.gmail);
-  $('gmailAuthBtn').textContent=AUTH.gmail?'Connected':'Connect';
-  toast(AUTH.gmail?'Gmail connected (Growth Pro required to use).':'Gmail disconnected.');
-};
-$('termsGo').onclick=()=>{
-  const ws=$('wsName').value.trim();
-  if(ws.length<2){$('wsErr').textContent='Enter your business name.';$('wsName').focus();return;}
-  if(!AUTH.agreed){$('termsErr').textContent='You must agree to the terms to continue.';return;}
-  AUTH.ws=ws;AUTH.industry=$('industry').value;showView('plans');
+\$('codeGo').onclick = async () => {
+  const code = \$('codeInp').value.trim();
+  const r = await fetch(API_BASE+'/api/auth/verify-code',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,code})});
+  if(r.ok) showView('terms'); else \$('codeErr').textContent='Invalid code';
 };
 
-// ── PLANS ──────────────────────────────────────────────────────────────────
-const CHK=`<svg viewBox="0 0 24 24" fill="none" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>`;
-$('plansGrid').innerHTML=PLANS_DEF.map(p=>`<article class="plan${p.pop?' pop':''}">
-  ${p.pop?'<span class="pop-tag">Most Popular</span>':''}
-  <h2>${p.name}</h2>
-  <div class="price">$${p.price}<small>/mo</small></div>
-  <div class="trial-note">3 free disputes included</div>
-  <ul>${p.features.map(f=>`<li>${CHK}<span>${f}</span></li>`).join('')}</ul>
-  <button class="btn${p.pop?'':' sec'}" data-plan="${p.id}" type="button">Start Free Trial</button>
-</article>`).join('');
-$('plansGrid').addEventListener('click',e=>{const b=e.target.closest('[data-plan]');if(b)finishOnboarding(b.dataset.plan);});
-$('plansBack').onclick=()=>showView('terms');
-
-// upgrade modal
-let selUp='growth';
-$('upPlans').innerHTML=PLANS_DEF.map(p=>`<div class="mp${p.id===selUp?' sel':''}" data-up="${p.id}">
-  <h3>$${p.price}/mo — ${p.name}${p.pop?'<span class="tag">Popular</span>':''}</h3>
-  <p>${p.features.slice(0,3).join(' · ')}</p></div>`).join('');
-$('upPlans').addEventListener('click',e=>{
-  const d=e.target.closest('[data-up]');if(!d)return;
-  selUp=d.dataset.up;$('upPlans').querySelectorAll('.mp').forEach(m=>m.classList.toggle('sel',m.dataset.up===selUp));$('upSelect').disabled=false;
-});
-$('upSelect').onclick=async()=>{
-  AUTH.plan=selUp;store.set('lc_plan',selUp);
-  if(selUp!=='solo'){store.set('lc_plan_unlimited','1');}
-  $('upgradeModal').hidden=true;
-  // persist to backend
-  try{await fetch(API_BASE+'/api/auth/setup-workspace',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,workspace:AUTH.ws||store.get('lc_workspace'),plan:selUp,device_token:deviceToken()})});}catch{}
-  updateTrialBadge();updatePlanChip();applyPlanGating();
-  toast('Upgraded to '+(PLANS_DEF.find(p=>p.id===selUp)||{name:selUp}).name+'!');
+\$('termsGo').onclick = () => {
+  const ws = \$('wsName').value.trim();
+  if(!ws){\$('wsErr').textContent='Enter business name';return;}
+  AUTH.ws = ws; showView('plans'); renderPlans();
 };
-$('upClose').onclick=()=>$('upgradeModal').hidden=true;
-$('upgradeFromFile').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
 
-// ── SESSION ────────────────────────────────────────────────────────────────
-function saveSession(){
-  store.set('lc_user',JSON.stringify({email:AUTH.email,method:AUTH.method}));
-  store.set('lc_workspace',AUTH.ws);store.set('lc_plan',AUTH.plan);
-  store.set('lc_industry',AUTH.industry||'');store.set('lc_gmail',AUTH.gmail?'1':'0');
-  if(!store.get('lc_trial_left'))store.set('lc_trial_left',TRIAL_MAX);
+function renderPlans(){
+  \$('plansGrid').innerHTML = PLANS_DEF.map(p=>`
+    <article class="plan${p.pop?' pop':''}">
+      ${p.pop?'<span class="pop-tag">Popular</span>':''}
+      <h2>${p.name}</h2>
+      <div class="price">$${p.price}<small>/mo</small></div>
+      <ul>${p.features.map(f=>`<li><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg><span>\${f}</span></li>`).join('')}</ul>
+      <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Select</button>
+    </article>
+  `).join('');
 }
-async function finishOnboarding(planId){
-  AUTH.plan=planId;saveSession();
-  try{await fetch(API_BASE+'/api/auth/setup-workspace',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,workspace:AUTH.ws,plan:planId,device_token:deviceToken()})});}catch{}
+
+window.selectPlan = async (planId) => {
+  AUTH.plan = planId;
+  store.set('lc_user', JSON.stringify({email:AUTH.email}));
+  store.set('lc_workspace', AUTH.ws);
+  store.set('lc_plan', planId);
+  await fetch(API_BASE+'/api/auth/setup-workspace',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:AUTH.email,workspace:AUTH.ws,plan:planId,device_token:deviceToken()})});
   enterDashboard();
-}
-function logout(){
-  ['lc_user','lc_workspace','lc_plan','lc_plan_unlimited','lc_trial_left','lc_tour','lc_gmail','lc_total'].forEach(k=>store.del(k));
-  AUTH.email='';AUTH.ws='';AUTH.plan='';AUTH.agreed=false;AUTH.gmail=false;
-  $('wsSw').classList.remove('visible');showPage('pg-auth');setMode(true);showView('email');
+};
+
+function logout(){store.del('lc_user');store.del('lc_workspace');location.reload();}
+function enterDashboard(){showPage('pg-dash');dashInit();}
+
+function showView(v){
+  ['email','code','terms','plans'].forEach(id=>\$('v-'+id).hidden=(id!==v));
+  if(v==='plans') document.body.classList.add('wide-view');
 }
 
-// ── ENTER DASHBOARD ────────────────────────────────────────────────────────
-function enterDashboard(){
-  const ws=AUTH.ws||store.get('lc_workspace')||'My Workspace';
-  $('dashWsName').textContent=ws;$('wsSwName').textContent=ws;$('wsSw').classList.add('visible');
-  updateTrialBadge();updatePlanChip();applyPlanGating();
-  showPage('pg-dash');dashInit();
-  if(!store.get('lc_tour'))setTimeout(tourOpen,900);
-}
-
-// ── DASHBOARD ──────────────────────────────────────────────────────────────
-let dashReady=false;
 function dashInit(){
-  if(dashReady)return;dashReady=true;
-  const PLATFORMS=['Angi','Thumbtack','Porch','Networx'];
-  const CHIPS=[
-    ['Wrong number','Wrong number: the contact number was invalid or belonged to someone else. '],
-    ['Disconnected','Phone was disconnected or out of service on every attempt. '],
-    ['Outside service area','Customer is outside our service area. '],
-    ['Duplicate lead','This is a duplicate lead. '],
-    ['Spam or fake','Lead appears to be spam or a fake inquiry. '],
-    ['Not a homeowner','Contact was a renter with no authority to hire. ']
-  ];
-  const POLICY={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
-  const SUPPORT_EMAIL={Angi:'leadcredits@angi.com',Thumbtack:'support@thumbtack.com',Porch:'prosupport@porch.com',Networx:'support@networx.com'};
-  const st={platform:'Angi',files:[],tags:new Set(),claim:'',amount:0,model:'gemini',disputeId:null};
+  \$('dashWsName').textContent = AUTH.ws || store.get('lc_workspace') || 'LeadClaw';
+  const plats = ['Angi','Thumbtack','Porch','Networx'];
+  let cur = 'Angi';
+  \$('platforms').innerHTML = plats.map(p=>`<button type="button" aria-checked="${p===cur}" onclick="setPlat('${p}',this)">${p}</button>`).join('');
+  window.setPlat = (p,b) => { cur=p; [...\$('platforms').children].forEach(x=>x.setAttribute('aria-checked',x===b)); };
 
-  // model selector
-  $('modelSel').addEventListener('click',e=>{
-    const opt=e.target.closest('[data-model]');if(!opt)return;
-    st.model=opt.dataset.model;$('modelSel').querySelectorAll('.model-opt').forEach(o=>o.classList.toggle('sel',o.dataset.model===st.model));
-  });
+  \$('notes').oninput = () => { $('go').disabled = !$('notes').value.trim(); };
 
-  // recovered counter
-  let total=parseFloat(store.get('lc_total'))||0;
-  function showTotal(from,to){const t0=performance.now(),d=600;(function f(t){const p=Math.min(1,(t-t0)/d);$('total').textContent=money(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0);}
-  showTotal(0,total);
-
-  // platforms
-  const pl=$('platforms');
-  PLATFORMS.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p;b.setAttribute('role','radio');b.setAttribute('aria-checked',p===st.platform);
-    b.onclick=()=>{st.platform=p;[...pl.children].forEach(x=>x.setAttribute('aria-checked',x===b));};pl.appendChild(b);});
-
-  // chips
-  CHIPS.forEach(([label,text])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=label;b.setAttribute('aria-pressed','false');
-    b.onclick=()=>{const n=$('notes');const on=!st.tags.has(label);
-      if(on){st.tags.add(label);n.value=(n.value&&!/\s$/.test(n.value)?n.value+' ':n.value)+text;}
-      else{st.tags.delete(label);n.value=n.value.replace(text,'');}
-      b.setAttribute('aria-pressed',on);n.focus();sync();};$('chips').appendChild(b);});
-
-  // files
-  const drop=$('drop'),fi=$('file');
-  if(drop){
-    drop.onclick=()=>fi.click();
-    drop.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fi.click();}};
-    ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over');}));
-    ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over');}));
-    drop.addEventListener('drop',e=>addFiles(e.dataTransfer.files));
-    fi.onchange=()=>{addFiles(fi.files);fi.value='';};
-  }
-  function addFiles(list){let bad=0;[...list].forEach(f=>{
-    if(!/\.(mp3|wav|pdf)$/i.test(f.name)){bad++;return;}
-    if(f.size>25*1024*1024){toast(f.name+' exceeds 25 MB.');return;}
-    if(!st.files.some(x=>x.name===f.name&&x.size===f.size))st.files.push(f);});
-    if(bad)toast('Only MP3, WAV and PDF files are accepted.');renderFiles();sync();}
-  function renderFiles(){const c=$('files');c.innerHTML='';
-    st.files.forEach((f,i)=>{const ext=f.name.split('.').pop().toLowerCase();
-      const d=document.createElement('div');d.className='file';
-      d.innerHTML=`<div class="ico ${ext==='pdf'?'pdf':''}">${ext.toUpperCase()}</div><div class="nm">${esc(f.name)}</div><div class="sz">${(f.size/1048576).toFixed(1)}MB</div><button aria-label="Remove">&times;</button>`;
-      d.querySelector('button').onclick=()=>{st.files.splice(i,1);renderFiles();sync();};c.appendChild(d);});}
-
-  function sync(){
-    const blocked=!isUnlimited()&&getTrialLeft()<=0;
-    $('go').disabled=blocked||!($('notes').value.trim()||$('transcript').value.trim()||st.files.length);
-  }
-  $('notes').addEventListener('input',sync);$('transcript').addEventListener('input',sync);
-
-  // ── RESULT PANEL ──────────────────────────────────────────────────────────
-  const R=$('result');
-  function empty(){R.innerHTML=`<div class="empty"><div class="ring"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><h3>Your claim appears here</h3><p>Fill in the form and run the check. Valid leads get a ready-to-send statement.</p></div>`;}
-  const STEPS=['Reading notes and files','Checking platform policy','Writing the dispute claim'];
-  function loading(){R.innerHTML=`<div class="steps">${STEPS.map(s=>`<div class="step"><i>&#10003;</i>${s.replace('platform',st.platform)}</div>`).join('')}</div><div class="sk" style="width:88%"></div><div class="sk" style="width:74%"></div><div class="sk" style="width:82%"></div><div class="sk" style="width:52%"></div><p style="margin-top:12px;color:var(--mu);font-size:13px">Up to 60 seconds while the AI warms up (Render free plan).</p>`;}
-  function tick(i){R.querySelectorAll('.step').forEach((s,j)=>{s.classList.toggle('done',j<i);s.classList.toggle('on',j===i);});}
-  function renderError(e){
-    const m=e&&e.name==='AbortError'?'Request timed out after 90 seconds.':String((e&&e.message)||e);
-    R.innerHTML=`<div class="verdict"><span class="badge no">AI unavailable</span></div>
-      <div class="why"><b>Nothing was generated.</b><br>${esc(m)}</div>
-      <p class="result-note">The server may be waking up. Wait a moment and try again.</p>
-      <div class="actions"><button class="action-btn" id="retry">Try again</button></div>`;
-    $('retry').onclick=()=>$('go').click();}
-
-  function getSteps(platform){
-    const s={
-      Angi:['Log in to your Angi Pro account at <b>pro.angi.com</b>.','Go to Leads, find the lead and click <b>Request Credit</b>.','Paste the formatted claim into the message box and submit.'],
-      Thumbtack:['Log in at <b>pro.thumbtack.com</b>.','Navigate to Leads, find the charge and click <b>Get a refund</b>.','Paste the formatted claim and submit the request.'],
-      Porch:['Log in to your <b>Porch Pro</b> dashboard.','Find the lead and click <b>Dispute Lead</b>.','Paste the formatted claim into the details field and submit.'],
-      Networx:['Log in to your <b>Networx</b> contractor account.','Go to My Leads, find the lead and click <b>Request Credit</b>.','Paste the formatted claim into the message and send.']
-    };
-    return (s[platform]||s.Angi).map(x=>`<li>${x}</li>`).join('');
-  }
-
-  function openGmailCompose(claim,platform,amount){
-    // For full Gmail API draft creation (Growth Pro):
-    // 1. User must have connected Gmail via OAuth (GMAIL_CLIENT_ID)
-    // 2. Exchange the OAuth code for an access token via /api/auth/save-gmail-token
-    // 3. Use the access token to POST to https://gmail.googleapis.com/gmail/v1/users/me/drafts
-    // The stub below opens Gmail in a new tab with the claim pre-filled using the compose URL.
-    // Replace with real Gmail API call once OAuth is wired.
-    const to=encodeURIComponent(SUPPORT_EMAIL[platform]||'');
-    const su=encodeURIComponent('Lead Credit Request — '+platform);
-    const body=encodeURIComponent(claim);
-    window.open(`https://mail.google.com/mail/?view=cm&to=${to}&su=${su}&body=${body}`,'_blank');
-    toast('Opening Gmail compose window...');
-  }
-
-  function render(r){
-    const ok=r.valid;
-    if(!ok){
-      R.innerHTML=`<div class="verdict"><span class="badge no">Not eligible for a credit</span><span class="conf">confidence ${Math.round((r.confidence||.8)*100)}%</span></div>
-        <div class="why"><b>${esc(POLICY[st.platform])}</b><br>${esc(r.reason||'This reason is not covered by the platform refund policy.')}</div>
-        <p class="result-note" style="margin:0 0 10px">Submitting an excluded claim can hurt your standing with ${st.platform}.</p>
-        <div class="actions"><button class="action-btn" id="again">Edit and re-check</button></div>`;
-      $('again').onclick=()=>{$('notes').focus();window.scrollTo({top:0,behavior:'smooth'});};return;}
-
-    st.claim=r.claim;st.amount=r.amount||0;st.disputeId=r.dispute_id||null;
-    const proUser=getPlanTier()>=2;
-    const gmailOn=store.get('lc_gmail')==='1';
-
-    R.innerHTML=`
-      <div class="verdict"><span class="badge ok">Eligible: policy match</span><span class="conf">confidence ${Math.round((r.confidence||.9)*100)}%</span></div>
-      <div class="facts">
-        <div class="fact"><small>Platform</small><b>${st.platform}</b></div>
-        <div class="fact"><small>Credit at stake</small><b class="g">${money(st.amount)}</b></div>
-        <div class="fact"><small>Policy</small><b style="font-size:11.5px;font-family:var(--sans)">${esc(POLICY[st.platform])}</b></div>
-      </div>
-      <div class="claim-box" id="claimBox">${esc(r.claim)}</div>
-      <div class="actions">
-        <button class="action-btn" id="copy">Copy claim</button>
-        <button class="action-btn" id="rec">Mark as recovered</button>
-      </div>
-      <div class="delivery-card" id="dc"></div>
-      <p class="result-note">Mark it recovered once the credit lands in your account.</p>`;
-
-    // delivery instructions
-    const dc=$('dc');
-    if(proUser&&gmailOn){
-      dc.innerHTML=`<h4>Send via Gmail</h4><p>Gmail is connected. Open a pre-filled draft addressed to ${st.platform} support.</p><button class="btn sm" id="openGm">Open in Gmail</button>`;
-      $('openGm').onclick=()=>openGmailCompose(r.claim,st.platform,st.amount);
-    } else if(proUser&&!gmailOn){
-      dc.innerHTML=`<h4>Connect Gmail for one-click sending</h4><p>Your plan supports Gmail integration. Connect to send disputes without leaving LeadClaw.</p><button class="btn sec sm" id="connGm">Connect Gmail</button>`;
-      $('connGm').onclick=()=>{store.set('lc_gmail','1');toast('Gmail connected. (Requires OAuth setup — see config comments.)');render(r);};
-    } else {
-      dc.innerHTML=`<h4>How to submit this claim manually</h4><p>Copy the claim above, then follow these steps on ${st.platform}:</p><ol class="submit-steps">${getSteps(st.platform)}</ol><p style="color:var(--mu);font-size:13px">Want one-click Gmail sending? <button class="link-btn" id="upGm">Upgrade to Growth Pro</button></p>`;
-      $('upGm').onclick=()=>{$('upgradeModal').hidden=false;$('upSelect').disabled=true;};
-    }
-    $('copy').onclick=doCopy;$('rec').onclick=doRecover;
-  }
-
-  async function doCopy(){const b=$('copy');
-    try{await navigator.clipboard.writeText(st.claim);}catch{const t=document.createElement('textarea');t.value=st.claim;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch{}t.remove();}
-    b.classList.add('copied');b.textContent='Copied';toast('Claim copied to clipboard.');
-    setTimeout(()=>{b.classList.remove('copied');b.textContent='Copy claim';},1900);}
-
-  async function doRecover(){const b=$('rec');if(b.disabled)return;
-    const from=total;total+=st.amount;store.set('lc_total',total);showTotal(from,total);
-    b.disabled=true;b.textContent='Added to total';
-    // persist recovery to backend
-    if(st.disputeId&&AUTH.email){
-      try{await fetch(API_BASE+'/api/dispute/recover',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({dispute_id:st.disputeId,email:AUTH.email})});}catch{}
-    }
-    toast(money(st.amount)+' added to recovered.');
-    setTimeout(()=>{R.classList.add('leaving');setTimeout(()=>{empty();st.claim='';st.amount=0;st.disputeId=null;R.classList.remove('leaving');},350);},1100);}
-
-  // ── AI COST ESTIMATE ──────────────────────────────────────────────────────
-  const SVC=[['roofing',/roof|shingle|gutter/i,90],['plumbing',/plumb|leak|drain|water heater|pipe/i,60],['electrical',/electric|wiring|panel|outlet/i,55],['HVAC',/hvac|furnace|\bac\b|air condition|heating/i,70],['landscaping',/lawn|landscap|tree|fence/i,40]];
-  const MULT={Angi:1.1,Thumbtack:.9,Porch:.85,Networx:1};
-  function guess(t){let s=SVC.find(x=>x[1].test(t));const base=s?s[2]:50;const a=Math.round(base*MULT[st.platform]);
-    return{amount:a,low:Math.round(a*.75),high:Math.round(a*1.25),basis:(s?s[0]:'general home services')+' on '+st.platform};}
-  $('est').onclick=async()=>{
-    const b=$('est'),txt=($('notes').value+' '+$('transcript').value).trim();
-    b.disabled=true;b.textContent='Estimating...';
-    let res;
-    try{const x=await fetch(API_BASE+'/api/dispute/estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:st.platform,text:txt})});if(!x.ok)throw 0;res=await x.json();if(typeof res.amount!=='number')throw 0;}
-    catch{await new Promise(r=>setTimeout(r,500));res=guess(txt);}
-    $('cost').value=res.amount.toFixed(2);
-    $('estNote').textContent='Est. '+money(res.amount)+(res.low?' (range '+money(res.low)+'-'+money(res.high)+')':'')+(res.basis?', '+res.basis:'')+'. Verify against your receipt.';
-    b.disabled=false;b.textContent='Estimate with AI';};
-
-  // ── MAIN ANALYSIS ─────────────────────────────────────────────────────────
-  $('go').onclick=async()=>{
-    if(!isUnlimited()&&getTrialLeft()<=0){$('upgradeModal').hidden=false;$('upSelect').disabled=true;return;}
-    const g=$('go');g.disabled=true;
-    $('goTxt').outerHTML='<span class="spin"></span><span id="goTxt">Analyzing...</span>';
-    loading();tick(0);let i=0;const iv=setInterval(()=>{i=Math.min(i+1,2);tick(i);},1300);
-    const cost=parseFloat($('cost').value.replace(/[^0-9.]/g,''))||0;
-    let res;
-    try{res=await callApi(cost);}catch(e){clearInterval(iv);renderError(e);g.querySelector('.spin')?.remove();$('goTxt').textContent='Check & build claim';sync();return;}
-    clearInterval(iv);tick(3);await new Promise(r=>setTimeout(r,300));render(res);
-    // update trial counter from server response
-    if(typeof res.trials_left==='number'){store.set('lc_trial_left',res.trials_left);updateTrialBadge();if(res.trials_left===0&&!isUnlimited())toast('Trial limit reached. Upgrade to keep filing.');}
-    g.querySelector('.spin')?.remove();$('goTxt').textContent='Check & build claim';sync();
-    if(innerWidth<=900)R.scrollIntoView({behavior:'smooth',block:'start'});};
-
-  async function callApi(cost){
-    const fd=new FormData();
-    fd.append('platform',st.platform);fd.append('notes',$('notes').value);
-    fd.append('transcript',$('transcript').value);fd.append('cost',cost);
-    fd.append('model',st.model);fd.append('email',AUTH.email);fd.append('device_token',deviceToken());
-    st.files.forEach(f=>fd.append('files',f));
-    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),90000);
-    const r=await fetch(API_BASE+'/api/dispute',{method:'POST',body:fd,signal:ctl.signal});
-    clearTimeout(to);
-    if(!r.ok){let d='';try{d=(await r.json()).detail||''}catch{}throw new Error('Server error '+r.status+(d?': '+d:''));}
-    const j=await r.json();if(typeof j.valid!=='boolean')throw new Error('Unexpected API response shape.');
-    j.amount=j.amount??cost;return j;}
-
-  empty();
+  \$('go').onclick = async () => {
+    const fd = new FormData();
+    fd.append('platform', cur); fd.append('notes', \$('notes').value);
+    fd.append('cost', \$('cost').value); fd.append('email', AUTH.email);
+    fd.append('device_token', deviceToken());
+    const r = await fetch(API_BASE+'/api/dispute',{method:'POST',body:fd});
+    const d = await r.json();
+    \$('trialCount').textContent = d.trials_left;
+    \$('result').innerHTML = `<div class="claim-box">${d.claim}</div><button class="action-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(d.claim)});toast('Copied!');">Copy claim</button>`;
+  };
 }
 
-// ── QUICK TOUR ──────────────────────────────────────────────────────────────
-const TOUR=[
-  ['Welcome to LeadClaw',()=>$('h'),'Lead platforms like Angi, Thumbtack, Porch and Networx charge you for every lead, even wrong numbers and fakes. LeadClaw checks each one against the platform\'s exact refund rules and writes the dispute claim so you don\'t have to.'],
-  ['Your plan',()=>$('planChip'),'Solo gives you a formatted claim to paste manually. Growth Pro adds audio evidence, Gmail one-click sending and AI model choice. Upgrade any time.'],
-  ['AI model (Pro)',()=>$('modelSection'),'On Growth Pro you can choose between Gemini 1.5 Flash and Qwen3 4B running on Groq. Switch models any time before running a check.'],
-  ['Choose the platform',()=>$('platforms').closest('.field'),'Pick where the lead came from. The refund rules are different for each platform and we apply the right ones automatically.'],
-  ['Describe what happened',()=>$('notes').closest('.field'),'Tap a reason chip to auto-fill your notes, then add detail. Paste a call transcript below if you have one.'],
-  ['Add evidence (Pro)',()=>$('fileSection'),'Growth Pro users can attach call recordings or PDFs. Evidence makes claims significantly harder to reject.'],
-  ['Run the check',()=>$('go'),'Press Check & Build Claim. The AI reads your notes, checks them against policy and writes the dispute statement.'],
-  ['Submit your claim',()=>$('result'),'Solo: copy the claim and follow the step-by-step guide. Growth Pro: click Open in Gmail to send directly. Mark as recovered once the credit lands.'],
-  ['Theme',()=>$('themeBtn'),'Switch between light and dark mode any time. LeadClaw remembers your choice.']
-];
-let ti=0,spot=null;
-function tourShow(){const t=TOUR[ti];
-  spot&&spot.classList.remove('spot');spot=t[1]();spot&&spot.classList.add('spot');
-  spot&&spot.scrollIntoView({behavior:'smooth',block:'center'});
-  $('tourCount').textContent='Step '+(ti+1)+' of '+TOUR.length;$('tourBar').style.width=((ti+1)/TOUR.length*100)+'%';
-  $('tourT').textContent=t[0];$('tourP').textContent=t[2];
-  $('tourBack').disabled=ti===0;$('tourNext').textContent=ti===TOUR.length-1?'Done':'Next';}
-function tourOpen(){ti=0;$('tour').hidden=false;$('tourBtn').setAttribute('aria-expanded','true');tourShow();}
-function tourClose(){$('tour').hidden=true;$('tourBtn').setAttribute('aria-expanded','false');spot&&spot.classList.remove('spot');spot=null;store.set('lc_tour','1');}
-$('tourBtn').onclick=()=>$('tour').hidden?tourOpen():tourClose();
-$('tourX').onclick=tourClose;
-$('tourBack').onclick=()=>{if(ti>0){ti--;tourShow();}};
-$('tourNext').onclick=()=>{if(ti<TOUR.length-1){ti++;tourShow();}else tourClose();};
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(!$('tour').hidden)tourClose();if(!$('upgradeModal').hidden)$('upgradeModal').hidden=true;if(!$('fbModal').hidden){$('fbModal').hidden=true;}}});
+$('fbOpen').onclick = () =>$('fbModal').hidden=false;
+$('fbClose').onclick = () =>$('fbModal').hidden=true;
+\$('fbSend').onclick = async () => {
+  await fetch(API_BASE+'/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:\$('fbMsg').value,email:AUTH.email,workspace:AUTH.ws})});
+  toast('Feedback sent!'); \$('fbModal').hidden=true;
+};
 
-// ── WORKSPACE SWITCHER ─────────────────────────────────────────────────────
-$('wsSw').onclick=()=>{const ws=prompt('Enter workspace name (blank to sign out):');if(ws===null)return;if(!ws){logout();return;}AUTH.ws=ws;store.set('lc_workspace',ws);$('dashWsName').textContent=ws;$('wsSwName').textContent=ws;toast('Switched to '+ws);};
-
-// ── FEEDBACK ────────────────────────────────────────────────────────────────
-let prevFocus;
-function openFb(){prevFocus=document.activeElement;$('fbFormWrap').hidden=false;$('fbOk').hidden=true;$('fbErr').textContent='';$('fbModal').hidden=false;if(AUTH.email&&!$('fbEmail').value)$('fbEmail').value=AUTH.email;$('fbMsg').focus();}
-function closeFb(){$('fbModal').hidden=true;prevFocus&&prevFocus.focus();}
-$('fbOpen').onclick=openFb;$('fbClose').onclick=closeFb;$('fbDone').onclick=closeFb;
-$('fbModal').addEventListener('mousedown',e=>{if(e.target===$('fbModal'))closeFb();});
-$('fbSend').onclick=async()=>{
-  const msg=$('fbMsg').value.trim(),em=$('fbEmail').value.trim();
-  if(msg.length<5){$('fbErr').textContent='Please write at least a short message.';return;}
-  if(em&&!validEmail(em)){$('fbErr').textContent='That reply-to email looks invalid.';return;}
-  const b=$('fbSend');b.disabled=true;b.textContent='Sending...';$('fbErr').textContent='';
-  try{const r=await fetch(API_BASE+'/api/feedback',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:$('fbType').value,message:msg,email:em,workspace:store.get('lc_workspace')||''})});
-    if(!r.ok)throw 0;$('fbMsg').value='';$('fbFormWrap').hidden=true;$('fbOk').hidden=false;}
-  catch{$('fbErr').textContent='Could not send right now. Please try again.';}
-  b.disabled=false;b.textContent='Send feedback';};
-
-// ── BOOT ───────────────────────────────────────────────────────────────────
-boot();
+if(store.get('lc_user')){
+  try{AUTH.email=JSON.parse(store.get('lc_user')).email;}catch{}
+  AUTH.ws=store.get('lc_workspace');
+  if(AUTH.ws) enterDashboard();
+}
 })();
 </script>
 </body>
