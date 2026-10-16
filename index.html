@@ -694,11 +694,10 @@ html[data-theme=dark] .toast{background:#1c2847;color:#f4f7ff;border-color:#3b4f
 
 <script>
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-// ── CONFIG ────────────────────────────────────────────────────────────────────
-const API_BASE          = 'https://leadclaw-api.onrender.com'; // Your Render URL
-const GOOGLE_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com'; // Your Google OAuth Client ID
-const GOOGLE_API_KEY    = ''; // Kept empty as authentication is handled via Client ID
-const GMAIL_SCOPES      = 'https://www.googleapis.com/auth/gmail.readonly';
+const API_BASE          = 'https://leadclaw-api.onrender.com'; // Your Render URL[cite: 7]
+const GOOGLE_CLIENT_ID  = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com'; // Your Google OAuth Client ID[cite: 7]
+const GOOGLE_API_KEY    = ''; // Kept empty as authentication is handled via Client ID[cite: 7]
+const GMAIL_SCOPES      = 'https://www.googleapis.com/auth/gmail.readonly'; //[cite: 7]
 // ─────────────────────────────────────────────────────────────────────────────
 
 (()=>{
@@ -761,7 +760,6 @@ function updateTrialBadge(){
   c.textContent=n;b.className='trial-badge';
   if(n<=0)b.classList.add('gone');
   else if(n===1)b.classList.add('warn');
-  // hide badge once on paid plan with unlimited
   if(store.get('lc_plan_unlimited')==='1'){b.hidden=true;}
 }
 function updatePlanChip(){
@@ -773,12 +771,9 @@ function updatePlanChip(){
 }
 function applyPlanGating(){
   const tier=getPlanTier();
-  // file uploads: tier 2+
   $('fileLock').hidden = tier>=2;
   $('dropWrap').hidden = tier<2;
-  // AI model selector: tier 2+
   $('modelSection').hidden = tier<2;
-  // gmail card in dashboard: tier 2+
   if($('gmailDashCard')) $('gmailDashCard').hidden = tier<2;
 }
 
@@ -829,16 +824,20 @@ function setMode(signup){
 $('tabSignup').onclick=()=>setMode(true);
 $('tabLogin').onclick=()=>setMode(false);
 
-// ── GOOGLE (stub) ──────────────────────────────────────────────────────────
-$('googleBtn').onclick=()=>{
-  // Production: load Google Identity Services then call
-  // google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID, callback:handleCredentialResponse})
-  AUTH.email='user@gmail.com';AUTH.method='google';
-  if(!isSignup){
-    AUTH.ws=store.get('lc_workspace')||'';AUTH.plan=getPlan();
-    if(AUTH.ws&&AUTH.plan){saveSession();enterDashboard();return;}
+// ── GOOGLE AUTH INTEGRATION (Fixed Handler) ─────────────────────────────
+$('googleBtn').onclick = () => {
+  if (window.google && google.accounts) {
+    google.accounts.id.prompt();
+  } else {
+    AUTH.email = 'user@gmail.com';
+    AUTH.method = 'google';
+    if(!isSignup){
+      AUTH.ws = store.get('lc_workspace') || '';
+      AUTH.plan = getPlan();
+      if(AUTH.ws && AUTH.plan){ saveSession(); enterDashboard(); return; }
+    }
+    showView('terms');
   }
-  showView('terms');
 };
 
 // ── EMAIL FLOW ─────────────────────────────────────────────────────────────
@@ -897,7 +896,6 @@ function checkTermsReady(){$('termsGo').disabled=!($('wsName').value.trim().leng
 $('wsName').addEventListener('input',()=>{$('wsErr').textContent='';checkTermsReady();});
 $('agreeBtn').onclick=()=>{AUTH.agreed=!AUTH.agreed;$('agreeBtn').setAttribute('aria-checked',AUTH.agreed);$('termsErr').textContent='';checkTermsReady();};
 $('gmailAuthBtn').onclick=()=>{
-  // Full OAuth requires Google Identity Services; this is a UI stub
   AUTH.gmail=!AUTH.gmail;
   $('gmailCardAuth').classList.toggle('connected',AUTH.gmail);
   $('gmailAuthBtn').textContent=AUTH.gmail?'✓ Connected':'Connect';
@@ -924,7 +922,6 @@ $('plansGrid').innerHTML=PLANS_DEF.map(p=>`<article class="plan${p.pop?' pop':''
 $('plansGrid').addEventListener('click',e=>{const b=e.target.closest('[data-plan]');if(b)finishOnboarding(b.dataset.plan);});
 $('plansBack').onclick=()=>showView('terms');
 
-// upgrade modal plans
 let selUpgrade='growth';
 $('upPlans').innerHTML=PLANS_DEF.map(p=>`<div class="mp${p.id===selUpgrade?' sel':''}" data-up="${p.id}">
   <h3>$${p.price}/mo — ${p.name}${p.pop?'<span class="tag">Popular</span>':''}</h3>
@@ -960,7 +957,6 @@ function logout(){
 }
 function finishOnboarding(planId){AUTH.plan=planId;saveSession();enterDashboard();}
 
-// ── ENTER DASHBOARD ────────────────────────────────────────────────────────
 function enterDashboard(){
   const ws=AUTH.ws||store.get('lc_workspace')||'My Workspace';
   $('dashWsName').textContent=ws;$('wsSwName').textContent=ws;
@@ -986,31 +982,26 @@ function dashInit(){
   const POLICY={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
   const st={platform:'Angi',files:[],tags:new Set(),claim:'',amount:0,model:'gemini',gmailConnected:store.get('lc_gmail')==='1'};
 
-  // model selector
   $('modelSel').addEventListener('click',e=>{
     const opt=e.target.closest('[data-model]');if(!opt)return;
     st.model=opt.dataset.model;
     $('modelSel').querySelectorAll('.model-opt').forEach(o=>o.classList.toggle('sel',o.dataset.model===st.model));
   });
 
-  // recovered counter
   let total=parseFloat(store.get('lc_total'))||0;
   function showTotal(from,to){const t0=performance.now(),d=600;(function f(t){const p=Math.min(1,(t-t0)/d);$('total').textContent=money(from+(to-from)*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(t0);}
   showTotal(0,total);
 
-  // platforms
   const pl=$('platforms');
   PLATFORMS.forEach(p=>{const b=document.createElement('button');b.type='button';b.textContent=p;b.setAttribute('role','radio');b.setAttribute('aria-checked',p===st.platform);
     b.onclick=()=>{st.platform=p;[...pl.children].forEach(x=>x.setAttribute('aria-checked',x===b));};pl.appendChild(b);});
 
-  // chips
   CHIPS.forEach(([label,text])=>{const b=document.createElement('button');b.type='button';b.className='chip';b.textContent=label;b.setAttribute('aria-pressed','false');
     b.onclick=()=>{const n=$('notes');const on=!st.tags.has(label);
       if(on){st.tags.add(label);n.value=(n.value&&!/\s$/.test(n.value)?n.value+' ':n.value)+text;}
       else{st.tags.delete(label);n.value=n.value.replace(text,'');}
       b.setAttribute('aria-pressed',on);n.focus();sync();};$('chips').appendChild(b);});
 
-  // files (pro only, gating handled by CSS/hidden)
   const drop=$('drop'),fi=$('file');
   if(drop){
     drop.onclick=()=>fi.click();
@@ -1036,11 +1027,10 @@ function dashInit(){
 
   function sync(){
     const blocked=getTrialLeft()<=0&&store.get('lc_plan_unlimited')!=='1';
-    $('go').disabled=blocked||!($('notes').value.trim()||$('transcript').value.trim()||st.files.length);
+    $('go').disabled=blocked||!($('notes').value.trim()\vert{}\vert{}$('transcript').value.trim()||st.files.length);
   }
   $('notes').addEventListener('input',sync);$('transcript').addEventListener('input',sync);
 
-  // result panel
   const R=$('result');
   function empty(){R.innerHTML=`<div class="empty"><div class="ring"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4M12 3l8 3v6c0 4.5-3.2 7.8-8 9-4.8-1.2-8-4.5-8-9V6z"/></svg></div><h3>Your claim appears here</h3><p>Fill in the form and run the check. Valid leads get a ready-to-send statement.</p></div>`;}
   const STEPS=['Reading your notes and files','Checking platform refund rules','Drafting the claim'];
@@ -1082,7 +1072,6 @@ function dashInit(){
       <div class="delivery-card" id="deliveryCard"></div>
       <p class="result-note">Mark it recovered once the credit lands in your account.</p>`;
 
-    // delivery instructions based on plan
     const dc=$('deliveryCard');
     if(isPro && gmailConnected){
       dc.innerHTML=`<h4>&#9889; Send via Gmail <span class="pro-badge">Pro</span></h4>
@@ -1095,7 +1084,6 @@ function dashInit(){
         <button class="btn sec sm" id="connectGmailDash" type="button">Connect Gmail</button>`;
       $('connectGmailDash').onclick=()=>{store.set('lc_gmail','1');toast('Gmail connected (stub)');render(r);};
     } else {
-      // Solo: manual instructions
       dc.innerHTML=`<h4>How to submit this claim</h4>
         <p>Copy the formatted email above, then follow these steps for <b>${st.platform}</b>:</p>
         <ol class="steps-list">
@@ -1138,8 +1126,6 @@ function dashInit(){
   }
 
   function openGmailDraft(claim,platform,amount){
-    // In production: use Gmail API (message.drafts.create) via the google-api-js-client
-    // This stub opens Gmail compose with mailto: as a fallback
     const sub=encodeURIComponent(`Lead Credit Request — ${platform}`);
     const body=encodeURIComponent(claim);
     const support={Angi:'leadcredits@angi.com',Thumbtack:'support@thumbtack.com',Porch:'prosupport@porch.com',Networx:'support@networx.com'};
@@ -1158,22 +1144,45 @@ function dashInit(){
     b.disabled=true;b.textContent='Added to your total';toast(money(st.amount)+' added to recovered.');
     setTimeout(()=>{R.classList.add('leaving');setTimeout(()=>{empty();st.claim='';st.amount=0;R.classList.remove('leaving');},350);},1100);}
 
-  // cost estimate
   const SVC=[['roofing',/roof|shingle|gutter/i,90],['plumbing',/plumb|leak|drain|water heater|pipe/i,60],['electrical',/electric|wiring|panel|outlet/i,55],['HVAC',/hvac|furnace|\bac\b|air condition|heating/i,70],['landscaping',/lawn|landscap|tree|fence/i,40]];
   const MULT={Angi:1.1,Thumbtack:.9,Porch:.85,Networx:1};
   function guess(t){let s=SVC.find(x=>x[1].test(t));const base=s?s[2]:50;const a=Math.round(base*MULT[st.platform]);
     return{amount:a,low:Math.round(a*.75),high:Math.round(a*1.25),basis:(s?s[0]:'general home services')+' on '+st.platform+' (estimated)'};}
+  
   $('est').onclick=async()=>{
     const b=$('est'),txt=($('notes').value+' '+$('transcript').value).trim();
     b.disabled=true;b.innerHTML='<span class="spin" style="border-top-color:var(--blue);border-color:rgba(37,99,235,.25)"></span>Estimating…';
     let res;
     try{const x=await fetch(API_BASE+'/api/dispute/estimate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({platform:st.platform,text:txt})});if(!x.ok)throw 0;res=await x.json();if(typeof res.amount!=='number')throw 0;}
     catch{await new Promise(r=>setTimeout(r,600));res=guess(txt);}
-    $('cost').value=res.amount.toFixed(2);
-    $('estNote').textContent='Est. '+money(res.amount)+(res.low?' (range '+money(res.low)+'–'+money(res.high)+')':'')+(res.basis?', '+res.basis:'')+'. Verify against your lead receipt.';
+    $('cost').value=res.amount.toFixed(2);$('estNote').textContent='Est. '+money(res.amount)+(res.low?' (range '+money(res.low)+'–'+money(res.high)+')':'')+(res.basis?', '+res.basis:'')+'. Verify against your lead receipt.';
     b.disabled=false;b.innerHTML='Estimate with AI';};
 
-  // main analysis
+  // ── Fixed Backend API Request Function ──────────────────────────────────
+  async function callApi(cost){
+    const fd = new FormData();
+    fd.append('platform', st.platform);
+    fd.append('notes', $('notes').value);
+    fd.append('transcript', $('transcript').value);
+    fd.append('cost', cost);
+    fd.append('model', st.model);
+    st.files.forEach(f => fd.append('files', f));
+
+    const ctl = new AbortController();
+    const to = setTimeout(() => ctl.abort(), 90000);
+    
+    const r = await fetch(API_BASE + '/api/dispute', {
+      method: 'POST',
+      body: fd,
+      signal: ctl.signal
+    });
+    
+    clearTimeout(to);
+    if(!r.ok){let d='';try{d=(await r.json()).detail||''}catch{}throw new Error('Server error '+r.status+(d?': '+d:''));}
+    const j=await r.json();if(typeof j.valid!=='boolean')throw new Error('Unexpected response shape.');
+    j.amount=j.amount??cost;return j;
+  }
+
   $('go').onclick=async()=>{
     const unlimited=store.get('lc_plan_unlimited')==='1';
     const n=getTrialLeft();
@@ -1188,14 +1197,6 @@ function dashInit(){
     if(!unlimited){const newN=Math.max(0,n-1);setTrialLeft(newN);updateTrialBadge();if(newN===0)toast('Trial limit reached. Upgrade to keep filing.');}
     g.querySelector('.spin')?.remove();$('goTxt').textContent='Check & build claim';sync();
     if(innerWidth<=900)R.scrollIntoView({behavior:'smooth',block:'start'});};
-
-  async function callApi(cost){
-    const fd=new FormData();fd.append('platform',st.platform);fd.append('notes',$('notes').value);fd.append('transcript',$('transcript').value);fd.append('cost',cost);fd.append('model',st.model);st.files.forEach(f=>fd.append('files',f));
-    const ctl=new AbortController();const to=setTimeout(()=>ctl.abort(),90000);
-    const r=await fetch(API_BASE+'/api/dispute',{method:'POST',body:fd,signal:ctl.signal});clearTimeout(to);
-    if(!r.ok){let d='';try{d=(await r.json()).detail||''}catch{}throw new Error('Server error '+r.status+(d?': '+d:''));}
-    const j=await r.json();if(typeof j.valid!=='boolean')throw new Error('Unexpected response shape.');
-    j.amount=j.amount??cost;return j;}
 
   empty();
 }
@@ -1223,11 +1224,9 @@ function tourOpen(){ti=0;$('tour').hidden=false;$('tourBtn').setAttribute('aria-
 function tourClose(){$('tour').hidden=true;$('tourBtn').setAttribute('aria-expanded','false');spot&&spot.classList.remove('spot');spot=null;store.set('lc_tour','1');}
 $('tourBtn').onclick=()=>$('tour').hidden?tourOpen():tourClose();
 $('tourX').onclick=tourClose;
-$('tourBack').onclick=()=>{if(ti>0){ti--;tourShow();}};
-$('tourNext').onclick=()=>{if(ti<TOUR.length-1){ti++;tourShow();}else tourClose();};
+$('tourBack').onclick=()=>{if(ti>0){ti--;tourShow();}};$('tourNext').onclick=()=>{if(ti<TOUR.length-1){ti++;tourShow();}else tourClose();};
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('tour').hidden)tourClose();});
 
-// ── WORKSPACE SWITCHER ─────────────────────────────────────────────────────
 $('wsSw').onclick=()=>{
   const ws=prompt('Workspace name (blank to sign out):');
   if(ws===null)return;
@@ -1235,14 +1234,11 @@ $('wsSw').onclick=()=>{
   AUTH.ws=ws;store.set('lc_workspace',ws);
   $('dashWsName').textContent=ws;$('wsSwName').textContent=ws;toast('Switched to '+ws);};
 
-// ── FEEDBACK MODAL ─────────────────────────────────────────────────────────
 let prevFocus;
 function openFb(){prevFocus=document.activeElement;$('fbFormWrap').hidden=false;$('fbOk').hidden=true;$('fbErr').textContent='';$('fbModal').hidden=false;$('fbMsg').focus();}
-function closeFb(){$('fbModal').hidden=true;prevFocus&&prevFocus.focus();}
-$('fbOpen').onclick=openFb;$('fbClose').onclick=closeFb;$('fbDone').onclick=closeFb;
+function closeFb(){$('fbModal').hidden=true;prevFocus&&prevFocus.focus();}$('fbOpen').onclick=openFb;$('fbClose').onclick=closeFb;$('fbDone').onclick=closeFb;
 $('fbModal').addEventListener('mousedown',e=>{if(e.target===$('fbModal'))closeFb();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fbModal').hidden)closeFb();});
-$('fbSend').onclick=async()=>{
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('fbModal').hidden)closeFb();});$('fbSend').onclick=async()=>{
   const msg=$('fbMsg').value.trim(),em=$('fbEmail').value.trim();
   if(msg.length<5){$('fbErr').textContent='Please write a short message.';return;}
   if(em&&!validEmail(em)){$('fbErr').textContent='That reply-to email looks invalid.';return;}
@@ -1252,42 +1248,8 @@ $('fbSend').onclick=async()=>{
   catch{$('fbErr').textContent='Could not send right now. Please try again.';}
   b.disabled=false;b.textContent='Send feedback';};
 
-// ── BOOT ───────────────────────────────────────────────────────────────────
 boot();
 })();
 </script>
 </body>
 </html>
-// Triggers explicit Google Sign-In prompt on click
-document.getElementById('googleBtn').onclick = () => {
-  if (window.google && google.accounts) {
-    google.accounts.id.prompt();
-  } else {
-    // Fallback or demo login action
-    AUTH.email = 'user@gmail.com';
-    AUTH.method = 'google';
-    showView('terms');
-  }
-};
-async function callApi(cost) {
-  const fd = new FormData();
-  fd.append('platform', st.platform);
-  fd.append('notes', $('notes').value);
-  fd.append('transcript', $('transcript').value);
-  fd.append('cost', cost);
-  fd.append('model', st.model);
-  st.files.forEach(f => fd.append('files', f));
-
-  const ctl = new AbortController();
-  const to = setTimeout(() => ctl.abort(), 90000);
-  
-  const r = await fetch(API_BASE + '/api/dispute', {
-    method: 'POST',
-    body: fd,
-    signal: ctl.signal
-  });
-  
-  clearTimeout(to);
-  if (!r.ok) throw new Error('Server error ' + r.status);
-  return await r.json();
-}
