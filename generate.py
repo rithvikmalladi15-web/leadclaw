@@ -175,6 +175,14 @@ If valid is false: "reason" is one or two plain sentences and "claim" is an empt
 Respond ONLY with JSON: {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
 
 
+def valid_account(v: str) -> bool:
+    v = (v or "").strip()
+    if re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]{2,}", v):
+        return True
+    digits = re.sub(r"\D", "", v)
+    return bool(re.fullmatch(r"[\d\s().+-]+", v)) and 10 <= len(digits) <= 15
+
+
 def extract_json(text: str) -> dict:
     text = re.sub(r"<think>.*?</think>", "", text or "", flags=re.S).strip()
     s, e = text.find("{"), text.rfind("}")
@@ -380,7 +388,7 @@ async def webhook(request: Request, stripe_signature: str = Header("")):
 # ---------- disputes ----------
 @app.post("/api/dispute")
 async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_email: str = Form(""),
-                  notes: str = Form(""), transcript: str = Form(""), cost: float = Form(45.0), lead_id: str = Form(""), received: str = Form(""),
+                  notes: str = Form(""), transcript: str = Form(""), cost: float = Form(45.0), lead_id: str = Form(""), received: str = Form(""), account: str = Form(""),
                   model: str = Form("gemini"), authorization: str = Header(""),
                   files: List[UploadFile] = File(default=[])):
     u = current_user(authorization)
@@ -394,8 +402,10 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
     files = [f for f in files if f and f.filename]
     if plan == "free" and u["trials_left"] <= 0:
         raise HTTPException(402, "Free trial used up. Upgrade to keep filing disputes.")
-    if plan == "solo":
-        raise HTTPException(403, "Custom AI claims are a Growth Pro feature. Use the instant template.")
+    if plan != "growth":
+        raise HTTPException(403, "AI-assisted claims are a Growth Pro feature. Use the standard template.")
+    if not valid_account(account):
+        raise HTTPException(400, f"Enter the email or phone number of your {platform} account.")
     if files and plan != "growth":
         raise HTTPException(403, "Audio/PDF evidence is a Growth Pro feature.")
     parts = []
@@ -406,7 +416,7 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
         n = f.filename.lower()
         if raw:
             parts.append({"mime_type": "audio/mpeg" if n.endswith(".mp3") else "audio/wav" if n.endswith(".wav") else "application/pdf", "data": raw})
-    handle = u.get("acc_" + platform.lower(), "")
+    handle = account.strip()
     policy = PLATFORM_POLICY[platform]
     prompt = (f"Marketplace Platform: {platform}\nContractor Account ID: {handle or 'Default Workspace'}\nPolicy: {policy}\n"
               f"Lead Cost: ${cost:.2f}\nLead ID: {lead_id or 'Not provided'}\nDate/Time Received: {received or 'Not provided'}\nBusiness Name: {u['workspace']}\nContractor Name: {u['full_name'] or 'Not provided'}\nContractor Phone: {u['phone'] or 'Not provided'}\nContractor Email: {u['email']}\nLead Phone: {lead_phone}\nLead Email: {lead_email}\n\n"
