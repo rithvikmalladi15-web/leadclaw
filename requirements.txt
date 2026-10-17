@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 gunicorn
 google-generativeai
+groq
 httpx
 pydantic
 python-multipart
