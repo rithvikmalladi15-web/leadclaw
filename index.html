@@ -142,6 +142,20 @@ html[data-theme=dark]{--yl:rgba(250,204,21,.12);--ylb:#a16207;--ylt:#fcd34d}
 .inp.invalid{border-color:var(--err);animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .top{grid-template-columns:repeat(3,1fr)}
 @media(max-width:560px){.top{grid-template-columns:1fr}}
+.step{display:flex;align-items:center;gap:10px;font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:24px 0 14px;padding-top:20px;border-top:1px solid var(--bdr)}
+.step.first{margin-top:8px;padding-top:0;border:0}
+.step span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--tint);color:var(--acc);font-size:12px;letter-spacing:0}
+.prolock{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;padding:13px 15px;margin:0 0 10px;background:var(--yl);border:1.5px solid var(--ylb);border-radius:10px;color:var(--ylt);cursor:pointer;transition:transform .15s,filter .15s}
+.prolock:hover{transform:translateY(-1px);filter:brightness(.97)}
+.prolock b{display:block;font-size:14px}.prolock small{display:block;font-size:12.5px;opacity:.85;margin-top:1px}
+.prolock em{font-style:normal;font:700 11.5px var(--sans);padding:4px 10px;border-radius:999px;background:var(--ylb);color:#fff;white-space:nowrap}
+footer{background:var(--bg2);text-align:left;padding:48px 0 26px}
+.fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:30px}
+.fgrid h4{margin:0 0 12px;font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--tx)}
+.fgrid a,.fgrid span{display:block;margin-bottom:8px;color:var(--mu);font-size:14px;cursor:pointer}.fgrid a:hover{color:var(--acc)}
+.fgrid p{color:var(--mu);font-size:14px;margin:12px 0 0;max-width:260px}
+.fine{margin-top:30px;padding-top:20px;border-top:1px solid var(--bdr);color:var(--mu);font-size:12.5px;line-height:1.6}
+@media(max-width:700px){.fgrid{grid-template-columns:1fr 1fr}}
 </style>
 <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('lc_theme')||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}</script>
 </head>
@@ -189,10 +203,18 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
   </div>
 </div></section>
 <section class="s" id="pricing"><div class="wrap">
-  <h2 class="h2 rv">Pays for itself with one credit</h2><p class="lead rv">Start with a free trial of 3 AI disputes. No credit card required.</p>
+  <h2 class="h2 rv">Pays for itself with one credit</h2><p class="lead rv">Start with a free trial of 3 disputes. No credit card required.</p>
   <div class="plans" id="plans"></div>
 </div></section>
-<footer>© <span id="yr"></span> LeadClaw · Not affiliated with Angi, Thumbtack, Porch or Networx. Credits are subject to each platform's policy.</footer>
+<footer>
+  <div class="wrap fgrid">
+    <div><div class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div><p>Lead refund disputes for home-service contractors.</p></div>
+    <div><h4>Product</h4><a href="#how" onclick="scrollToId('how');return false">How it works</a><a href="#features" onclick="scrollToId('features');return false">Features</a><a href="#pricing" onclick="scrollToId('pricing');return false">Pricing</a></div>
+    <div><h4>Marketplaces</h4><span>Angi</span><span>Thumbtack</span><span>Porch</span><span>Networx</span></div>
+    <div><h4>Support</h4><a id="fSup" hidden>Contact support</a><span id="fNoSup">Available to subscribers</span></div>
+  </div>
+  <div class="wrap fine">© <span id="yr"></span> LeadClaw. All rights reserved. LeadClaw is an independent service and is not affiliated with Angi, Thumbtack, Porch or Networx. Credits are subject to each marketplace's policy.</div>
+</footer>
 </div>
 
 <main id="app" class="app" hidden>
@@ -210,22 +232,30 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
   <div class="tabs"><button class="tab on" data-t="new">New claim</button><button class="tab" data-t="hist">History</button></div>
   <div class="cols" id="tNew">
     <section class="panel">
-      <h2>Lead credit request</h2><p class="sub">Fill in the lead, or tap a quick reason.</p>
+      <h2>Lead credit request</h2><p class="sub">Complete the details below. Required fields are marked with *.</p>
+      <div class="step first"><span>1</span>Marketplace account</div>
       <div class="f"><span class="lbl">Platform</span><div class="seg" id="plat"></div></div>
+      <div class="f"><label for="acct" id="acctL">Your Angi account (email or phone) *</label><input class="inp" id="acct" placeholder="pro@gmail.com or (555) 123-4567" autocomplete="off"><p class="hint" style="margin:6px 0 0">The email or phone number you sign in with. It is included in the dispute so support can locate your account.</p></div>
+      <div class="step"><span>2</span>Lead details</div>
       <div class="two f"><div><label for="lp">Lead phone *</label><input class="inp" id="lp" placeholder="(555) 019-2834"></div><div><label for="le">Lead email *</label><input class="inp" id="le" type="email" placeholder="client@gmail.com"></div></div>
       <div class="two f"><div><label for="lid">Lead ID / reference # *</label><input class="inp" id="lid" placeholder="e.g. 4821937"></div><div><label for="lrecv">Date &amp; time received</label><input class="inp" id="lrecv" type="datetime-local"></div></div>
+      <div class="f" style="max-width:50%"><label for="cost">Lead cost ($) *</label><input class="inp" id="cost" type="number" min="1" step="0.01" value="75"></div>
       <div class="f"><label for="notes">Call notes &amp; issue</label>
-        <div class="chips" id="chips"></div><textarea id="notes" placeholder="Tap a chip or describe what went wrong…"></textarea></div>
+        <div class="chips" id="chips"></div><textarea id="notes" placeholder="Select a quick reason or describe what went wrong…"></textarea></div>
+      <div class="step"><span>3</span>Claim options</div>
       <div class="f"><span class="lbl">Claim type</span>
-        <div class="seg" id="ctype" style="grid-template-columns:1fr 1fr"><button type="button" class="on" data-m="template">Instant template</button><button type="button" data-m="ai">Custom AI claim</button></div>
-        <p class="note" id="aWarn" hidden>Custom AI claims can take up to 30 seconds while the AI server wakes up. Choose the instant template if you're in a hurry.</p></div>
-      <div class="f"><label for="cost">Lead cost ($)</label><input class="inp" id="cost" type="number" min="1" step="0.01" value="75"></div>
+        <div class="seg" id="ctype" style="grid-template-columns:1fr 1fr"><button type="button" class="on" data-m="template">Standard template</button><button type="button" data-m="ai">AI-assisted claim</button></div>
+        <p class="note" id="aWarn" hidden>AI-assisted claims can take up to 30 seconds while the AI server starts. Use the standard template for an instant result.</p></div>
+      <div id="proCards">
+        <button type="button" class="prolock" data-up><span><b>AI model selection</b><small>Choose between Gemini 3.5 Flash and Groq Qwen3 4B</small></span><em>Growth Pro</em></button>
+        <button type="button" class="prolock" data-up><span><b>Audio &amp; PDF evidence</b><small>Attach call recordings and documents for the AI to cite</small></span><em>Growth Pro</em></button>
+      </div>
       <div class="f" id="aiOpts" hidden><div id="modelBox"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div></div>
-      <div class="f" id="fileBox"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>
+      <div class="f" id="fileBox" hidden><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>
       <button class="btn full" id="go">Check &amp; build claim</button>
       <div class="prog" id="prog"><div class="t"><span id="pStat"></span><span id="pPct">0%</span></div><div class="bar"><i id="pBar"></i></div></div>
     </section>
-    <section class="panel"><h2>AI claim result</h2>
+    <section class="panel"><h2>Claim result</h2>
       <div id="out" class="empty">Your eligibility verdict and dispute letter will appear here.</div></section>
   </div>
   <section class="panel" id="tHist" hidden>
@@ -300,11 +330,11 @@ if(!token)me=null;
 const saveMe=()=>ls('lc_me',JSON.stringify(me));
 fetch(API+'/').catch(()=>{}); // wake the server in the background
 const PLANS=[
- {id:'free',name:'Free Trial',price:0,f:['3 disputes, one time','Instant claim templates','Custom AI claim (try it)','Gmail one-click send'],x:['Audio & PDF evidence']},
- {id:'solo',name:'Solo Contractor',price:29,f:['25 disputes / month','Instant claim templates','Gmail one-click send','Claim tracker','Email support'],x:['Custom AI claims','Audio & PDF evidence']},
- {id:'growth',name:'Growth Pro',price:59,pop:1,f:['Unlimited disputes','Custom AI generated claims','Audio & PDF evidence upload','Gemini 3.5 Flash & Groq Qwen3 4B','Gmail one-click send','Priority support']}];
+ {id:'free',name:'Free Trial',price:0,f:['3 disputes, one time','Standard claim templates','Gmail one-click send','Dispute history'],x:['AI-assisted claims','Audio & PDF evidence']},
+ {id:'solo',name:'Solo Contractor',price:29,f:['25 disputes / month','Standard claim templates','Gmail one-click send','Claim tracker & CSV export','Email support'],x:['AI-assisted claims','Audio & PDF evidence']},
+ {id:'growth',name:'Growth Pro',price:59,pop:1,f:['Unlimited disputes','AI-assisted claims','Audio & PDF evidence upload','Gemini 3.5 Flash or Groq Qwen3 4B','Gmail one-click send','Claim tracker & CSV export','Priority support']}];
 if(!SUPPORT_EMAIL)PLANS.forEach(p=>p.f=p.f.filter(x=>!/support/i.test(x)));
-const FEAT={free:['Instant templates','Custom AI claims','Gmail send'],solo:['Instant templates','Gmail send','Claim tracker'],growth:['Custom AI claims','Audio & PDF evidence','Gemini & Groq models']};
+const FEAT={free:['Standard templates','Gmail send'],solo:['Standard templates','Gmail send','Claim tracker'],growth:['AI-assisted claims','Audio & PDF evidence','Gemini & Groq models']};
 const CHIPS={'Disconnected Phone':'Permanently disconnected phone number. Called twice with no answer.','Out of Service Area':'Customer is strictly outside our service area/zip code.','Duplicate Lead':'Duplicate lead submission received within the same billing window.','Spam / Bot':'Spam / bot submission with fake contact information.','Wrong Trade':'Wrong trade category submitted by customer (services do not match our trade).','Unresponsive':'Homeowner completely unresponsive after multiple contact attempts.'};
 const PL={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
 const NOT='Pricing objections, competitor hiring, project postponements and other customer choices are not refundable under marketplace policy.';
@@ -323,9 +353,9 @@ function analyze(n){
   if(BAD.test(n))return{valid:false,reason:NOT};
   for(const k in RULES)if(RULES[k].re.test(n))return{valid:true,rule:k,reason:'Qualifies as a defective lead: '+RULES[k].title.toLowerCase()+'.'};
   if(/unresponsive|no response|did ?n.?t answer|did not answer/i.test(n))return{valid:false,reason:'Unresponsive homeowners after real contact attempts are generally not refundable. If the phone number itself was dead or fake, say so in the notes.'};
-  return{valid:false,reason:"We couldn't match a qualifying lead defect (invalid phone, outside service area, duplicate, spam/bot or wrong trade). Tap a quick reason, add more detail, or try a Custom AI claim."}}
-function letter(rule,p,phone,email,cost,notes,lid,recv){
-  const R=RULES[rule],acct=me['acc_'+p.toLowerCase()]||'',amt='$'+cost.toFixed(2);
+  return{valid:false,reason:"We couldn't match a qualifying lead defect (invalid phone, outside service area, duplicate, spam/bot or wrong trade). Tap a quick reason, add more detail, or upgrade to Growth Pro for AI-assisted claims."}}
+function letter(rule,p,phone,email,cost,notes,lid,recv,acct){
+  const R=RULES[rule],amt='$'+cost.toFixed(2);
   const when=recv?new Date(recv).toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'}):'Not provided';
   return `Subject: Urgent: Lead Credit Request - Account # ${acct||'[Your Pro ID]'} - Lead ID ${lid}
 
@@ -436,19 +466,19 @@ function render(){
   const g0=me.plan==='growth',l0=me.plan==='free'?me.trials_left:Math.max(0,me.solo_limit-me.month_used);
   $('planPill').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]+(g0?'':' · '+l0+' left');
   const g=me.plan==='growth';
-  $('fileBox').classList.toggle('lock',!g);$('modelBox').classList.toggle('lock',!g);
-  [$('fileBox'),$('modelBox')].forEach(b=>b.onclick=()=>{if(!g){toast('Upgrade to Growth Pro to unlock this.');openUpgrade()}});
+  $('proCards').hidden=g;$('fileBox').hidden=!g;
   const lim=me.plan==='solo'?me.solo_limit:3,left=g?0:Math.max(0,me.plan==='free'?me.trials_left:me.solo_limit-me.month_used);
   $('pcName').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]||me.plan;
   $('pcLeft').textContent=g?'Unlimited':left;$('pcUnit').textContent=g?'disputes':me.plan==='free'?'trial disputes left':'disputes left this month';
   $('kBar').style.width=(g?100:left/lim*100)+'%';
   $('pcUp').hidden=g;$('pcUp').textContent=me.plan==='free'?'Choose a plan':'Upgrade to Growth Pro';
   $('welcome').textContent='Welcome back, '+me.workspace;
-  document.querySelector('#ctype [data-m=ai]').classList.toggle('locked',me.plan==='solo');
-  document.querySelector('#ctype [data-m=ai]').textContent=me.plan==='solo'?'Custom AI · Growth Pro':'Custom AI claim';
+  document.querySelector('#ctype [data-m=ai]').classList.toggle('locked',!g);
+  document.querySelector('#ctype [data-m=ai]').textContent=g?'AI-assisted claim':'AI-assisted claim · Pro';
   $('pcFeat').textContent=FEAT[me.plan].concat(SUPPORT_EMAIL?[me.plan==='growth'?'Priority support':me.plan==='solo'?'Email support':'']:[]).filter(Boolean).join(' · ');
   $('pcSup').hidden=!SUPPORT_EMAIL;if(SUPPORT_EMAIL)$('pcSup').href='mailto:'+SUPPORT_EMAIL+'?subject='+encodeURIComponent((me.plan==='growth'?'[Priority] ':'')+'LeadClaw support ('+me.plan+') - '+me.email);
-  if(me.plan==='solo'&&ctype==='ai')document.querySelector('#ctype [data-m=template]').click();
+  if(!g&&ctype==='ai')document.querySelector('#ctype [data-m=template]').click();
+  if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
   $('kCount').textContent=me.disputes.length;$('kElig').textContent='$'+me.eligible_total.toFixed(0);$('kRec').textContent='$'+me.recovered_total.toFixed(0);
   renderHist();renderPlans()}
 async function refreshMe(){try{me=await api('/api/me');saveMe();render()}catch(e){}}
@@ -468,13 +498,16 @@ async function rec(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'
 function showClaim(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},false,d.platform,id);document.querySelector('[data-t=new]').click()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));$('tNew').hidden=b.dataset.t!=='new';$('tHist').hidden=b.dataset.t!=='hist'});
 // ---- form
+function syncAcct(){$('acctL').textContent=`Your ${plat} account (email or phone) *`;$('acct').value=(me&&me['acc_'+plat.toLowerCase()])||''}
+const isEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),isPhone=v=>/^[\d\s().+-]+$/.test(v)&&v.replace(/\D/g,'').length>=10&&v.replace(/\D/g,'').length<=15;
+function saveAcct(a){const k='acc_'+plat.toLowerCase();if(me[k]===a)return;me[k]=a;saveMe();api('/api/user/profile',{method:'POST',json:{password:'',full_name:me.full_name||'',phone:me.phone||'',acc_angi:me.acc_angi||'',acc_thumbtack:me.acc_thumbtack||'',acc_porch:me.acc_porch||'',acc_networx:me.acc_networx||''}}).catch(()=>{})}
 function renderPlat(){$('plat').innerHTML=['Angi','Thumbtack','Porch','Networx'].map(p=>`<button type="button" class="${p===plat?'on':''}">${p}</button>`).join('');
-  [...$('plat').children].forEach(b=>b.onclick=()=>{plat=b.textContent;renderPlat()})}
+  [...$('plat').children].forEach(b=>b.onclick=()=>{plat=b.textContent;renderPlat()});syncAcct()}
 renderPlat();
 $('chips').innerHTML=Object.keys(CHIPS).map(k=>`<button type="button" class="chip">${k}</button>`).join('');
 [...$('chips').children].forEach((c,i)=>c.onclick=()=>{$('notes').value=Object.values(CHIPS)[i]});
 document.querySelectorAll('#ctype button').forEach(b=>b.onclick=()=>{
-  if(b.dataset.m==='ai'&&me&&me.plan==='solo'){toast('Custom AI claims are a Growth Pro feature. Use the instant template.');return openUpgrade()}
+  if(b.dataset.m==='ai'&&me&&me.plan!=='growth'){toast('AI-assisted claims are a Growth Pro feature.');return openUpgrade()}
   ctype=b.dataset.m;document.querySelectorAll('#ctype button').forEach(x=>x.classList.toggle('on',x===b));
   $('aWarn').hidden=ctype!=='ai';$('aiOpts').hidden=ctype!=='ai';if(ctype==='ai')fetch(API+'/').catch(()=>{})});
 let curId=0,recP=null;
@@ -503,10 +536,13 @@ function need(ids){let bad=null;for(const id of ids){const el=$(id),v=el.value.t
 function limitHit(){return(me.plan==='free'&&me.trials_left<=0)||(me.plan==='solo'&&me.month_used>=me.solo_limit)}
 $('go').onclick=async()=>{
   const lp=$('lp').value.trim(),le=$('le').value.trim(),cost=parseFloat($('cost').value),notes=$('notes').value,lid=$('lid').value.trim(),recv=$('lrecv').value;
-  if(!need(['lp','le','lid','cost']))return;
+  if(!need(['acct','lp','le','lid','cost']))return;
+  const acct=$('acct').value.trim();
+  if(!(isEmail(acct)||isPhone(acct))){$('acct').classList.add('invalid');$('acct').focus();return toast('Enter the email or phone number of your '+plat+' account.')}
   if(limitHit()){toast(me.plan==='free'?'Your free trial is used up. Pick a plan to continue.':'Monthly limit reached. Upgrade for unlimited disputes.');return openUpgrade()}
+  saveAcct(acct);
   if(ctype==='template'){ // instant, no server wait
-    const r=analyze(notes),d={valid:r.valid,reason:r.reason,claim:r.valid?letter(r.rule,plat,lp,le,cost,notes,lid,recv):''};
+    const r=analyze(notes),d={valid:r.valid,reason:r.reason,claim:r.valid?letter(r.rule,plat,lp,le,cost,notes,lid,recv,acct):''};
     showResult(d,false,plat);
     me.disputes.unshift({id:0,platform:plat,lead_phone:lp,lead_email:le,amount:cost,valid:d.valid?1:0,recovered:0,claim:d.claim,reason:d.reason,created_at:new Date().toISOString()});
     if(me.plan==='free')me.trials_left--;else me.month_used++;
@@ -514,7 +550,7 @@ $('go').onclick=async()=>{
     recP=api('/api/dispute/record',{method:'POST',json:{platform:plat,lead_phone:lp,lead_email:le,cost,valid:d.valid,reason:d.reason,claim:d.claim}}).then(r=>{curId=r.dispute_id;refreshMe();return r});
     recP.catch(e=>{toast(e.message);if(e.status===402)openUpgrade()});
     return}
-  const fd=new FormData();fd.append('platform',plat);fd.append('notes',notes);fd.append('cost',cost);fd.append('lead_phone',lp);fd.append('lead_email',le);fd.append('lead_id',lid);fd.append('received',recv);
+  const fd=new FormData();fd.append('platform',plat);fd.append('notes',notes);fd.append('cost',cost);fd.append('lead_phone',lp);fd.append('lead_email',le);fd.append('lead_id',lid);fd.append('account',acct);fd.append('received',recv);
   if(me.plan==='growth'){fd.append('model',$('model').value);[...$('files').files].forEach(f=>fd.append('files',f))}
   const btn=$('go'),pw=$('prog'),bar=$('pBar');btn.disabled=true;btn.classList.add('busy');pw.style.display='block';$('out').className='empty';$('out').textContent='Analyzing with AI. This can take up to 30 seconds…';
   const msgs=['Auditing marketplace refund policy…','Evaluating your call notes…','Writing your custom claim…'];let p=0,secs=0;
@@ -569,6 +605,8 @@ $('admExit').onclick=()=>{adminKey='';adminData=null;go(me?'app':'landing')};
 $('aFilter').oninput=()=>adminData&&renderAdmin();
 document.querySelectorAll('.inp').forEach(i=>i.addEventListener('input',()=>i.classList.remove('invalid')));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe()});
+if(SUPPORT_EMAIL){$('fSup').hidden=false;$('fSup').href='mailto:'+SUPPORT_EMAIL;$('fNoSup').hidden=true}
+document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{toast('This is a Growth Pro feature.');openUpgrade()});
 $('yr').textContent=new Date().getFullYear();
 renderPlans();observe();render();
 if(me)go('app');
