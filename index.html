@@ -3,860 +3,454 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LeadClaw</title>
-<meta name="color-scheme" content="light dark">
-<script>try{var __t=localStorage.getItem('lc_theme')||'light';document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
-
+<title>LeadClaw – Get your wasted lead money back</title>
+<meta name="description" content="AI that audits your Angi, Thumbtack, Porch and Networx leads and writes the refund dispute for you.">
+<link rel="canonical" href="https://leadclaw.pages.dev/">
+<meta property="og:url" content="https://leadclaw.pages.dev/">
+<meta property="og:title" content="LeadClaw – Get your wasted lead money back">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='9' stroke-linecap='round' fill='none'/></svg>">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <style>
-:root{
-  --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
-  --display:'Manrope','Inter',system-ui,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
-  --blue:#2563eb;--blue-h:#1d4ed8;--blue-l:#60a5fa;
-}
-html[data-theme=light]{
-  color-scheme:light;
-  --bg:#f1f5f9;--bar:#fff;--surf:#fff;--surf2:#f8fafc;--inp:#fff;
-  --bdr:#e2e8f0;--bdr2:#cbd5e1;--tx:#0f172a;--tx2:#1e293b;
-  --mu:#475569;--dim:#94a3b8;--accent:#2563eb;--tint:#eff6ff;--tint2:#dbeafe;
-  --ok:#15803d;--okbg:#f0fdf4;--okbdr:#86efac;
-  --err:#dc2626;--errbg:#fef2f2;--errbdr:#fca5a5;
-  --sh:0 1px 3px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.07);
-  --sh-sm:0 1px 2px rgba(15,23,42,.05),0 3px 10px rgba(15,23,42,.05);
-}
-html[data-theme=dark]{
-  color-scheme:dark;
-  --bg:#030712;--bar:#0b0f19;--surf:#0f172a;--surf2:#1e293b;--inp:#0b0f19;
-  --bdr:#1e293b;--bdr2:#334155;--tx:#f8fafc;--tx2:#e2e8f0;
-  --mu:#94a3b8;--dim:#64748b;--accent:#60a5fa;--tint:rgba(59,130,246,.15);--tint2:rgba(59,130,246,.08);
-  --ok:#4ade80;--okbg:rgba(34,197,94,.12);--okbdr:rgba(74,222,128,.35);
-  --err:#f87171;--errbg:rgba(248,113,113,.12);--errbdr:rgba(248,113,113,.35);
-  --sh:0 2px 8px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.4);
-  --sh-sm:0 2px 6px rgba(0,0,0,.4);
-}
-*,*::before,*::after{box-sizing:border-box}
-[hidden]{display:none!important}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+:root{--sans:'Inter',system-ui,sans-serif;--disp:'Manrope','Inter',sans-serif;--blue:#2563eb;--blue-h:#1d4ed8}
+html[data-theme=light]{color-scheme:light;--bg:#fff;--bg2:#f6f8fb;--surf:#fff;--surf2:#f1f5f9;--bdr:#e3e8ef;--tx:#0b1220;--mu:#556178;--acc:#2563eb;--tint:#eff6ff;--ok:#15803d;--err:#dc2626;--sh:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.05)}
+html[data-theme=dark]{color-scheme:dark;--bg:#04060b;--bg2:#070a12;--surf:#0a0e18;--surf2:#10162a;--bdr:#18213a;--tx:#eef2fa;--mu:#8b97b3;--acc:#4f8bff;--tint:rgba(79,139,255,.1);--ok:#4ade80;--err:#f87171;--sh:none}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .25s,color .25s}
 button,input,select,textarea{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:5px}
-a{color:var(--accent);text-decoration:none}
-@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.view{animation:fadein .22s ease}
-.bar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--bar);border-bottom:1px solid var(--bdr);box-shadow:var(--sh-sm);backdrop-filter:blur(12px)}
-.bar .sp{flex:1}
-.nav{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--bdr2);border-radius:7px;background:transparent;color:var(--tx);font-weight:600;font-size:13.5px;cursor:pointer;transition:all .15s}
-.nav:hover{border-color:var(--blue);background:var(--tint);color:var(--blue)}
-.icon-btn{width:38px;height:38px;padding:0;justify-content:center}
-.page{display:none}.page.active{display:block}
-.auth-wrap{max-width:480px;margin:40px auto 60px;padding:0 20px}
-.brand{display:flex;align-items:center;justify-content:center;gap:11px;font:800 26px var(--display);letter-spacing:-.03em;margin-bottom:26px}
-.logo-m{width:36px;height:36px;border-radius:8px;background:var(--blue);display:grid;place-items:center;flex:none}
-.logo-m svg{width:22px;height:22px}
-.stepper{display:flex;justify-content:center;margin:0 0 26px;list-style:none;padding:0}
-.st{flex:1;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--dim)}
-.st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none}
-.st::after{content:"";flex:1;height:2px;background:var(--bdr);border-radius:2px;margin:0 4px}
-.st:last-child::after{display:none}
-.st.on{color:var(--tx)}.st.on i{border-color:var(--blue);background:var(--blue);color:#fff}
-.st.done{color:var(--mu)}.st.done i{background:var(--tint);border-color:var(--blue);color:var(--accent)}
-.st.done::after{background:var(--blue)}
-.card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh)}
-h1{font:800 23px/1.2 var(--display);letter-spacing:-.025em;margin:0 0 7px}
-.sub{color:var(--mu);margin:0 0 20px;font-size:14.5px}
-.tabs{display:flex;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:3px;margin-bottom:20px;gap:3px}
-.tab{flex:1;padding:8px;border:0;background:transparent;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mu);transition:all .15s}
-.tab.on{background:var(--surf);color:var(--tx);box-shadow:var(--sh-sm)}
-.field{margin-bottom:16px}
-label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;color:var(--tx2)}
-.inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx)}
-.inp:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
-.pw-wrap{position:relative}.pw-wrap .inp{padding-right:68px}
-.pw-wrap .show-btn{position:absolute;right:8px;top:8px;height:30px;padding:0 10px;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border-radius:7px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:all .15s}
-.btn:hover{background:var(--blue-h)}
-.btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr2)}
-.btn.sec:hover{background:var(--tint);border-color:var(--blue);color:var(--blue)}
-.err-msg{color:var(--err);font-size:13px;margin:5px 0 0;min-height:18px}
-.check-row{display:flex;gap:12px;align-items:flex-start;width:100%;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:8px;padding:12px;cursor:pointer}
-.cbox{width:21px;height:21px;border-radius:5px;border:2px solid var(--bdr2);background:var(--inp);display:grid;place-items:center;flex:none}
-.check-row[aria-checked=true]{border-color:var(--blue);background:var(--tint)}
-.check-row[aria-checked=true] .cbox{background:var(--blue);border-color:var(--blue);color:#fff}
-body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
-.trial-banner{display:flex;align-items:center;justify-content:between;gap:10px;background:linear-gradient(135deg,var(--blue),#1e40af);color:#fff;font:700 14.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px}
-.plans{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:850px;margin:0 auto}
-@media(max-width:700px){.plans{grid-template-columns:1fr}}
-.plan{background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:28px 24px;box-shadow:var(--sh-sm);display:flex;flex-direction:column;position:relative}
-.plan.pop{border:2px solid var(--blue);box-shadow:0 4px 20px rgba(37,99,235,.2)}
-.pop-tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font:700 12px var(--sans);padding:4px 13px;border-radius:999px}
-.plan h2{font:700 18px var(--display);margin:0 0 6px}
-.plan .price{font:800 38px/1 var(--display);margin-bottom:14px}
-.plan ul{list-style:none;padding:0;margin:0 0 20px;flex:1;display:grid;gap:10px}
-.plan li{font-size:14px;color:var(--tx2);display:flex;gap:8px;align-items:flex-start}
-.plan li.dim{color:var(--dim);text-decoration:line-through}
-.trial-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--tint2);border:1px solid rgba(37,99,235,.28);border-radius:999px;font:600 13px var(--sans);color:var(--blue)}
-.plan-badge-indicator{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:999px;font:600 13px var(--sans);color:var(--accent)}
-.chips-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.chip{padding:6px 11px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--mu);transition:all .15s}
-.chip:hover{border-color:var(--blue);background:var(--tint);color:var(--blue)}
-.progress-wrap{display:none;margin-top:16px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px}
-.progress-header{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:8px}
-.progress-bar-bg{height:8px;width:100%;background:var(--bdr2);border-radius:999px;overflow:hidden}
-.progress-bar-fill{height:100%;width:0%;background:var(--blue);border-radius:999px;transition:width .3s ease}
-.claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin-top:14px;font-family:var(--mono);font-size:13px;white-space:pre-wrap;max-height:300px;overflow-y:auto}
-.action-row{display:flex;gap:10px;margin-top:14px}
-main{max-width:1180px;margin:0 auto;padding:8px 24px 56px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:start}
-@media(max-width:900px){main{grid-template-columns:1fr;padding:8px 16px 40px}}
-.panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:26px}
-.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:4px}
-.seg button{border:0;background:transparent;padding:9px 6px;border-radius:7px;color:var(--mu);font-weight:500;cursor:pointer}
-.seg button[aria-checked=true]{background:var(--blue);color:#fff}
-textarea{width:100%;min-height:120px;resize:vertical;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:11px 12px;line-height:1.55}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;z-index:100;backdrop-filter:blur(4px)}
-.modal{width:100%;max-width:760px;max-height:90vh;overflow-y:auto;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px;box-shadow:0 22px 56px rgba(0,0,0,.4)}
-table{width:100%;border-collapse:collapse;margin-top:12px}
-th,td{border:1px solid var(--bdr);padding:9px;font-size:13px;text-align:left}
-th{background:var(--surf2)}
-.toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,18px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;font-size:14px;z-index:90}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.paywall-lock{position:relative;opacity:0.65}
-.paywall-lock::after{content:"🔒 Growth Pro Feature (Click to Upgrade)";position:absolute;inset:0;background:rgba(15,23,42,0.12);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--blue);border-radius:7px;cursor:pointer}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+.rv{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}.rv.in{opacity:1;transform:none}
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:6px;padding:12px max(20px,calc((100vw - 1140px)/2));padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--bg);border-bottom:1px solid var(--bdr)}
+.logo{display:flex;align-items:center;gap:9px;font:800 20px var(--disp);letter-spacing:-.03em;cursor:pointer}
+.lm{width:30px;height:30px;border-radius:7px;background:var(--blue);display:grid;place-items:center}.lm svg{width:18px}
+.sp{flex:1}
+.lnk{padding:8px 12px;border-radius:7px;color:var(--mu);font-weight:500;cursor:pointer;background:none;border:0;transition:color .15s,background .15s}.lnk:hover{color:var(--tx);background:var(--surf2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 22px;border:1px solid var(--blue);border-radius:8px;background:var(--blue);color:#fff;font-weight:600;cursor:pointer;transition:background .15s,transform .15s,border-color .15s}
+.btn:hover{background:var(--blue-h);border-color:var(--blue-h)}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;pointer-events:none}
+.btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr)}.btn.sec:hover{border-color:var(--acc);color:var(--acc);background:var(--tint)}
+.btn.sm{height:36px;padding:0 14px;font-size:13.5px}.btn.full{width:100%}
+.pill{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;background:var(--tint);border:1px solid var(--bdr);font-size:12.5px;font-weight:600;color:var(--acc)}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+.hero{text-align:center;padding:80px 0 30px}
+.hero h1{font:800 clamp(34px,5.4vw,56px)/1.08 var(--disp);letter-spacing:-.035em;margin:20px auto 16px;max-width:800px;animation:up .6s both .05s}
+.hl{color:var(--acc)}
+.hero p{color:var(--mu);font-size:17.5px;max-width:560px;margin:0 auto 28px;animation:up .6s both .15s}
+.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:up .6s both .25s}
+.hero .pill{animation:up .6s both}
+.facts{display:flex;justify-content:center;gap:10px 30px;flex-wrap:wrap;margin-top:40px;color:var(--mu);font-size:14px;font-weight:500;animation:up .6s both .35s}.facts span::before{content:"✓";color:var(--acc);font-weight:700;margin-right:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);max-width:720px;margin:56px auto 0;border:1px solid var(--bdr);border-radius:12px;background:var(--surf);box-shadow:var(--sh)}
+.stat{padding:20px;border-right:1px solid var(--bdr)}.stat:last-child{border:0}
+.stat b{display:block;font:800 28px var(--disp)}.stat span{color:var(--mu);font-size:13px}
+.demo{max-width:600px;margin:36px auto 0;text-align:left;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:20px;box-shadow:var(--sh);animation:up .7s both .4s}
+.demo .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bdr);font-size:14px}
+.ok{color:var(--ok);font-weight:700}.err{color:var(--err);font-weight:700}
+.demo pre{margin:0;white-space:pre-wrap;font:13px/1.65 var(--sans);color:var(--mu)}
+section.s{padding:72px 0}section.alt{background:var(--bg2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
+.h2{font:800 clamp(26px,3.4vw,34px)/1.2 var(--disp);letter-spacing:-.025em;text-align:center;margin:0 0 8px}
+.lead{text-align:center;color:var(--mu);max-width:540px;margin:0 auto 40px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.fc{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:24px;transition:border-color .2s,transform .2s,box-shadow .2s}
+.fc:hover{border-color:var(--acc);transform:translateY(-3px);box-shadow:var(--sh)}
+.fc i{font:600 12px var(--sans);font-style:normal;color:var(--acc);display:block;margin-bottom:12px;letter-spacing:.08em}.fc h3{margin:0 0 6px;font:700 16.5px var(--disp)}.fc p{margin:0;color:var(--mu);font-size:14px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:stretch;max-width:1000px;margin:0 auto}
+.plan{position:relative;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:28px 24px;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
+.plan:hover{transform:translateY(-3px);box-shadow:var(--sh)}
+.plan.pop{border:2px solid var(--blue)}
+.tag{position:absolute;top:-12px;left:24px;background:var(--blue);color:#fff;font:700 11.5px var(--sans);padding:3px 11px;border-radius:999px}
+.plan h3{margin:0;font:700 17px var(--disp)}.price{font:800 40px/1.1 var(--disp);margin:8px 0}.price small{font:500 14px var(--sans);color:var(--mu)}
+.plan ul{list-style:none;margin:12px 0 22px;padding:0;display:grid;gap:9px;flex:1;font-size:14px}
+.plan li::before{content:"✓";color:var(--acc);font-weight:700;margin-right:9px}.plan li.no{color:var(--mu);opacity:.65;text-decoration:line-through}.plan li.no::before{content:"–";color:var(--mu)}
+footer{border-top:1px solid var(--bdr);padding:28px 0;text-align:center;color:var(--mu);font-size:13px}
+@media(max-width:860px){.grid3,.plans{grid-template-columns:1fr}.stat b{font-size:21px}.stat{padding:14px 8px}}
+.app{max-width:1180px;margin:0 auto;padding:28px 20px 70px;animation:up .4s both}
+.top{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.kpi{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:16px 18px}.kpi span{font-size:12.5px;color:var(--mu);font-weight:600}.kpi b{display:block;font:800 24px var(--disp);margin-top:2px}
+.meter{height:4px;background:var(--surf2);border-radius:9px;margin-top:8px;overflow:hidden}.meter i{display:block;height:100%;width:0;background:var(--blue);transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.tabs{display:inline-flex;border-bottom:1px solid var(--bdr);margin-bottom:18px;gap:4px;width:100%}
+.tab{border:0;background:none;padding:10px 16px;font-weight:600;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s}.tab:hover{color:var(--tx)}.tab.on{color:var(--acc);border-color:var(--blue)}
+.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;align-items:start}
+.panel{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px;box-shadow:var(--sh)}
+.panel h2{margin:0 0 4px;font:800 20px var(--disp);letter-spacing:-.02em}.sub{color:var(--mu);margin:0 0 18px;font-size:14px}
+label,.lbl{display:block;font-weight:600;font-size:13px;margin:0 0 6px;color:var(--tx)}
+.f{margin-bottom:14px}
+.inp,textarea,select{width:100%;height:44px;padding:0 13px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:8px;transition:border-color .15s,box-shadow .15s}
+textarea{height:auto;min-height:104px;padding:11px 13px;resize:vertical}
+.inp:focus,textarea:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--tint)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;padding:8px 4px;border-radius:6px;font-weight:600;color:var(--mu);cursor:pointer;transition:.15s}.seg button.on{background:var(--blue);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{padding:5px 11px;background:var(--bg);border:1px solid var(--bdr);border-radius:999px;font-size:12.5px;font-weight:500;color:var(--mu);cursor:pointer;transition:.15s}.chip:hover{border-color:var(--blue);color:var(--acc);background:var(--tint)}
+.lock{position:relative}.lock>*{opacity:.45;pointer-events:none}.lock::after{content:"Growth Pro feature · Upgrade to unlock";position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--acc);cursor:pointer;background:color-mix(in srgb,var(--surf) 55%,transparent);border-radius:8px}
+.prog{display:none;margin-top:16px}.prog .t{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px}
+.prog .bar{height:6px;background:var(--surf2);border-radius:9px;overflow:hidden}.prog .bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .4s}
+.empty{color:var(--mu);text-align:center;padding:36px 10px}
+.res{animation:pop .35s both}
+.verdict{font:800 20px var(--disp)}
+.claim{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin:14px 0;font-size:13.5px;white-space:pre-wrap;max-height:340px;overflow:auto}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--bdr);white-space:nowrap}th{color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+tr.hr{animation:up .35s both}
+.bad{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}.bad.y{background:rgba(34,197,94,.12);color:var(--ok)}.bad.n{background:rgba(239,68,68,.12);color:var(--err)}
+@media(max-width:900px){.cols{grid-template-columns:1fr}.top{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
+.ov{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(3,6,14,.6);backdrop-filter:blur(4px);animation:pop .2s both}
+.modal{width:100%;max-width:440px;max-height:92vh;overflow:auto;background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:up .3s both}
+.modal.wide{max-width:620px}.modal h2{margin:0 0 4px;font:800 22px var(--disp);letter-spacing:-.02em}
+.msg{font-size:13px;min-height:20px;margin:4px 0 10px;color:var(--err)}.msg.good{color:var(--ok)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--mu);margin:4px 0 6px;cursor:pointer}.chk input{margin-top:3px;width:16px;height:16px;accent-color:var(--blue)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);background:#0b1220;color:#fff;padding:11px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;font-size:14px;z-index:200;max-width:90vw;border:1px solid #1e293b}.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+.note{font-size:12.5px;color:var(--mu);background:var(--tint);border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;margin:8px 0 0}
+nav.sc{box-shadow:0 2px 14px rgba(2,6,23,.07)}
+.kpi{animation:up .5s both}.kpi:nth-child(2){animation-delay:.07s}.kpi:nth-child(3){animation-delay:.14s}.kpi:nth-child(4){animation-delay:.21s}
+#tNew,#tHist{animation:up .35s both}
+@keyframes spin{to{transform:rotate(360deg)}}@keyframes draw{to{stroke-dashoffset:0}}
+.btn.busy::after{content:"";width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.verdict{display:flex;align-items:center;gap:10px}.vi{width:28px;height:28px;flex:none}
+.vi circle{fill:none;stroke:currentColor;stroke-width:2;stroke-dasharray:63;stroke-dashoffset:63;animation:draw .6s forwards}
+.vi path{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;animation:draw .4s .45s forwards}
+.hint{font-size:12.5px;color:var(--mu);margin:0 0 12px}
+.wake{margin:12px 0 0;font-size:13px;color:var(--mu);font-weight:600;animation:up .3s both}
+.wake .bar{height:6px;background:var(--surf2);border-radius:9px;overflow:hidden;margin-top:6px}
+.wake .bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:9px;transition:width .4s}
 </style>
+<script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('lc_theme')||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}</script>
 </head>
 <body>
-
-<header class="bar">
-  <button class="nav" id="viewAccountsBtn" type="button" style="display:none">View My Data &amp; Accounts</button>
-  <button class="nav" id="logoutBtn" type="button" style="display:none">Sign out</button>
+<nav>
+  <div class="logo" onclick="go('landing')"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
   <span class="sp"></span>
-  <div class="plan-badge-indicator" id="currentPlanIndicator" hidden>Plan: <span id="planNameDisplay" style="text-transform:uppercase">Solo</span></div>
-  <div class="trial-badge" id="headerTrialBadge" hidden>Disputes left: <span id="trialCount" style="font-weight:700">3</span></div>
-  <button class="nav" id="upgradeBtnHeader" type="button" style="background:var(--blue);color:#fff;border-color:var(--blue)">Upgrade Plan</button>
-  <button class="nav icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
-  </button>
-</header>
+  <span id="navPub"><button class="lnk" onclick="scrollToId('features')">Features</button><button class="lnk" onclick="scrollToId('pricing')">Pricing</button><button class="lnk" onclick="openAuth('login')">Log in</button> <button class="btn sm" onclick="openAuth('signup')">Start free trial</button></span>
+  <span id="navPriv" hidden style="display:flex;gap:8px;align-items:center"><span class="pill" id="planPill"></span><button class="lnk" onclick="go('app')">Dashboard</button><button class="lnk" onclick="openAccount()">Account</button><button class="btn sm sec" onclick="signout()">Sign out</button></span>
+  <button class="lnk" id="themeBtn" aria-label="Toggle theme" title="Switch theme"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+</nav>
 
-<!-- AUTH PAGE -->
-<div class="page active" id="pg-auth">
-<div class="auth-wrap">
-  <div class="brand">
-    <div class="logo-m">
-      <svg viewBox="0 0 100 100" fill="none">
-        <path d="M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76" stroke="white" stroke-width="9" stroke-linecap="round"/>
-      </svg>
-    </div>
-    LeadClaw
-  </div>
-  <ol class="stepper" id="stepper">
-    <li class="st on" id="st1"><i>1</i><span>Details</span></li>
-    <li class="st" id="st2"><i>2</i><span>Terms</span></li>
-    <li class="st" id="st3"><i>3</i><span>Plan</span></li>
-  </ol>
-  <div class="card">
-    <div class="tabs" id="authTabs">
-      <button class="tab on" id="tabSignup" type="button">Sign up</button>
-      <button class="tab" id="tabLogin" type="button">Log in</button>
-    </div>
+<div id="landing">
+<div class="wrap hero">
+  <span class="pill">For Angi, Thumbtack, Porch &amp; Networx leads</span>
+  <h1>Stop paying for <span class="hl">dead leads.</span> Get the money back.</h1>
+  <p>Paste your call notes. LeadClaw's AI checks the platform's refund policy and writes a ready-to-send dispute in seconds.</p>
+  <div class="cta"><button class="btn" onclick="openAuth('signup')">Start your free trial</button><button class="btn sec" onclick="scrollToId('pricing')">See pricing</button></div>
+  <div class="facts"><span>3-dispute free trial</span><span>No credit card required</span><span>Cancel anytime</span></div>
+  <div class="demo">
+    <div class="row"><b>Angi · (555) 019-2834</b><span class="ok">Eligible for credit</span></div>
+    <pre>Subject: Lead Credit Request – Disconnected Number
 
-    <!-- Step 1: Account Info -->
-    <div class="view" id="v-details">
-      <h1 id="authTitle">Create your account</h1>
-      <p class="sub" id="authSub">Enter your business and contact details.</p>
-      <div class="field"><label>Email address (Gmail only) *</label><input class="inp" id="regEmail" type="email" placeholder="you@gmail.com"></div>
-      <div class="field"><label>Password (Min 7 chars, 1 special character) *</label>
-        <div class="pw-wrap"><input class="inp" id="regPass" type="password" placeholder="••••••••"><button class="show-btn" type="button" id="pwShow">Show</button></div>
-      </div>
-      <div class="field" id="dobField"><label>Date of Birth (18+ required) *</label><input class="inp" id="regAge" type="date"></div>
-      <div class="field" id="bizField"><label>Business Name *</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing &amp; Plumbing"></div>
-      
-      <div id="forgotLinkWrap" style="margin-bottom:12px;display:none">
-        <a href="#" id="forgotPasswordLink" style="font-size:13.5px;font-weight:600">Forgot your password?</a>
-      </div>
-
-      <p class="err-msg" id="regErr"></p>
-      <button class="btn" id="toTermsBtn" type="button">Continue</button>
-    </div>
-
-    <!-- Step 2: Terms -->
-    <div class="view" id="v-terms" hidden>
-      <h1>Terms &amp; Conditions</h1>
-      <p class="sub">Review policies to proceed to your plan selection.</p>
-      <div class="field">
-        <button class="check-row" id="agreeBtn" type="button" aria-checked="false">
-          <span class="cbox">✓</span>
-          <div><span style="font-weight:600">I agree to LeadClaw's Terms &amp; Policies</span>
-            <p style="margin:2px 0 0;color:var(--mu);font-size:13px">Includes Terms of Service, Privacy Policy, and Refund Dispute Policies for Angi, Thumbtack, Porch and Networx.</p></div>
-        </button>
-        <p class="err-msg" id="termsErr"></p></div>
-      <div style="display:flex;gap:10px">
-        <button class="btn sec" id="backToDetails" type="button">Back</button>
-        <button class="btn" id="toPlansBtn" type="button">Continue to Plans</button>
-      </div>
-    </div>
-
-    <!-- Step 3: Plans -->
-    <div class="view" id="v-plans" hidden>
-      <div class="trial-banner">
-        <span>3 free AI disputes included. No credit card required.</span>
-      </div>
-      <div class="plans" id="plansGrid"></div>
-    </div>
+Dear Angi Support, the phone number on this lead is permanently disconnected. Per the Angi Lead Credit Policy, I'm requesting a $75.00 credit…</pre>
   </div>
 </div>
+<section class="s" id="features"><div class="wrap">
+  <h2 class="h2 rv">Everything you need to win credits</h2><p class="lead rv">Built for contractors who'd rather be on the job than on hold with support.</p>
+  <div class="grid3">
+    <div class="fc rv"><i>01</i><h3>AI policy audit</h3><p>Checks every lead against each marketplace's credit rules before you waste time filing.</p></div>
+    <div class="fc rv"><i>02</i><h3>Custom claim letters</h3><p>Persuasive, professional disputes using your lead details and account ID, ready to send.</p></div>
+    <div class="fc rv"><i>03</i><h3>Audio &amp; PDF evidence</h3><p>Upload call recordings or documents and the AI cites them in your claim (Growth Pro).</p></div>
+    <div class="fc rv"><i>04</i><h3>One-click Gmail</h3><p>Open the finished dispute in a Gmail draft and send it instantly.</p></div>
+    <div class="fc rv"><i>05</i><h3>Recovery tracker</h3><p>See how much you've claimed and mark credits as recovered.</p></div>
+    <div class="fc rv"><i>06</i><h3>Secure by design</h3><p>Hashed passwords, private dispute history, and Stripe-powered billing.</p></div>
+  </div>
+</div></section>
+<section class="s alt" id="pricing"><div class="wrap">
+  <h2 class="h2 rv">Pays for itself with one credit</h2><p class="lead rv">Start with a free trial of 3 AI disputes. No credit card required.</p>
+  <div class="plans" id="plans"></div>
+</div></section>
+<footer>© <span id="yr"></span> LeadClaw · Not affiliated with Angi, Thumbtack, Porch or Networx. Credits are subject to each platform's policy.</footer>
 </div>
 
-<!-- DASHBOARD PAGE -->
-<main class="page" id="pg-dash" style="margin-top:24px">
-  <section class="panel">
-    <h1>Lead credit request</h1>
-    <p class="sub">Fill in lead details, or click a 10-second quick dispute chip below.</p>
-    
-    <div class="field"><span class="lbl">Lead platform</span>
-      <div class="seg" role="radiogroup" id="platforms">
-        <button type="button" aria-checked="true" onclick="setPlat('Angi')">Angi</button>
-        <button type="button" aria-checked="false" onclick="setPlat('Thumbtack')">Thumbtack</button>
-        <button type="button" aria-checked="false" onclick="setPlat('Porch')">Porch</button>
-        <button type="button" aria-checked="false" onclick="setPlat('Networx')">Networx</button>
+<main id="app" class="app" hidden>
+  <div class="top">
+    <div class="kpi"><span>Usage</span><b id="kUse">–</b><div class="meter"><i id="kBar"></i></div></div>
+    <div class="kpi"><span>Disputes filed</span><b id="kCount">0</b></div>
+    <div class="kpi"><span>Eligible credits</span><b id="kElig">$0</b></div>
+    <div class="kpi"><span>Recovered</span><b id="kRec" style="color:var(--ok)">$0</b></div>
+  </div>
+  <div class="tabs"><button class="tab on" data-t="new">New claim</button><button class="tab" data-t="hist">History</button></div>
+  <div class="cols" id="tNew">
+    <section class="panel">
+      <h2>Lead credit request</h2><p class="sub">Fill in the lead, or tap a quick reason.</p>
+      <div class="f"><span class="lbl">Platform</span><div class="seg" id="plat"></div></div>
+      <div class="two f"><div><label for="lp">Lead phone *</label><input class="inp" id="lp" placeholder="(555) 019-2834"></div><div><label for="le">Lead email *</label><input class="inp" id="le" type="email" placeholder="client@gmail.com"></div></div>
+      <div class="two f"><div><label for="lid">Lead ID / reference # *</label><input class="inp" id="lid" placeholder="e.g. 4821937"></div><div><label for="lrecv">Date &amp; time received</label><input class="inp" id="lrecv" type="datetime-local"></div></div>
+      <div class="f"><label for="notes">Call notes &amp; issue</label>
+        <div class="chips" id="chips"></div><textarea id="notes" placeholder="Tap a chip or describe what went wrong…"></textarea></div>
+      <div class="f"><span class="lbl">Claim type</span>
+        <div class="seg" id="ctype" style="grid-template-columns:1fr 1fr"><button type="button" class="on" data-m="template">Instant template</button><button type="button" data-m="ai">Custom AI claim</button></div>
+        <p class="note" id="aWarn" hidden>Custom AI claims can take up to 30 seconds while the AI server wakes up. Choose the instant template if you're in a hurry.</p></div>
+      <div class="f"><label for="cost">Lead cost ($)</label><input class="inp" id="cost" type="number" min="1" step="0.01" value="75"></div>
+      <div class="two f" id="aiOpts" hidden>
+        <div id="modelBox"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>
+        <div id="fileBox"><label for="files">Audio / PDF evidence</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>
       </div>
-    </div>
-    
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div class="field" style="margin:0"><label for="leadPhone">Lead Phone Number *</label><input class="inp" id="leadPhone" type="text" placeholder="(555) 019-2834"></div>
-      <div class="field" style="margin:0"><label for="leadEmail">Lead Email Address *</label><input class="inp" id="leadEmail" type="email" placeholder="client@gmail.com"></div>
-    </div>
-
-    <div class="field">
-      <label for="notes">Call notes &amp; lead issue details</label>
-      <div class="chips-grid">
-        <button type="button" class="chip" onclick="fillChip('Permanently disconnected phone number. Called twice with no answer.')">⚡ Disconnected Phone</button>
-        <button type="button" class="chip" onclick="fillChip('Customer is strictly outside our service area/zip code.')">⚡ Out of Service Area</button>
-        <button type="button" class="chip" onclick="fillChip('Duplicate lead submission received within the same billing window.')">⚡ Duplicate Lead</button>
-        <button type="button" class="chip" onclick="fillChip('Spam / bot submission with fake contact information.')">⚡ Spam / Bot Lead</button>
-        <button type="button" class="chip" onclick="fillChip('Wrong trade category submitted by customer (services do not match our trade).')">⚡ Wrong Trade</button>
-        <button type="button" class="chip" onclick="fillChip('Homeowner completely unresponsive after multiple contact attempts.')">⚡ Unresponsive Lead</button>
-      </div>
-      <textarea id="notes" placeholder="Click any chip above to instantly fill notes, or type custom notes here..."></textarea>
-    </div>
-
-    <!-- File Upload Gated / Visible for All -->
-    <div class="field" id="fileUploadFieldContainer">
-      <label for="evidenceFiles">Audio / PDF Evidence Upload <span style="color:var(--blue);font-size:12px">(Growth Pro Feature)</span></label>
-      <div id="fileUploadWrapper">
-        <input class="inp" id="evidenceFiles" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px">
-      </div>
-    </div>
-
-    <div class="field"><label for="cost">Lead cost ($)</label>
-      <input class="inp" id="cost" type="number" value="75.00"></div>
-    <button class="btn" id="goBtn">Check &amp; build claim</button>
-
-    <div class="progress-wrap" id="progressWrap">
-      <div class="progress-header">
-        <span id="progressStatus">Auditing lead credit policy...</span>
-        <span id="progressPercent">0%</span>
-      </div>
-      <div class="progress-bar-bg">
-        <div class="progress-bar-fill" id="progressBarFill"></div>
-      </div>
-    </div>
-  </section>
-
-  <section class="panel" id="resultPanel">
-    <h3>AI Claim Result</h3>
-    <div id="resultContent" style="margin-top:12px;font-size:14px;color:var(--mu)">Submit your lead details on the left to verify eligibility and generate a professional dispute statement.</div>
-    <div id="claimActions" hidden>
-      <div class="claim-box" id="claimBoxText"></div>
-      <div class="action-row">
-        <button class="btn sec" id="copyClaimBtn" type="button">Copy Claim Text</button>
-        <button class="btn" id="openGmailBtn" type="button">Open in Gmail</button>
-      </div>
-    </div>
+      <button class="btn full" id="go">Check &amp; build claim</button>
+      <div class="prog" id="prog"><div class="t"><span id="pStat"></span><span id="pPct">0%</span></div><div class="bar"><i id="pBar"></i></div></div>
+    </section>
+    <section class="panel"><h2>AI claim result</h2>
+      <div id="out" class="empty">Your eligibility verdict and dispute letter will appear here.</div></section>
+  </div>
+  <section class="panel" id="tHist" hidden>
+    <h2>Dispute history</h2><p class="sub">Track every claim and mark credits as recovered.</p>
+    <div class="tw"><table><thead><tr><th>Date</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Recovered</th><th></th></tr></thead><tbody id="hb"></tbody></table></div>
+    <div class="empty" id="hEmpty">No disputes yet.</div>
   </section>
 </main>
 
-<!-- RESTRICTED ACCOUNT & MARKETPLACE DATA MODAL -->
-<div class="ov" id="adminModal" hidden>
-  <div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h2>My Account &amp; Marketplace Integration Data</h2>
-      <button class="nav" id="closeAdmin" style="padding:4px 10px">Close</button>
-    </div>
-    <p style="color:var(--mu);font-size:13px">Manage your contractor identity, password, marketplace account handles, and dispute history below:</p>
-
-    <div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin:16px 0">
-      <h3 style="margin:0 0 10px;font-size:15px">Contractor Profile &amp; Credentials</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-        <div class="field" style="margin:0"><label style="font-size:12px">Full Contact Name</label><input class="inp" id="accFullName" type="text" placeholder="John Smith"></div>
-        <div class="field" style="margin:0"><label style="font-size:12px">Business Phone</label><input class="inp" id="accPhone" type="text" placeholder="(555) 123-4567"></div>
-        <div class="field" style="margin:0"><label style="font-size:12px">New Password (Optional)</label><input class="inp" id="accPassword" type="password" placeholder="••••••••"></div>
-      </div>
-
-      <h3 style="margin:0 0 10px;font-size:15px">Marketplace Account Handles</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="field" style="margin:0"><label style="font-size:12px">Angi Account Handle / Email</label><input class="inp" id="accAngi" type="text" placeholder="Angi Pro Username"></div>
-        <div class="field" style="margin:0"><label style="font-size:12px">Thumbtack Account Handle / Email</label><input class="inp" id="accThumbtack" type="text" placeholder="Thumbtack Pro ID"></div>
-        <div class="field" style="margin:0"><label style="font-size:12px">Networx Account Handle / Email</label><input class="inp" id="accNetworx" type="text" placeholder="Networx Business ID"></div>
-        <div class="field" style="margin:0"><label style="font-size:12px">Porch Account Handle / Email</label><input class="inp" id="accPorch" type="text" placeholder="Porch Pro Username"></div>
-      </div>
-      <button class="btn sec" id="saveAccountsBtn" style="margin-top:14px;height:38px;font-size:13px">Save Profile, Password &amp; Handles</button>
-    </div>
-
-    <div id="adminTableWrap" style="overflow-x:auto"></div>
+<!-- auth modal -->
+<div class="ov" id="authOv" hidden><div class="modal">
+  <div style="display:flex;justify-content:space-between"><h2 id="aT">Create your account</h2><button class="lnk" onclick="closeOv('authOv')" aria-label="Close">✕</button></div>
+  <p class="sub" id="aS">Start your free trial: 3 AI disputes, no card needed.</p>
+  <div id="aMain">
+    <div class="f"><label for="rE">Gmail address</label><input class="inp" id="rE" type="email" placeholder="you@gmail.com" autocomplete="email"></div>
+    <div class="f"><label for="rP">Password (7+ chars, 1 special)</label><input class="inp" id="rP" type="password" autocomplete="current-password"></div>
+    <div id="suOnly"><div class="f"><label for="rP2">Confirm password</label><input class="inp" id="rP2" type="password" autocomplete="new-password"></div>
+    <p class="note" style="margin:-4px 0 14px"><b>No password recovery.</b> For safety reasons accounts cannot be recovered, so please remember your password.</p><div class="f"><label for="rB">Business name</label><input class="inp" id="rB" placeholder="Apex Roofing &amp; Plumbing"></div>
+    <div class="f"><label for="rD">Date of birth (18+)</label><input class="inp" id="rD" type="date"></div>
+    <label class="chk"><input type="checkbox" id="rT"><span>I agree to the Terms of Service, Privacy Policy and Refund Dispute Policies.</span></label></div>
+    <p class="msg" id="aM"></p>
+    <button class="btn full" id="aGo">Create account</button>
+    <p style="text-align:center;font-size:13.5px;color:var(--mu);margin:14px 0 0"><span id="aSw"></span></p>
   </div>
-</div>
+</div></div>
 
-<!-- UPGRADE PLAN MODAL -->
-<div class="ov" id="upgradeModal" hidden>
-  <div class="modal" style="max-width:850px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <h2>Upgrade Your LeadClaw Plan</h2>
-      <button class="nav" id="closeUpgrade" style="padding:4px 10px">Close</button>
-    </div>
-    <p style="color:var(--mu);margin-bottom:20px;font-size:14px">Get unlimited AI disputes, custom generated claims, audio/PDF evidence uploads, and Gmail one-click dispatch.</p>
-    <div class="plans" id="upgradePlansGrid"></div>
-  </div>
-</div>
+<!-- account modal -->
+<div class="ov" id="accOv" hidden><div class="modal wide">
+  <div style="display:flex;justify-content:space-between"><h2>Account &amp; marketplace handles</h2><button class="lnk" onclick="closeOv('accOv')" aria-label="Close">✕</button></div>
+  <p class="sub">Your account IDs are included in the claims we write.</p>
+  <div class="two f"><div><label>Full name</label><input class="inp" id="aN"></div><div><label>Business phone</label><input class="inp" id="aP"></div></div>
+  <div class="two f"><div><label>Angi handle</label><input class="inp" id="hA"></div><div><label>Thumbtack handle</label><input class="inp" id="hT"></div>
+  <div><label>Porch handle</label><input class="inp" id="hP"></div><div><label>Networx handle</label><input class="inp" id="hN"></div></div>
+  <div class="f"><label>New password (optional, cannot be recovered if forgotten)</label><input class="inp" id="aW" type="password" autocomplete="new-password"></div>
+  <div class="acts"><button class="btn" id="saveAcc">Save changes</button><button class="btn sec" id="billBtn" hidden>Manage subscription</button></div>
+</div></div>
 
-<div class="toast" id="toast"></div>
-
+<div class="toast" id="toast" role="status"></div>
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const API_BASE = 'https://leadclaw-api.onrender.com';
-  let activeEmail = '';
-  let activePlan = 'solo';
-  let agreedTerms = false;
-  let currentPlatform = 'Angi';
-  let isLoginMode = false;
-  let generatedClaimText = '';
+const API='https://leadclaw-api.onrender.com';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){return null}};
+let token=ls('lc_token'),me=null,plat='Angi',mode='signup',pendingPlan=null,ctype='template',tokenReady=null,claim='',shownPlat='Angi';
+try{me=JSON.parse(ls('lc_me')||'null')}catch(e){}
+if(!token)me=null;
+const saveMe=()=>ls('lc_me',JSON.stringify(me));
+fetch(API+'/').catch(()=>{}); // wake the server in the background
+const PLANS=[
+ {id:'free',name:'Free Trial',price:0,f:['3 disputes, one time','Instant claim templates','Custom AI claim (try it)','Gmail one-click send'],x:['Audio & PDF evidence']},
+ {id:'solo',name:'Solo Contractor',price:29,f:['25 disputes / month','Instant claim templates','Gmail one-click send','Recovery tracker','Email support'],x:['Custom AI claims','Audio & PDF evidence']},
+ {id:'growth',name:'Growth Pro',price:59,pop:1,f:['Unlimited disputes','Custom AI generated claims','Audio & PDF evidence upload','Gemini 3.5 Flash & Groq Qwen3 4B','Gmail one-click send','Priority support']}];
+const CHIPS={'Disconnected Phone':'Permanently disconnected phone number. Called twice with no answer.','Out of Service Area':'Customer is strictly outside our service area/zip code.','Duplicate Lead':'Duplicate lead submission received within the same billing window.','Spam / Bot':'Spam / bot submission with fake contact information.','Wrong Trade':'Wrong trade category submitted by customer (services do not match our trade).','Unresponsive':'Homeowner completely unresponsive after multiple contact attempts.'};
+const PL={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
+const NOT='Pricing objections, competitor hiring, project postponements and other customer choices are not refundable under marketplace policy.';
+const BAD=/hired (another|a|an|someone|a different)|went (with|to) (a |another |the )?(competitor|contractor)|project went to|chose (another|a different) (contractor|company)|competitor|too expensive|over (our|my) budget|on hold|postponed/i;
+const EM={Angi:'prosupport@angi.com',Thumbtack:'support@thumbtack.com',Porch:'support@porch.com',Networx:'service@networx.com'};
+const RULES={
+ phone:{re:/disconnect|not in service|wrong number|invalid (phone|number)|number (is )?(invalid|wrong|not working)|fake number|third party/i,title:'Invalid Contact Details',why:'The provided phone number is disconnected, out of service, or belongs to a third party who has no knowledge of this project.'},
+ mistake:{re:/by mistake|accident|did ?n.?t (mean|request|submit)|did not (mean|request|submit)|never (requested|asked)|no (such )?request/i,title:'Explicit Customer Mistake',why:'The homeowner stated they clicked on the request by mistake and did not intend to request this service or project from the platform.'},
+ area:{re:/outside.*(service area|zip|area)|service area|out of (the )?(area|zip)/i,title:'Outside Service Area',why:"The customer's address is outside the service area and zip codes selected on my account, so this lead should not have been matched to my business."},
+ dup:{re:/duplicate|same (customer|lead) twice|charged twice/i,title:'Duplicate Lead',why:'This lead is a duplicate of another lead delivered to my account within the same billing window, and I was charged more than once for a single customer request.'},
+ spam:{re:/spam|\bbot\b|fake (contact|info|submission|name|email)/i,title:'Spam or Fake Submission',why:'The contact information on this lead appears to be fake or automatically generated, which indicates a spam or bot submission rather than a genuine customer request.'},
+ trade:{re:/wrong (trade|category|service)|(do not|don.?t|doesn.?t) match (our|my) trade|not (our|my) trade/i,title:'Wrong Trade Category',why:'The service requested falls outside the trade category my business is listed under, so this lead does not match the services I provide.'}};
+function analyze(n){
+  n=(n||'').trim();
+  if(!n)return{valid:false,reason:'Add call notes or tap a quick reason so we can check eligibility.'};
+  if(BAD.test(n))return{valid:false,reason:NOT};
+  for(const k in RULES)if(RULES[k].re.test(n))return{valid:true,rule:k,reason:'Qualifies as a defective lead: '+RULES[k].title.toLowerCase()+'.'};
+  if(/unresponsive|no response|did ?n.?t answer|did not answer/i.test(n))return{valid:false,reason:'Unresponsive homeowners after real contact attempts are generally not refundable. If the phone number itself was dead or fake, say so in the notes.'};
+  return{valid:false,reason:"We couldn't match a qualifying lead defect (invalid phone, outside service area, duplicate, spam/bot or wrong trade). Tap a quick reason, add more detail, or try a Custom AI claim."}}
+function letter(rule,p,phone,email,cost,notes,lid,recv){
+  const R=RULES[rule],acct=me['acc_'+p.toLowerCase()]||'',amt='$'+cost.toFixed(2);
+  const when=recv?new Date(recv).toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'}):'Not provided';
+  return `Subject: Urgent: Lead Credit Request - Account # ${acct||'[Your Pro ID]'} - Lead ID ${lid}
 
-  let deviceToken = localStorage.getItem('lc_device_token');
-  if (!deviceToken) {
-    deviceToken = 'dev_' + Math.random().toString(36).substring(2) + Date.now();
-    localStorage.setItem('lc_device_token', deviceToken);
-  }
+Dear Partner Support Team,
 
-  function toast(m){
-    const t = document.getElementById('toast');
-    if(!t) return;
-    t.textContent = m;
-    t.classList.add('show');
-    setTimeout(() => t.classList.remove('show'), 2500);
-  }
+I am writing to formally request a credit/refund for an invalid lead charged to my account. Below are the required identification details for this transaction:
 
-  window.fillChip = function(text) {
-    document.getElementById('notes').value = text;
-    toast('10-second quick dispute reason applied!');
-  };
+LEAD IDENTIFICATION DATA
+• Business Name: ${me.workspace}
+• Platform Account ID: ${acct||'[Your Pro ID]'}
+• Lead ID Number: ${lid}
+• Date & Time Received: ${when}
+• Lead Cost: ${amt}
+• Customer Phone: ${phone}
+• Customer Email: ${email}
 
-  function checkPasswordValid(pwd) {
-    return pwd.length >= 7 && /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
-  }
+REASON FOR DISPUTE (POLICY VIOLATION)
+This lead qualifies for an immediate credit under your platform's user policy (${PL[p]}) due to the following specific reason:
 
-  document.getElementById('themeBtn').onclick = () => {
-    const cur = document.documentElement.getAttribute('data-theme');
-    const next = cur === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('lc_theme', next);
-  };
+• ${R.title}: ${R.why}
 
-  document.getElementById('pwShow').onclick = () => {
-    const i = document.getElementById('regPass');
-    const h = i.type === 'password';
-    i.type = h ? 'text' : 'password';
-    document.getElementById('pwShow').textContent = h ? 'Hide' : 'Show';
-  };
+Contractor notes: "${notes.trim()}"
 
-  document.getElementById('tabSignup').onclick = () => {
-    isLoginMode = false;
-    document.getElementById('tabSignup').classList.add('on');
-    document.getElementById('tabLogin').classList.remove('on');
-    document.getElementById('authTitle').textContent = 'Create your account';
-    document.getElementById('authSub').textContent = 'Enter your business and contact details.';
-    document.getElementById('toTermsBtn').textContent = 'Continue';
-    document.getElementById('dobField').style.display = 'block';
-    document.getElementById('bizField').style.display = 'block';
-    document.getElementById('forgotLinkWrap').style.display = 'none';
-    document.getElementById('stepper').style.display = 'flex';
-  };
+REQUEST
+Please review this lead and issue a credit of ${amt} to my account. If you need any additional information to process this request, reply to this email and I will provide it right away.
 
-  document.getElementById('tabLogin').onclick = () => {
-    isLoginMode = true;
-    document.getElementById('tabLogin').classList.add('on');
-    document.getElementById('tabSignup').classList.remove('on');
-    document.getElementById('authTitle').textContent = 'Welcome back';
-    document.getElementById('authSub').textContent = 'Sign in to access your dashboard.';
-    document.getElementById('toTermsBtn').textContent = 'Sign In';
-    document.getElementById('dobField').style.display = 'none';
-    document.getElementById('bizField').style.display = 'none';
-    document.getElementById('forgotLinkWrap').style.display = 'block';
-    document.getElementById('stepper').style.display = 'none';
-  };
+Thank you for your prompt attention to this matter.
 
-  document.getElementById('forgotPasswordLink').onclick = async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('regEmail').value.trim();
-    const errEl = document.getElementById('regErr');
-    if(!email) {
-      errEl.textContent = 'Please enter your @gmail.com email address above first.';
-      return;
-    }
-    errEl.textContent = 'Sending reset code...';
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email})
-      });
-      const data = await res.json();
-      if(!res.ok) throw new Error(data.detail || 'Could not send reset code.');
-      
-      const code = prompt('Verification code sent! Enter your 6-digit code:');
-      if(!code) return;
-      const newPassword = prompt('Enter new password (min 7 chars, 1 special character):');
-      if(!newPassword) return;
-
-      if(!checkPasswordValid(newPassword)) {
-        alert('Password must be at least 7 characters and have 1 special character.');
-        return;
-      }
-
-      const resetRes = await fetch(`${API_BASE}/api/auth/reset-password`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, code, new_password: newPassword})
-      });
-      const resetData = await resetRes.json();
-      if(!resetRes.ok) throw new Error(resetData.detail || 'Reset failed.');
-      errEl.textContent = '';
-      toast('Password updated successfully! Please sign in.');
-    } catch(err) {
-      errEl.textContent = err.message;
-    }
-  };
-
-  document.getElementById('toTermsBtn').onclick = async () => {
-    const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPass').value;
-    const errEl = document.getElementById('regErr');
-
-    if(isLoginMode) {
-      const missing = [];
-      if(!email) missing.push('Email address');
-      if(!password) missing.push('Password');
-      if(missing.length > 0) {
-        errEl.textContent = 'Please fill out: ' + missing.join(', ');
-        return;
-      }
-      errEl.textContent = 'Authenticating...';
-      try {
-        const res = await fetch(`${API_BASE}/api/auth/login`, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({email, password})
-        });
-        const data = await res.json();
-        if(!res.ok) throw new Error(data.detail || 'Invalid email or password.');
-        errEl.textContent = '';
-        activeEmail = data.email;
-        activePlan = data.plan || 'solo';
-        enterDashboard(data.trials_left ?? 3);
-      } catch(e) {
-        errEl.textContent = e.message;
-      }
-      return;
-    }
-
-    const dobVal = document.getElementById('regAge').value;
-    const business = document.getElementById('regBiz').value.trim();
-
-    const missingFields = [];
-    if(!email) missingFields.push('Email address');
-    if(!password) missingFields.push('Password');
-    if(!dobVal) missingFields.push('Date of Birth');
-    if(!business) missingFields.push('Business Name');
-
-    if(missingFields.length > 0) {
-      errEl.textContent = 'Please fill out: ' + missingFields.join(', ');
-      return;
-    }
-
-    if (!email.toLowerCase().endsWith('@gmail.com')) {
-      errEl.textContent = 'A valid @gmail.com email address is required.';
-      return;
-    }
-
-    if (!checkPasswordValid(password)) {
-      errEl.textContent = 'Password must be at least 7 characters long and contain 1 special character.';
-      return;
-    }
-
-    const dob = new Date(dobVal);
-    const today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-    const m = today.getMonth() - dob.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-      age--;
-    }
-
-    if (age < 18) {
-      errEl.textContent = 'You must be at least 18 years old to create an account.';
-      return;
-    }
-
-    errEl.textContent = '';
-
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/register`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, password, dob: dobVal, business})
-      });
-      const d = await res.json();
-      if(!res.ok) throw new Error(d.detail || 'Registration failed.');
-      activeEmail = email;
-      activePlan = 'solo';
-      document.getElementById('v-details').hidden = true;
-      document.getElementById('v-terms').hidden = false;
-      document.getElementById('st1').className = 'st done';
-      document.getElementById('st2').className = 'st on';
-    } catch(e) {
-      errEl.textContent = e.message;
-    }
-  };
-
-  document.getElementById('agreeBtn').onclick = () => {
-    agreedTerms = !agreedTerms;
-    document.getElementById('agreeBtn').setAttribute('aria-checked', agreedTerms);
-  };
-
-  document.getElementById('backToDetails').onclick = () => {
-    document.getElementById('v-terms').hidden = true;
-    document.getElementById('v-details').hidden = false;
-    document.getElementById('st1').className = 'st on';
-    document.getElementById('st2').className = 'st';
-  };
-
-  document.getElementById('toPlansBtn').onclick = () => {
-    if(!agreedTerms) {
-      document.getElementById('termsErr').textContent = 'You must agree to the terms to proceed.';
-      return;
-    }
-    document.getElementById('v-terms').hidden = true;
-    document.getElementById('v-plans').hidden = false;
-    document.body.classList.add('wide-view');
-    document.getElementById('st2').className = 'st done';
-    document.getElementById('st3').className = 'st on';
-    loadPlans('plansGrid');
-  };
-
-  window.loadPlans = function(containerId) {
-    const plans = [
-      {
-        id:'solo', name:'Solo Contractor', price:29, pop:false,
-        feats:['25 AI disputes per month', 'Manual dispute templates', 'Email support'],
-        missing:['AI custom generated claims', 'Audio & PDF evidence upload', 'Gmail one-click send']
-      },
-      {
-        id:'growth', name:'Growth Pro', price:59, pop:true,
-        feats:['Unlimited AI disputes', 'AI custom generated claims', 'Audio & PDF evidence upload', 'Gemini 3.5 Flash & Groq Qwen3 4B', 'Gmail one-click send']
-      }
-    ];
-    document.getElementById(containerId).innerHTML = plans.map(p => `
-      <article class="plan${p.pop?' pop':''}">
-        ${p.pop?'<span class="pop-tag">Most Popular</span>':''}
-        <h2>${p.name}</h2>
-        <div class="price">$${p.price}<small>/mo</small></div>
-        <ul>
-          ${p.feats.map(f=>`<li>✓ <span>${f}</span></li>`).join('')}
-          ${p.missing ? p.missing.map(m=>`<li class="dim">✕ <span>${m}</span></li>`).join('') : ''}
-        </ul>
-        <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">${activePlan === p.id ? 'Current Plan' : 'Upgrade with Stripe'}</button>
-      </article>
-    `).join('');
-  };
-
-  window.selectPlan = async function(planId) {
-    try {
-      const res = await fetch(`${API_BASE}/api/auth/select-plan`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email: activeEmail, plan: planId, device_token: deviceToken})
-      });
-      if(!res.ok) throw new Error('Failed to update plan.');
-      activePlan = planId;
-      document.getElementById('upgradeModal').hidden = true;
-      enterDashboard(3);
-      toast('Plan successfully updated!');
-    } catch(e) {
-      alert('Error updating plan.');
-    }
-  };
-
-  document.getElementById('upgradeBtnHeader').onclick = () => {
-    document.getElementById('upgradeModal').hidden = false;
-    loadPlans('upgradePlansGrid');
-  };
-  document.getElementById('closeUpgrade').onclick = () => {
-    document.getElementById('upgradeModal').hidden = true;
-  };
-
-  function enterDashboard(trials) {
-    document.body.classList.remove('wide-view');
-    document.getElementById('pg-auth').classList.remove('active');
-    document.getElementById('pg-dash').classList.add('active');
-    document.getElementById('viewAccountsBtn').style.display = 'inline-flex';
-    document.getElementById('logoutBtn').style.display = 'inline-flex';
-    document.getElementById('headerTrialBadge').hidden = false;
-    document.getElementById('currentPlanIndicator').hidden = false;
-    document.getElementById('planNameDisplay').textContent = activePlan;
-    document.getElementById('trialCount').textContent = trials;
-    
-    const uploadWrapper = document.getElementById('fileUploadWrapper');
-    if(activePlan === 'solo') {
-      uploadWrapper.classList.add('paywall-lock');
-      uploadWrapper.onclick = () => {
-        document.getElementById('upgradeModal').hidden = false;
-        loadPlans('upgradePlansGrid');
-        toast('Audio & PDF evidence upload is a Growth Pro feature.');
-      };
-    } else {
-      uploadWrapper.classList.remove('paywall-lock');
-      uploadWrapper.onclick = null;
-    }
-
-    toast('Welcome to LeadClaw');
-  }
-
-  document.getElementById('logoutBtn').onclick = () => {
-    activeEmail = '';
-    activePlan = 'solo';
-    document.getElementById('pg-dash').classList.remove('active');
-    document.getElementById('pg-auth').classList.add('active');
-    document.getElementById('viewAccountsBtn').style.display = 'none';
-    document.getElementById('logoutBtn').style.display = 'none';
-    document.getElementById('headerTrialBadge').hidden = true;
-    document.getElementById('currentPlanIndicator').hidden = true;
-    document.getElementById('v-details').hidden = false;
-    document.getElementById('v-terms').hidden = true;
-    document.getElementById('v-plans').hidden = true;
-    document.body.classList.remove('wide-view');
-    document.getElementById('st1').className = 'st on';
-    document.getElementById('st2').className = 'st';
-    document.getElementById('st3').className = 'st';
-    toast('Signed out successfully');
-  };
-
-  window.setPlat = function(p) {
-    currentPlatform = p;
-    const buttons = document.querySelectorAll('#platforms button');
-    buttons.forEach(b => b.setAttribute('aria-checked', b.textContent === p ? 'true' : 'false'));
-  };
-
-  function triggerLoadingProgress(callback) {
-    const wrap = document.getElementById('progressWrap');
-    const fill = document.getElementById('progressBarFill');
-    const status = document.getElementById('progressStatus');
-    const percent = document.getElementById('progressPercent');
-    
-    wrap.style.display = 'block';
-    fill.style.width = '0%';
-    
-    const steps = [
-      { p: 25, msg: 'Auditing marketplace refund policy...' },
-      { p: 55, msg: 'Evaluating contractor call notes & accounts...' },
-      { p: 85, msg: 'Structuring formal claim statement...' },
-      { p: 100, msg: 'Claim generated successfully!' }
-    ];
-
-    let stepIdx = 0;
-    const interval = setInterval(() => {
-      if (stepIdx < steps.length) {
-        fill.style.width = steps[stepIdx].p + '%';
-        percent.textContent = steps[stepIdx].p + '%';
-        status.textContent = steps[stepIdx].msg;
-        stepIdx++;
-      } else {
-        clearInterval(interval);
-        setTimeout(() => {
-          wrap.style.display = 'none';
-          if(callback) callback();
-        }, 400);
-      }
-    }, 450);
-  }
-
-  document.getElementById('goBtn').onclick = async () => {
-    const notes = document.getElementById('notes').value;
-    const cost = document.getElementById('cost').value;
-    const leadPhone = document.getElementById('leadPhone').value.trim();
-    const leadEmail = document.getElementById('leadEmail').value.trim();
-    const fileInput = document.getElementById('evidenceFiles');
-
-    const missingLeadInfo = [];
-    if(!leadPhone) missingLeadInfo.push('Lead Phone Number');
-    if(!leadEmail) missingLeadInfo.push('Lead Email Address');
-
-    if(missingLeadInfo.length > 0) {
-      alert('Mandatory: Please fill out: ' + missingLeadInfo.join(', '));
-      return;
-    }
-
-    if(fileInput.files.length > 0 && activePlan === 'solo') {
-      document.getElementById('upgradeModal').hidden = false;
-      loadPlans('upgradePlansGrid');
-      toast('Audio & PDF evidence upload requires Growth Pro.');
-      return;
-    }
-
-    const fd = new FormData();
-    fd.append('platform', currentPlatform);
-    fd.append('notes', notes);
-    fd.append('cost', cost);
-    fd.append('lead_phone', leadPhone);
-    fd.append('lead_email', leadEmail);
-    fd.append('email', activeEmail);
-    fd.append('device_token', deviceToken);
-
-    if (activePlan === 'growth') {
-      for (let i = 0; i < fileInput.files.length; i++) {
-        fd.append('files', fileInput.files[i]);
-      }
-    }
-
-    document.getElementById('claimActions').hidden = true;
-    document.getElementById('resultContent').textContent = 'Initializing AI engine...';
-    
-    triggerLoadingProgress(async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/dispute`, {method: 'POST', body: fd});
-        const data = await res.json();
-        
-        if(res.status === 402 || res.status === 403) {
-          document.getElementById('upgradeModal').hidden = false;
-          loadPlans('upgradePlansGrid');
-          toast(data.detail || 'Please upgrade your plan.');
-          return;
-        }
-
-        if(!res.ok) throw new Error(data.detail || 'Error processing request');
-        
-        if(typeof data.trials_left === 'number') {
-          document.getElementById('trialCount').textContent = data.trials_left;
-        }
-
-        generatedClaimText = data.claim || data.reason || '';
-
-        document.getElementById('resultContent').innerHTML = `
-          <b style="color:${data.valid ? 'var(--ok)' : 'var(--err)'};font-size:16px">${data.valid ? 'Eligible for Credit' : 'Not Eligible'}</b>
-          <p style="margin:6px 0 12px;color:var(--mu)">${data.reason || 'AI evaluation complete.'}</p>
-        `;
-
-        if(data.valid && generatedClaimText) {
-          document.getElementById('claimBoxText').textContent = generatedClaimText;
-          document.getElementById('claimActions').hidden = false;
-        }
-      } catch(e) {
-        document.getElementById('resultContent').textContent = 'Error: ' + e.message;
-      }
-    });
-  };
-
-  document.getElementById('copyClaimBtn').onclick = () => {
-    if(!generatedClaimText) return;
-    navigator.clipboard.writeText(generatedClaimText);
-    toast('Claim copied to clipboard!');
-  };
-
-  document.getElementById('openGmailBtn').onclick = () => {
-    if(!generatedClaimText) return;
-    const subject = encodeURIComponent(`[Dispute Request] ${currentPlatform} Lead Credit Request`);
-    const body = encodeURIComponent(generatedClaimText);
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
-    window.open(gmailUrl, '_blank');
-  };
-
-  document.getElementById('viewAccountsBtn').onclick = async () => {
-    if(!activeEmail) {
-      toast('Please sign in first.');
-      return;
-    }
-    document.getElementById('adminModal').hidden = false;
-
-    try {
-      const res = await fetch(`${API_BASE}/api/admin/analytics`);
-      const data = await res.json();
-      const myUser = data.users.filter(u => u.email === activeEmail);
-      const myDisputes = data.disputes.filter(d => d.email === activeEmail);
-
-      if(myUser.length > 0) {
-        document.getElementById('accFullName').value = myUser[0].full_name || '';
-        document.getElementById('accPhone').value = myUser[0].phone || '';
-        document.getElementById('accPassword').value = myUser[0].password || '';
-        document.getElementById('accAngi').value = myUser[0].acc_angi || '';
-        document.getElementById('accThumbtack').value = myUser[0].acc_thumbtack || '';
-        document.getElementById('accNetworx').value = myUser[0].acc_networx || '';
-        document.getElementById('accPorch').value = myUser[0].acc_porch || '';
-      }
-
-      let html = '<h3 style="margin-top:16px">Account Profile</h3><table><tr><th>Email</th><th>Business Workspace</th><th>Plan</th></tr>';
-      myUser.forEach(u => {
-        html += `<tr><td>${u.email}</td><td>${u.workspace}</td><td>${u.plan}</td></tr>`;
-      });
-      html += '</table><h3 style="margin-top:18px">Your Disputes History</h3><table><tr><th>ID</th><th>Platform</th><th>Lead Phone</th><th>Amount</th><th>Status</th></tr>';
-      myDisputes.forEach(d => {
-        html += `<tr><td>${d.id}</td><td>${d.platform}</td><td>${d.lead_phone || 'N/A'}</td><td>$${d.amount}</td><td>${d.valid ? 'Eligible' : 'Rejected'}</td></tr>`;
-      });
-      html += '</table>';
-      document.getElementById('adminTableWrap').innerHTML = html;
-    } catch(e) {
-      document.getElementById('adminTableWrap').textContent = 'Could not load your records.';
-    }
-  };
-
-  document.getElementById('saveAccountsBtn').onclick = async () => {
-    const fullName = document.getElementById('accFullName').value;
-    const phone = document.getElementById('accPhone').value;
-    const password = document.getElementById('accPassword').value;
-    const accAngi = document.getElementById('accAngi').value;
-    const accThumbtack = document.getElementById('accThumbtack').value;
-    const accNetworx = document.getElementById('accNetworx').value;
-    const accPorch = document.getElementById('accPorch').value;
-
-    if (password && !checkPasswordValid(password)) {
-      alert('Password must be at least 7 characters and contain 1 special character.');
-      return;
-    }
-
-    try {
-      await fetch(`${API_BASE}/api/user/profile`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-          email: activeEmail,
-          password: password,
-          full_name: fullName,
-          phone: phone,
-          acc_angi: accAngi,
-          acc_thumbtack: accThumbtack,
-          acc_porch: accPorch,
-          acc_networx: accNetworx
-        })
-      });
-      toast('Profile & credentials saved securely!');
-    } catch(e) {
-      toast('Error saving profile.');
-    }
-  };
-
-  document.getElementById('closeAdmin').onclick = () => {
-    document.getElementById('adminModal').hidden = true;
-  };
-});
+Sincerely,
+${me.full_name||'[Your Name]'}
+${me.workspace}${me.phone?'\n'+me.phone:''}
+${me.email}`}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
+async function api(path,o={}){
+  const auth=path.startsWith('/api/auth');
+  if(!auth&&!token&&tokenReady)await tokenReady;
+  if(!auth&&!token){openAuth('login');throw new Error('Please log in to continue.')}
+  const h=o.headers||{};if(token)h.Authorization='Bearer '+token;
+  if(o.json){h['Content-Type']='application/json';o.body=JSON.stringify(o.json)}
+  let r;try{r=await fetch(API+path,{...o,headers:h})}catch(e){throw new Error('Cannot reach the server. Please try again in a moment.')}
+  const d=await r.json().catch(()=>({}));
+  if(r.status===401&&token&&!auth){signout(true);openAuth('login');throw new Error('Session expired. Please log in again.')}
+  if(!r.ok){const e=new Error(typeof d.detail==='string'?d.detail:'Something went wrong. Please try again.');e.status=r.status;throw e}
+  return d}
+function wakeBar(after,msg){
+  const w=document.createElement('div');w.className='wake';w.innerHTML=`<span>${msg||'Waking up the server. This can take up to 30 seconds…'}</span><div class="bar"><i></i></div>`;
+  after.insertAdjacentElement('afterend',w);const i=w.querySelector('i');let p=0;
+  const iv=setInterval(()=>{p=Math.min(94,p+(p<50?4:p<80?1.5:.4));i.style.width=p+'%'},400);
+  return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),350)}}
+async function withWake(el,fn,msg){let stop=null;const t=setTimeout(()=>{if(el)stop=wakeBar(el,msg)},1200);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
+function scrollToId(id){go('landing');setTimeout(()=>$(id).scrollIntoView({behavior:'smooth'}),30)}
+function go(v){$('landing').hidden=v!=='landing';$('app').hidden=v!=='app';window.scrollTo(0,0);if(v==='landing')observe()}
+function closeOv(id){$(id).hidden=true}
+function openUpgrade(){go('landing');setTimeout(()=>$('pricing').scrollIntoView({behavior:'smooth'}),30)}
+$('themeBtn').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;ls('lc_theme',n)};
+let io;function observe(){io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.rv').forEach(el=>io.observe(el))}
+function renderPlans(){
+  $('plans').innerHTML=PLANS.map(p=>{const cur=me&&me.plan===p.id;
+    const label=cur?'Current plan':p.id==='free'?(me?'Free trial':'Start free trial'):me?'Upgrade to '+p.name:'Get '+p.name;
+    return `<article class="plan rv${p.pop?' pop':''}">${p.pop?'<span class="tag">Most popular</span>':''}<h3>${p.name}</h3><div class="price">${p.price?`$${p.price}<small>/mo</small>`:`Free<small> · 3 disputes</small>`}</div>
+    <ul>${p.f.map(x=>`<li>${x}</li>`).join('')}${(p.x||[]).map(x=>`<li class="no">${x}</li>`).join('')}</ul>
+    <button class="btn full${p.pop?'':' sec'}" ${cur||(me&&p.id==='free')?'disabled':''} onclick="choose('${p.id}',this)">${label}</button></article>`}).join('');observe()}
+async function choose(id,btn){
+  if(!me){pendingPlan=id==='free'?null:id;return openAuth('signup')}
+  if(id==='free')return;
+  try{toast('Opening secure checkout…');const d=await withWake(btn||document.querySelector('.plan.pop .btn'),()=>api('/api/billing/checkout',{method:'POST',json:{plan:id}}),'Connecting to secure checkout. This can take up to 30 seconds…');location.href=d.url}catch(e){toast(e.message)}}
+// ---- auth: instant on the front end, server sync happens in the background
+function openAuth(m){mode=m;const s=m==='signup';$('aT').textContent=s?'Start your free trial':'Welcome back';$('aS').textContent=s?'3 disputes, no card needed.':'Sign in to your dashboard.';
+  $('suOnly').hidden=!s;$('aGo').textContent=s?'Create account':'Sign in';$('aM').textContent='';$('aMain').hidden=false;
+  $('aSw').innerHTML=s?'Have an account? <a href="#" style="color:var(--acc);font-weight:600" id="sw">Log in</a>':'New here? <a href="#" style="color:var(--acc);font-weight:600" id="sw">Start free trial</a>';
+  $('sw').onclick=e=>{e.preventDefault();openAuth(s?'login':'signup')};$('authOv').hidden=false;setTimeout(()=>$('rE').focus(),50)}
+const pwOk=p=>p.length>=7&&/[!@#$%^&*(),.?":{}|<>]/.test(p);
+function afterAuth(){closeOv('authOv');render();go('app');toast('Welcome to LeadClaw');if(pendingPlan){const p=pendingPlan;pendingPlan=null;choose(p)}}
+function backgroundRegister(body){
+  tokenReady=(async()=>{
+    for(let i=0;i<12;i++){
+      try{const d=await api('/api/auth/register',{method:'POST',json:body});token=d.token;ls('lc_token',token);return}
+      catch(e){
+        if(e.status===409){signout(true);openAuth('login');toast('That email already has an account. Please log in.');return}
+        if(e.status&&e.status!==429&&e.status<500){signout(true);toast(e.message);return}
+        await new Promise(r=>setTimeout(r,4000))}}})()}
+$('aGo').onclick=async()=>{
+  const email=$('rE').value.trim().toLowerCase(),password=$('rP').value,m=$('aM');m.className='msg';
+  if(!email||!password)return m.textContent='Enter your email and password.';
+  if(mode==='login'){
+    const b=$('aGo');b.disabled=true;b.classList.add('busy');const t=setTimeout(()=>b.textContent='Almost there…',4000);
+    try{await withWake(b,async()=>{const d=await api('/api/auth/login',{method:'POST',json:{email,password}});token=d.token;ls('lc_token',token);me=await api('/api/me');saveMe()});afterAuth()}
+    catch(e){m.textContent=e.message}finally{clearTimeout(t);b.disabled=false;b.classList.remove('busy');b.textContent='Sign in'}
+    return}
+  const dob=$('rD').value,business=$('rB').value.trim();
+  if(!business||!dob)return m.textContent='Please fill out every field.';
+  if(!email.endsWith('@gmail.com'))return m.textContent='A @gmail.com address is required.';
+  if(!pwOk(password))return m.textContent='Password needs 7+ characters and 1 special character.';
+  if(password!==$('rP2').value)return m.textContent='Passwords do not match.';
+  const d0=new Date(dob),t0=new Date();let age=t0.getFullYear()-d0.getFullYear();if(t0.getMonth()<d0.getMonth()||(t0.getMonth()===d0.getMonth()&&t0.getDate()<d0.getDate()))age--;
+  if(isNaN(age)||age<18)return m.textContent='You must be at least 18 years old.';
+  if(!$('rT').checked)return m.textContent='Please accept the Terms & Policies.';
+  me={email,plan:'free',trials_left:3,workspace:business,full_name:'',phone:'',acc_angi:'',acc_thumbtack:'',acc_porch:'',acc_networx:'',month_used:0,solo_limit:25,billing:false,disputes:[],eligible_total:0,recovered_total:0};
+  token=null;ls('lc_token',null);saveMe();
+  backgroundRegister({email,password,dob,business,accept_terms:true});
+  afterAuth()};
+function signout(silent){if(token&&!silent)fetch(API+'/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{});
+  token=null;me=null;tokenReady=null;ls('lc_token',null);ls('lc_me',null);render();go('landing');if(!silent)toast('Signed out')}
+// ---- render
+function render(){
+  $('navPub').hidden=!!me;$('navPriv').hidden=!me;
+  if(!me){renderPlans();return}
+  $('planPill').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]||me.plan;
+  const g=me.plan==='growth';
+  $('fileBox').classList.toggle('lock',!g);$('modelBox').classList.toggle('lock',!g);
+  [$('fileBox'),$('modelBox')].forEach(b=>b.onclick=()=>{if(!g){toast('Upgrade to Growth Pro to unlock this.');openUpgrade()}});
+  const lim=me.plan==='solo'?me.solo_limit:3,used=me.plan==='free'?3-me.trials_left:me.month_used;
+  $('kUse').textContent=g?'Unlimited':me.plan==='free'?`${me.trials_left} of 3 trial disputes left`:`${used} / ${lim} this month`;
+  $('kBar').style.width=(g?100:Math.min(100,used/lim*100))+'%';
+  $('kCount').textContent=me.disputes.length;$('kElig').textContent='$'+me.eligible_total.toFixed(0);$('kRec').textContent='$'+me.recovered_total.toFixed(0);
+  renderHist();renderPlans()}
+async function refreshMe(){try{me=await api('/api/me');saveMe();render()}catch(e){}}
+function renderHist(){
+  $('hEmpty').hidden=me.disputes.length>0;
+  $('hb').innerHTML=me.disputes.map((d,i)=>`<tr class="hr" style="animation-delay:${Math.min(i,10)*40}ms"><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td>
+  <td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Rejected'}</span></td>
+  <td>${d.valid&&d.id?`<input type="checkbox" ${d.recovered?'checked':''} onchange="rec(${d.id},this.checked)" aria-label="Recovered">`:'–'}</td>
+  <td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="showClaim(${d.id})">View</button>`:''}</td></tr>`).join('')}
+async function rec(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as recovered':'Unmarked')}catch(e){toast(e.message)}}
+function showClaim(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},false,d.platform);document.querySelector('[data-t=new]').click()}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));$('tNew').hidden=b.dataset.t!=='new';$('tHist').hidden=b.dataset.t!=='hist'});
+// ---- form
+function renderPlat(){$('plat').innerHTML=['Angi','Thumbtack','Porch','Networx'].map(p=>`<button type="button" class="${p===plat?'on':''}">${p}</button>`).join('');
+  [...$('plat').children].forEach(b=>b.onclick=()=>{plat=b.textContent;renderPlat()})}
+renderPlat();
+$('chips').innerHTML=Object.keys(CHIPS).map(k=>`<button type="button" class="chip">${k}</button>`).join('');
+[...$('chips').children].forEach((c,i)=>c.onclick=()=>{$('notes').value=Object.values(CHIPS)[i]});
+document.querySelectorAll('#ctype button').forEach(b=>b.onclick=()=>{
+  if(b.dataset.m==='ai'&&me&&me.plan==='solo'){toast('Custom AI claims are a Growth Pro feature. Use the instant template.');return openUpgrade()}
+  ctype=b.dataset.m;document.querySelectorAll('#ctype button').forEach(x=>x.classList.toggle('on',x===b));
+  $('aWarn').hidden=ctype!=='ai';$('aiOpts').hidden=ctype!=='ai';if(ctype==='ai')fetch(API+'/').catch(()=>{})});
+function showResult(d,type=false,p=plat){
+  claim=d.claim||'';shownPlat=p;const to=ls('lc_to_'+p)||EM[p]||'';
+  $('out').className='res';
+  $('out').innerHTML=`<div class="verdict ${d.valid?'ok':'err'}"><svg class="vi" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="${d.valid?'M7 12.5l3.2 3.2L17 9':'M8.5 8.5l7 7M15.5 8.5l-7 7'}"/></svg>${d.valid?'Eligible for credit':'Not eligible'}</div><p style="color:var(--mu);margin:8px 0 0">${esc(d.reason)}</p>`+
+  (d.valid&&claim?`${/\[Your Pro ID\]/.test(claim)?`<p class="hint" style="margin-top:12px">Tip: add your ${esc(p)} account ID under Account and it will fill in automatically.</p>`:''}<div class="claim" id="cl"></div><div class="f"><label for="toEm">Send to (${esc(p)} support email)</label><input class="inp" id="toEm" type="email" value="${esc(to)}" placeholder="Support address from ${esc(p)}'s help center"></div>
+  <div class="acts"><button class="btn sec sm" id="cp">Copy claim</button><button class="btn sm" id="gm">Open in Gmail</button></div>`:'');
+  if(d.valid&&claim){const el=$('cl');if(type){let i=0;(function t(){i+=9;el.textContent=claim.slice(0,i);if(i<claim.length)setTimeout(t,12)})()}else el.textContent=claim;
+    $('cp').onclick=async()=>{try{await navigator.clipboard.writeText(claim);toast('Claim copied')}catch(e){toast('Copy failed. Select the text manually.')}};
+    $('gm').onclick=()=>{const mm=claim.match(/^Subject:\s*(.+?)\r?\n+/),su=mm?mm[1]:`Lead Credit Request - ${shownPlat}`,body=mm?claim.slice(mm[0].length):claim,to=$('toEm').value.trim();
+      ls('lc_to_'+shownPlat,to);
+      const w=window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`,'_blank');
+      if(w)w.opener=null;else toast('Popup blocked. Allow popups for this site, or use Copy claim.')}}}
+function limitHit(){return(me.plan==='free'&&me.trials_left<=0)||(me.plan==='solo'&&me.month_used>=me.solo_limit)}
+$('go').onclick=async()=>{
+  const lp=$('lp').value.trim(),le=$('le').value.trim(),cost=parseFloat($('cost').value),notes=$('notes').value,lid=$('lid').value.trim(),recv=$('lrecv').value;
+  if(!lp||!le)return toast('Lead phone and email are required.');
+  if(!lid)return toast('Lead ID is required. It goes in the email subject.');
+  if(!(cost>0))return toast('Enter a valid lead cost.');
+  if(limitHit()){toast(me.plan==='free'?'Your free trial is used up. Pick a plan to continue.':'Monthly limit reached. Upgrade for unlimited disputes.');return openUpgrade()}
+  if(ctype==='template'){ // instant, no server wait
+    const r=analyze(notes),d={valid:r.valid,reason:r.reason,claim:r.valid?letter(r.rule,plat,lp,le,cost,notes,lid,recv):''};
+    showResult(d,false,plat);
+    me.disputes.unshift({id:0,platform:plat,lead_phone:lp,amount:cost,valid:d.valid?1:0,recovered:0,claim:d.claim,reason:d.reason,created_at:new Date().toISOString()});
+    if(me.plan==='free')me.trials_left--;else me.month_used++;
+    if(d.valid)me.eligible_total+=cost;render();
+    api('/api/dispute/record',{method:'POST',json:{platform:plat,lead_phone:lp,lead_email:le,cost,valid:d.valid,reason:d.reason,claim:d.claim}})
+      .then(refreshMe).catch(e=>{toast(e.message);if(e.status===402)openUpgrade()});
+    return}
+  const fd=new FormData();fd.append('platform',plat);fd.append('notes',notes);fd.append('cost',cost);fd.append('lead_phone',lp);fd.append('lead_email',le);fd.append('lead_id',lid);fd.append('received',recv);
+  if(me.plan==='growth'){fd.append('model',$('model').value);[...$('files').files].forEach(f=>fd.append('files',f))}
+  const btn=$('go'),pw=$('prog'),bar=$('pBar');btn.disabled=true;btn.classList.add('busy');pw.style.display='block';$('out').className='empty';$('out').textContent='Analyzing with AI. This can take up to 30 seconds…';
+  const msgs=['Auditing marketplace refund policy…','Evaluating your call notes…','Writing your custom claim…'];let p=0,secs=0;
+  const iv=setInterval(()=>{secs+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'%';$('pStat').textContent=secs>10?'Still working. The AI server is waking up…':msgs[Math.min(2,Math.floor(p/32))]},350);
+  try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100%';$('pStat').textContent='Done';
+    showResult(d,true,plat);await refreshMe()}
+  catch(e){clearInterval(iv);$('out').className='empty';$('out').textContent=e.message;if(e.status===402||e.status===403){toast(e.message);openUpgrade()}}
+  finally{btn.disabled=false;btn.classList.remove('busy');setTimeout(()=>{pw.style.display='none';bar.style.width='0'},900)}};
+// ---- account
+function openAccount(){const m=me;$('aN').value=m.full_name||'';$('aP').value=m.phone||'';$('hA').value=m.acc_angi||'';$('hT').value=m.acc_thumbtack||'';$('hP').value=m.acc_porch||'';$('hN').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;$('accOv').hidden=false}
+$('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7+ characters and 1 special character.');
+  const f={full_name:$('aN').value,phone:$('aP').value,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value};
+  Object.assign(me,f);saveMe();closeOv('accOv');toast('Saved');
+  api('/api/user/profile',{method:'POST',json:{password:pw,...f}}).catch(e=>toast(e.message))};
+$('billBtn').onclick=async()=>{try{const d=await withWake($('billBtn'),()=>api('/api/billing/portal',{method:'POST'}));location.href=d.url}catch(e){toast(e.message)}};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','accOv'].forEach(closeOv)});
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.hidden=true}));
+addEventListener('scroll',()=>document.querySelector('nav').classList.toggle('sc',scrollY>8),{passive:true});
+$('yr').textContent=new Date().getFullYear();
+renderPlans();observe();render();
+if(me)go('app');
+const q=new URLSearchParams(location.search).get('checkout');
+if(q){history.replaceState({},'',location.pathname);if(q==='success'){toast('Payment received. Activating your plan…');[3500,10000].forEach(t=>setTimeout(refreshMe,t))}}
+else if(token)refreshMe();
 </script>
 </body>
 </html>
