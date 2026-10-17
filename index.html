@@ -88,8 +88,8 @@ label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;colo
 .check-row[aria-checked=true] .cbox{background:var(--blue);border-color:var(--blue);color:#fff}
 body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
 .trial-banner{display:flex;align-items:center;justify-content:between;gap:10px;background:linear-gradient(135deg,var(--blue),#1e40af);color:#fff;font:700 14.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px}
-.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
-@media(max-width:900px){.plans{grid-template-columns:1fr}}
+.plans{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;max-width:850px;margin:0 auto}
+@media(max-width:700px){.plans{grid-template-columns:1fr}}
 .plan{background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:28px 24px;box-shadow:var(--sh-sm);display:flex;flex-direction:column;position:relative}
 .plan.pop{border:2px solid var(--blue);box-shadow:0 4px 20px rgba(37,99,235,.2)}
 .pop-tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font:700 12px var(--sans);padding:4px 13px;border-radius:999px}
@@ -124,7 +124,7 @@ th{background:var(--surf2)}
 .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,18px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;font-size:14px;z-index:90}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .paywall-lock{position:relative;opacity:0.65}
-.paywall-lock::after{content:"🔒 Pro Feature (Click to Upgrade)";position:absolute;inset:0;background:rgba(15,23,42,0.12);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--blue);border-radius:7px;cursor:pointer}
+.paywall-lock::after{content:"🔒 Growth Pro Feature (Click to Upgrade)";position:absolute;inset:0;background:rgba(15,23,42,0.12);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--blue);border-radius:7px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -167,13 +167,12 @@ th{background:var(--surf2)}
     <div class="view" id="v-details">
       <h1 id="authTitle">Create your account</h1>
       <p class="sub" id="authSub">Enter your business and contact details.</p>
-      <div class="field"><label>Email address (Gmail only)</label><input class="inp" id="regEmail" type="email" placeholder="you@gmail.com"></div>
-      <div class="field" id="userField"><label>Username</label><input class="inp" id="regUser" type="text" placeholder="contractor99"></div>
-      <div class="field"><label>Password (Min 7 chars, 1 special character)</label>
+      <div class="field"><label>Email address (Gmail only) *</label><input class="inp" id="regEmail" type="email" placeholder="you@gmail.com"></div>
+      <div class="field"><label>Password (Min 7 chars, 1 special character) *</label>
         <div class="pw-wrap"><input class="inp" id="regPass" type="password" placeholder="••••••••"><button class="show-btn" type="button" id="pwShow">Show</button></div>
       </div>
-      <div class="field" id="dobField"><label>Date of Birth (18+ required)</label><input class="inp" id="regAge" type="date"></div>
-      <div class="field" id="bizField"><label>Business Name</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing &amp; Plumbing"></div>
+      <div class="field" id="dobField"><label>Date of Birth (18+ required) *</label><input class="inp" id="regAge" type="date"></div>
+      <div class="field" id="bizField"><label>Business Name *</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing &amp; Plumbing"></div>
       
       <div id="forgotLinkWrap" style="margin-bottom:12px;display:none">
         <a href="#" id="forgotPasswordLink" style="font-size:13.5px;font-weight:600">Forgot your password?</a>
@@ -246,7 +245,7 @@ th{background:var(--surf2)}
 
     <!-- File Upload Gated / Visible for All -->
     <div class="field" id="fileUploadFieldContainer">
-      <label for="evidenceFiles">Audio / PDF Evidence Upload <span style="color:var(--blue);font-size:12px">(Growth Pro &amp; Enterprise)</span></label>
+      <label for="evidenceFiles">Audio / PDF Evidence Upload <span style="color:var(--blue);font-size:12px">(Growth Pro Feature)</span></label>
       <div id="fileUploadWrapper">
         <input class="inp" id="evidenceFiles" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px">
       </div>
@@ -313,7 +312,7 @@ th{background:var(--surf2)}
 
 <!-- UPGRADE PLAN MODAL -->
 <div class="ov" id="upgradeModal" hidden>
-  <div class="modal" style="max-width:1050px">
+  <div class="modal" style="max-width:850px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
       <h2>Upgrade Your LeadClaw Plan</h2>
       <button class="nav" id="closeUpgrade" style="padding:4px 10px">Close</button>
@@ -332,6 +331,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let activePlan = 'solo';
   let agreedTerms = false;
   let currentPlatform = 'Angi';
+  let isLoginMode = false;
   let generatedClaimText = '';
 
   let deviceToken = localStorage.getItem('lc_device_token');
@@ -378,14 +378,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('authTitle').textContent = 'Create your account';
     document.getElementById('authSub').textContent = 'Enter your business and contact details.';
     document.getElementById('toTermsBtn').textContent = 'Continue';
-    document.getElementById('userField').style.display = 'block';
     document.getElementById('dobField').style.display = 'block';
     document.getElementById('bizField').style.display = 'block';
     document.getElementById('forgotLinkWrap').style.display = 'none';
     document.getElementById('stepper').style.display = 'flex';
   };
 
-  let isLoginMode = false;
   document.getElementById('tabLogin').onclick = () => {
     isLoginMode = true;
     document.getElementById('tabLogin').classList.add('on');
@@ -393,7 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('authTitle').textContent = 'Welcome back';
     document.getElementById('authSub').textContent = 'Sign in to access your dashboard.';
     document.getElementById('toTermsBtn').textContent = 'Sign In';
-    document.getElementById('userField').style.display = 'none';
     document.getElementById('dobField').style.display = 'none';
     document.getElementById('bizField').style.display = 'none';
     document.getElementById('forgotLinkWrap').style.display = 'block';
@@ -447,22 +444,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('regPass').value;
     const errEl = document.getElementById('regErr');
 
-    if(!email || !password) {
-      errEl.textContent = 'Please fill out all required fields.';
-      return;
-    }
-
-    if (!email.toLowerCase().endswith('@gmail.com')) {
-      errEl.textContent = 'A valid @gmail.com email address is required.';
-      return;
-    }
-
-    if (!checkPasswordValid(password)) {
-      errEl.textContent = 'Password must be at least 7 characters long and contain 1 special character.';
-      return;
-    }
-
     if(isLoginMode) {
+      const missing = [];
+      if(!email) missing.push('Email address');
+      if(!password) missing.push('Password');
+      if(missing.length > 0) {
+        errEl.textContent = 'Please fill out: ' + missing.join(', ');
+        return;
+      }
       errEl.textContent = 'Authenticating...';
       try {
         const res = await fetch(`${API_BASE}/api/auth/login`, {
@@ -482,12 +471,27 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const username = document.getElementById('regUser').value.trim();
     const dobVal = document.getElementById('regAge').value;
     const business = document.getElementById('regBiz').value.trim();
 
-    if(!username || !dobVal || !business) {
-      errEl.textContent = 'Please fill out all required fields.';
+    const missingFields = [];
+    if(!email) missingFields.push('Email address');
+    if(!password) missingFields.push('Password');
+    if(!dobVal) missingFields.push('Date of Birth');
+    if(!business) missingFields.push('Business Name');
+
+    if(missingFields.length > 0) {
+      errEl.textContent = 'Please fill out: ' + missingFields.join(', ');
+      return;
+    }
+
+    if (!email.toLowerCase().endsWith('@gmail.com')) {
+      errEl.textContent = 'A valid @gmail.com email address is required.';
+      return;
+    }
+
+    if (!checkPasswordValid(password)) {
+      errEl.textContent = 'Password must be at least 7 characters long and contain 1 special character.';
       return;
     }
 
@@ -510,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await fetch(`${API_BASE}/api/auth/register`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({email, username, password, dob: dobVal, business})
+        body: JSON.stringify({email, password, dob: dobVal, business})
       });
       const d = await res.json();
       if(!res.ok) throw new Error(d.detail || 'Registration failed.');
@@ -560,10 +564,6 @@ document.addEventListener('DOMContentLoaded', () => {
       {
         id:'growth', name:'Growth Pro', price:59, pop:true,
         feats:['Unlimited AI disputes', 'AI custom generated claims', 'Audio & PDF evidence upload', 'Gemini 3.5 Flash & Groq Qwen3 4B', 'Gmail one-click send']
-      },
-      {
-        id:'crew', name:'Enterprise', price:129, pop:false,
-        feats:['Everything in Growth Pro', 'Team dispatch seats', 'Platform analytics dashboard', 'White-glove onboarding']
       }
     ];
     document.getElementById(containerId).innerHTML = plans.map(p => `
@@ -616,14 +616,13 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('planNameDisplay').textContent = activePlan;
     document.getElementById('trialCount').textContent = trials;
     
-    // Apply paywall locking visually if Solo plan
     const uploadWrapper = document.getElementById('fileUploadWrapper');
     if(activePlan === 'solo') {
       uploadWrapper.classList.add('paywall-lock');
       uploadWrapper.onclick = () => {
         document.getElementById('upgradeModal').hidden = false;
         loadPlans('upgradePlansGrid');
-        toast('Audio & PDF evidence upload is a Growth Pro & Enterprise feature.');
+        toast('Audio & PDF evidence upload is a Growth Pro feature.');
       };
     } else {
       uploadWrapper.classList.remove('paywall-lock');
@@ -698,15 +697,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const leadEmail = document.getElementById('leadEmail').value.trim();
     const fileInput = document.getElementById('evidenceFiles');
 
-    if(!leadPhone || !leadEmail) {
-      alert('Mandatory: Please fill out both the Lead Phone Number and Lead Email address to generate compliance dispute templates.');
+    const missingLeadInfo = [];
+    if(!leadPhone) missingLeadInfo.push('Lead Phone Number');
+    if(!leadEmail) missingLeadInfo.push('Lead Email Address');
+
+    if(missingLeadInfo.length > 0) {
+      alert('Mandatory: Please fill out: ' + missingLeadInfo.join(', '));
       return;
     }
 
     if(fileInput.files.length > 0 && activePlan === 'solo') {
       document.getElementById('upgradeModal').hidden = false;
       loadPlans('upgradePlansGrid');
-      toast('Audio & PDF evidence upload requires Growth Pro or Enterprise.');
+      toast('Audio & PDF evidence upload requires Growth Pro.');
       return;
     }
 
@@ -719,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
     fd.append('email', activeEmail);
     fd.append('device_token', deviceToken);
 
-    if (activePlan !== 'solo') {
+    if (activePlan === 'growth') {
       for (let i = 0; i < fileInput.files.length; i++) {
         fd.append('files', fileInput.files[i]);
       }
@@ -800,9 +803,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('accPorch').value = myUser[0].acc_porch || '';
       }
 
-      let html = '<h3 style="margin-top:16px">Account Profile</h3><table><tr><th>Email</th><th>Username</th><th>Business</th><th>Plan</th></tr>';
+      let html = '<h3 style="margin-top:16px">Account Profile</h3><table><tr><th>Email</th><th>Business Workspace</th><th>Plan</th></tr>';
       myUser.forEach(u => {
-        html += `<tr><td>${u.email}</td><td>${u.username}</td><td>${u.workspace}</td><td>${u.plan}</td></tr>`;
+        html += `<tr><td>${u.email}</td><td>${u.workspace}</td><td>${u.plan}</td></tr>`;
       });
       html += '</table><h3 style="margin-top:18px">Your Disputes History</h3><table><tr><th>ID</th><th>Platform</th><th>Lead Phone</th><th>Amount</th><th>Status</th></tr>';
       myDisputes.forEach(d => {
