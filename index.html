@@ -135,6 +135,13 @@ html[data-theme=dark]{--yl:rgba(250,204,21,.12);--ylb:#a16207;--ylt:#fcd34d}
 .agrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
 @media(max-width:1000px){.agrid{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){.agrid{grid-template-columns:1fr 1fr}}
 .pl{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--tint);color:var(--acc);text-transform:capitalize}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0}
+.kpi small{display:block;color:var(--mu);font-size:12px;margin-top:2px;font-weight:400}
+.pcf{display:block;color:var(--mu);font-size:12.5px;margin-top:2px;max-width:260px}
+.plancard .btn{text-decoration:none}
+.inp.invalid{border-color:var(--err);animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.top{grid-template-columns:repeat(3,1fr)}
+@media(max-width:560px){.top{grid-template-columns:1fr}}
 </style>
 <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('lc_theme')||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}</script>
 </head>
@@ -144,8 +151,8 @@ html[data-theme=dark]{--yl:rgba(250,204,21,.12);--ylb:#a16207;--ylt:#fcd34d}
   <span class="sp"></span>
   <span id="navPub"><button class="lnk hm" onclick="scrollToId('how')">How it works</button><button class="lnk hm" onclick="scrollToId('features')">Features</button><button class="lnk hm" onclick="scrollToId('pricing')">Pricing</button><button class="lnk" onclick="openAuth('login')">Log in</button> <button class="btn sm" onclick="openAuth('signup')">Start free trial</button></span>
   <span id="navPriv" hidden style="display:flex;gap:8px;align-items:center"><span class="pill" id="planPill"></span><button class="lnk" onclick="go('app')">Dashboard</button><button class="lnk" onclick="openAccount()">Account</button><button class="btn sm sec" onclick="signout()">Sign out</button></span>
-  <button class="lnk" id="themeBtn" aria-label="Toggle theme" title="Switch theme"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
-<button class="lnk" id="adminBtn" type="button" title="Admin area">Admin</button>
+  <button class="lnk ib" id="themeBtn" aria-label="Toggle theme" title="Switch theme"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+<button class="lnk ib" id="adminBtn" type="button" aria-label="Admin area" title="Admin"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></button>
 </nav>
 
 <div id="landing">
@@ -177,7 +184,7 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
     <div class="fc rv"><i>02</i><h3>Custom claim letters</h3><p>Persuasive, professional disputes using your lead details and account ID, ready to send.</p></div>
     <div class="fc rv"><i>03</i><h3>Audio &amp; PDF evidence</h3><p>Upload call recordings or documents and the AI cites them in your claim (Growth Pro).</p></div>
     <div class="fc rv"><i>04</i><h3>One-click Gmail</h3><p>Open the finished dispute in a Gmail draft and send it instantly.</p></div>
-    <div class="fc rv"><i>05</i><h3>Recovery tracker</h3><p>See how much you've claimed and mark credits as recovered.</p></div>
+    <div class="fc rv"><i>05</i><h3>Claim tracker</h3><p>See your eligible credits and mark each dispute as claimed once you've sent it.</p></div>
     <div class="fc rv"><i>06</i><h3>Secure by design</h3><p>Hashed passwords, private dispute history, and Stripe-powered billing.</p></div>
   </div>
 </div></section>
@@ -191,15 +198,14 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
 <main id="app" class="app" hidden>
   <h1 class="wl" id="welcome">Dashboard</h1>
   <div class="plancard">
-    <div><span class="pc-l">Current plan</span><b id="pcName">Free trial</b></div>
+    <div><span class="pc-l">Current plan</span><b id="pcName">Free trial</b><small class="pcf" id="pcFeat"></small></div>
     <div class="pc-m"><div class="pc-n"><b id="pcLeft">3</b><span id="pcUnit">trial disputes left</span></div><div class="meter"><i id="kBar"></i></div></div>
-    <button class="btn sm" id="pcUp" type="button">Choose a plan</button>
+    <button class="btn sm" id="pcUp" type="button">Choose a plan</button><a class="btn sm sec" id="pcSup" hidden>Contact support</a>
   </div>
   <div class="top">
-    
-    <div class="kpi"><span>Disputes filed</span><b id="kCount">0</b></div>
-    <div class="kpi"><span>Eligible credits</span><b id="kElig">$0</b></div>
-    <div class="kpi"><span>Recovered</span><b id="kRec" style="color:var(--ok)">$0</b></div>
+    <div class="kpi"><span>Disputes filed</span><b id="kCount">0</b><small>Claims you've created</small></div>
+    <div class="kpi"><span>Eligible credits</span><b id="kElig">$0</b><small>Leads that qualify for a refund</small></div>
+    <div class="kpi"><span>Claimed</span><b id="kRec" style="color:var(--ok)">$0</b><small>Credits you've marked as claimed</small></div>
   </div>
   <div class="tabs"><button class="tab on" data-t="new">New claim</button><button class="tab" data-t="hist">History</button></div>
   <div class="cols" id="tNew">
@@ -223,8 +229,11 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
       <div id="out" class="empty">Your eligibility verdict and dispute letter will appear here.</div></section>
   </div>
   <section class="panel" id="tHist" hidden>
-    <h2>Dispute history</h2><p class="sub">Track every claim and mark credits as recovered.</p>
-    <div class="tw"><table><thead><tr><th>Date</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Recovered</th><th></th></tr></thead><tbody id="hb"></tbody></table></div>
+    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px"><div style="flex:1;min-width:200px"><h2>Dispute history</h2><p class="sub" style="margin:0">Track every claim and mark credits as recovered.</p></div>
+      <select id="hPlat" style="width:auto;height:38px"><option value="">All platforms</option><option>Angi</option><option>Thumbtack</option><option>Porch</option><option>Networx</option></select>
+      <select id="hStat" style="width:auto;height:38px"><option value="">All results</option><option value="y">Eligible</option><option value="n">Rejected</option><option value="r">Claimed</option><option value="p">Not claimed yet</option></select>
+      <button class="btn sm sec" id="hCsv" type="button">Export CSV</button></div>
+    <div class="tw"><table><thead><tr><th>Date</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Claimed</th><th></th></tr></thead><tbody id="hb"></tbody></table></div>
     <div class="empty" id="hEmpty">No disputes yet.</div>
   </section>
 </main>
@@ -235,10 +244,11 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
     <button class="btn sm sec" id="admRefresh" type="button">Refresh</button><button class="btn sm" id="admExit" type="button">Exit admin</button>
   </div>
   <div class="agrid" id="aK"></div>
+  <div id="aPl" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
   <section class="panel" style="margin-top:18px"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0;flex:1">Users</h2><input class="inp" id="aFilter" placeholder="Search email or business" style="max-width:260px;height:38px"></div>
     <div class="tw"><table><thead><tr><th>Email</th><th>Business</th><th>Plan</th><th>Trials left</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div></section>
   <section class="panel" style="margin-top:18px"><h2>Latest disputes</h2>
-    <div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Recovered</th></tr></thead><tbody id="aD"></tbody></table></div></section>
+    <div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Claimed</th></tr></thead><tbody id="aD"></tbody></table></div></section>
 </main>
 
 <div class="ov" id="adminOv" hidden><div class="modal">
@@ -269,6 +279,7 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
 <div class="ov" id="accOv" hidden><div class="modal wide">
   <div style="display:flex;justify-content:space-between"><h2>Account &amp; marketplace handles</h2><button class="lnk" onclick="closeOv('accOv')" aria-label="Close">✕</button></div>
   <p class="sub">Your account IDs are included in the claims we write.</p>
+  <div class="note" id="accPlan" style="margin:0 0 16px"></div>
   <div class="two f"><div><label>Full name</label><input class="inp" id="aN"></div><div><label>Business phone</label><input class="inp" id="aP"></div></div>
   <div class="two f"><div><label>Angi handle</label><input class="inp" id="hA"></div><div><label>Thumbtack handle</label><input class="inp" id="hT"></div>
   <div><label>Porch handle</label><input class="inp" id="hP"></div><div><label>Networx handle</label><input class="inp" id="hN"></div></div>
@@ -279,6 +290,7 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
 <div class="toast" id="toast" role="status"></div>
 <script>
 const API='https://leadclaw-api.onrender.com';
+const SUPPORT_EMAIL=''; // set to your support address, e.g. 'support@yourdomain.com'. Support perks are hidden while this is empty.
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){return null}};
@@ -289,8 +301,10 @@ const saveMe=()=>ls('lc_me',JSON.stringify(me));
 fetch(API+'/').catch(()=>{}); // wake the server in the background
 const PLANS=[
  {id:'free',name:'Free Trial',price:0,f:['3 disputes, one time','Instant claim templates','Custom AI claim (try it)','Gmail one-click send'],x:['Audio & PDF evidence']},
- {id:'solo',name:'Solo Contractor',price:29,f:['25 disputes / month','Instant claim templates','Gmail one-click send','Recovery tracker','Email support'],x:['Custom AI claims','Audio & PDF evidence']},
+ {id:'solo',name:'Solo Contractor',price:29,f:['25 disputes / month','Instant claim templates','Gmail one-click send','Claim tracker','Email support'],x:['Custom AI claims','Audio & PDF evidence']},
  {id:'growth',name:'Growth Pro',price:59,pop:1,f:['Unlimited disputes','Custom AI generated claims','Audio & PDF evidence upload','Gemini 3.5 Flash & Groq Qwen3 4B','Gmail one-click send','Priority support']}];
+if(!SUPPORT_EMAIL)PLANS.forEach(p=>p.f=p.f.filter(x=>!/support/i.test(x)));
+const FEAT={free:['Instant templates','Custom AI claims','Gmail send'],solo:['Instant templates','Gmail send','Claim tracker'],growth:['Custom AI claims','Audio & PDF evidence','Gemini & Groq models']};
 const CHIPS={'Disconnected Phone':'Permanently disconnected phone number. Called twice with no answer.','Out of Service Area':'Customer is strictly outside our service area/zip code.','Duplicate Lead':'Duplicate lead submission received within the same billing window.','Spam / Bot':'Spam / bot submission with fake contact information.','Wrong Trade':'Wrong trade category submitted by customer (services do not match our trade).','Unresponsive':'Homeowner completely unresponsive after multiple contact attempts.'};
 const PL={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
 const NOT='Pricing objections, competitor hiring, project postponements and other customer choices are not refundable under marketplace policy.';
@@ -432,17 +446,26 @@ function render(){
   $('welcome').textContent='Welcome back, '+me.workspace;
   document.querySelector('#ctype [data-m=ai]').classList.toggle('locked',me.plan==='solo');
   document.querySelector('#ctype [data-m=ai]').textContent=me.plan==='solo'?'Custom AI · Growth Pro':'Custom AI claim';
+  $('pcFeat').textContent=FEAT[me.plan].concat(SUPPORT_EMAIL?[me.plan==='growth'?'Priority support':me.plan==='solo'?'Email support':'']:[]).filter(Boolean).join(' · ');
+  $('pcSup').hidden=!SUPPORT_EMAIL;if(SUPPORT_EMAIL)$('pcSup').href='mailto:'+SUPPORT_EMAIL+'?subject='+encodeURIComponent((me.plan==='growth'?'[Priority] ':'')+'LeadClaw support ('+me.plan+') - '+me.email);
+  if(me.plan==='solo'&&ctype==='ai')document.querySelector('#ctype [data-m=template]').click();
   $('kCount').textContent=me.disputes.length;$('kElig').textContent='$'+me.eligible_total.toFixed(0);$('kRec').textContent='$'+me.recovered_total.toFixed(0);
   renderHist();renderPlans()}
 async function refreshMe(){try{me=await api('/api/me');saveMe();render()}catch(e){}}
+function histRows(){const p=$('hPlat').value,st=$('hStat').value;return me.disputes.filter(d=>(!p||d.platform===p)&&(!st||(st==='y'&&d.valid)||(st==='n'&&!d.valid)||(st==='r'&&d.recovered)||(st==='p'&&d.valid&&!d.recovered)))}
 function renderHist(){
-  $('hEmpty').hidden=me.disputes.length>0;
-  $('hb').innerHTML=me.disputes.map((d,i)=>`<tr class="hr" style="animation-delay:${Math.min(i,10)*40}ms"><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td>
+  const rows=histRows();$('hEmpty').hidden=rows.length>0;$('hEmpty').textContent=me.disputes.length?'No disputes match these filters.':'No disputes yet. Your filed claims will show up here.';
+  $('hb').innerHTML=rows.map((d,i)=>`<tr class="hr" style="animation-delay:${Math.min(i,10)*40}ms"><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td>
   <td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Rejected'}</span></td>
-  <td>${d.valid&&d.id?`<input type="checkbox" ${d.recovered?'checked':''} onchange="rec(${d.id},this.checked)" aria-label="Recovered">`:'–'}</td>
+  <td>${d.valid&&d.id?`<button class="btn sm${d.recovered?'':' sec'}" onclick="rec(${d.id},${!d.recovered})">${d.recovered?'Claimed ✓':'Mark claimed'}</button>`:'–'}</td>
   <td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="showClaim(${d.id})">View</button>`:''}</td></tr>`).join('')}
-async function rec(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as recovered':'Unmarked')}catch(e){toast(e.message)}}
-function showClaim(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},false,d.platform);document.querySelector('[data-t=new]').click()}
+$('hPlat').onchange=$('hStat').onchange=renderHist;
+$('hCsv').onclick=()=>{const rows=histRows();if(!rows.length)return toast('Nothing to export yet.');
+  const q=v=>{v=String(v??'');if(/^[=+\-@]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
+  const csv=[['Date','Platform','Lead phone','Lead email','Amount','Verdict','Claimed']].concat(rows.map(d=>[(d.created_at||'').slice(0,10),d.platform,d.lead_phone,d.lead_email||'',(+d.amount).toFixed(2),d.valid?'Eligible':'Rejected',d.valid?(d.recovered?'Yes':'No'):''])).map(r=>r.map(q).join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='leadclaw-disputes.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('CSV downloaded')};
+async function rec(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as claimed':'Unmarked')}catch(e){toast(e.message)}}
+function showClaim(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},false,d.platform,id);document.querySelector('[data-t=new]').click()}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));$('tNew').hidden=b.dataset.t!=='new';$('tHist').hidden=b.dataset.t!=='hist'});
 // ---- form
 function renderPlat(){$('plat').innerHTML=['Angi','Thumbtack','Porch','Networx'].map(p=>`<button type="button" class="${p===plat?'on':''}">${p}</button>`).join('');
@@ -454,33 +477,42 @@ document.querySelectorAll('#ctype button').forEach(b=>b.onclick=()=>{
   if(b.dataset.m==='ai'&&me&&me.plan==='solo'){toast('Custom AI claims are a Growth Pro feature. Use the instant template.');return openUpgrade()}
   ctype=b.dataset.m;document.querySelectorAll('#ctype button').forEach(x=>x.classList.toggle('on',x===b));
   $('aWarn').hidden=ctype!=='ai';$('aiOpts').hidden=ctype!=='ai';if(ctype==='ai')fetch(API+'/').catch(()=>{})});
-function showResult(d,type=false,p=plat){
+let curId=0,recP=null;
+function bindClaimed(id){
+  const b=$('cm');curId=id||0;
+  const done=()=>{b.textContent='Claimed ✓';b.disabled=true};
+  if(id&&(me.disputes.find(x=>x.id===id)||{}).recovered)return done();
+  b.onclick=async()=>{b.disabled=true;
+    try{if(!curId&&recP)await recP;if(!curId)throw new Error('Still saving. Try again in a moment.');
+      await api(`/api/disputes/${curId}/recovered`,{method:'POST',json:{recovered:true}});done();await refreshMe();toast('Marked as claimed')}
+    catch(e){toast(e.message);b.disabled=false}}}
+function showResult(d,type=false,p=plat,id=0){
   claim=d.claim||'';shownPlat=p;const to=ls('lc_to_'+p)||EM[p]||'';
   $('out').className='res';
   $('out').innerHTML=`<div class="verdict ${d.valid?'ok':'err'}"><svg class="vi" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="${d.valid?'M7 12.5l3.2 3.2L17 9':'M8.5 8.5l7 7M15.5 8.5l-7 7'}"/></svg>${d.valid?'Eligible for credit':'Not eligible'}</div><p style="color:var(--mu);margin:8px 0 0">${esc(d.reason)}</p>`+
   (d.valid&&claim?`${/\[Your Pro ID\]/.test(claim)?`<p class="hint" style="margin-top:12px">Tip: add your ${esc(p)} account ID under Account and it will fill in automatically.</p>`:''}<div class="claim" id="cl"></div><div class="f"><label for="toEm">Send to (${esc(p)} support email)</label><input class="inp" id="toEm" type="email" value="${esc(to)}" placeholder="Support address from ${esc(p)}'s help center"></div>
-  <div class="acts"><button class="btn sec sm" id="cp">Copy claim</button><button class="btn sm" id="gm">Open in Gmail</button></div>`:'');
+  <div class="acts"><button class="btn sec sm" id="cp">Copy claim</button><button class="btn sm" id="gm">Open in Gmail</button><button class="btn sec sm" id="cm" type="button">Mark as claimed</button></div>`:'');
   if(d.valid&&claim){const el=$('cl');if(type){let i=0;(function t(){i+=9;el.textContent=claim.slice(0,i);if(i<claim.length)setTimeout(t,12)})()}else el.textContent=claim;
+    bindClaimed(id);
     $('cp').onclick=async()=>{try{await navigator.clipboard.writeText(claim);toast('Claim copied')}catch(e){toast('Copy failed. Select the text manually.')}};
     $('gm').onclick=()=>{const mm=claim.match(/^Subject:\s*(.+?)\r?\n+/),su=mm?mm[1]:`Lead Credit Request - ${shownPlat}`,body=mm?claim.slice(mm[0].length):claim,to=$('toEm').value.trim();
       ls('lc_to_'+shownPlat,to);
       const w=window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`,'_blank');
       if(w)w.opener=null;else toast('Popup blocked. Allow popups for this site, or use Copy claim.')}}}
+function need(ids){let bad=null;for(const id of ids){const el=$(id),v=el.value.trim(),ok=id==='cost'?parseFloat(v)>0:!!v;el.classList.toggle('invalid',!ok);if(!ok&&!bad)bad=el}if(bad){bad.focus();toast('Please fill in the highlighted fields.');return false}return true}
 function limitHit(){return(me.plan==='free'&&me.trials_left<=0)||(me.plan==='solo'&&me.month_used>=me.solo_limit)}
 $('go').onclick=async()=>{
   const lp=$('lp').value.trim(),le=$('le').value.trim(),cost=parseFloat($('cost').value),notes=$('notes').value,lid=$('lid').value.trim(),recv=$('lrecv').value;
-  if(!lp||!le)return toast('Lead phone and email are required.');
-  if(!lid)return toast('Lead ID is required. It goes in the email subject.');
-  if(!(cost>0))return toast('Enter a valid lead cost.');
+  if(!need(['lp','le','lid','cost']))return;
   if(limitHit()){toast(me.plan==='free'?'Your free trial is used up. Pick a plan to continue.':'Monthly limit reached. Upgrade for unlimited disputes.');return openUpgrade()}
   if(ctype==='template'){ // instant, no server wait
     const r=analyze(notes),d={valid:r.valid,reason:r.reason,claim:r.valid?letter(r.rule,plat,lp,le,cost,notes,lid,recv):''};
     showResult(d,false,plat);
-    me.disputes.unshift({id:0,platform:plat,lead_phone:lp,amount:cost,valid:d.valid?1:0,recovered:0,claim:d.claim,reason:d.reason,created_at:new Date().toISOString()});
+    me.disputes.unshift({id:0,platform:plat,lead_phone:lp,lead_email:le,amount:cost,valid:d.valid?1:0,recovered:0,claim:d.claim,reason:d.reason,created_at:new Date().toISOString()});
     if(me.plan==='free')me.trials_left--;else me.month_used++;
     if(d.valid)me.eligible_total+=cost;render();
-    api('/api/dispute/record',{method:'POST',json:{platform:plat,lead_phone:lp,lead_email:le,cost,valid:d.valid,reason:d.reason,claim:d.claim}})
-      .then(refreshMe).catch(e=>{toast(e.message);if(e.status===402)openUpgrade()});
+    recP=api('/api/dispute/record',{method:'POST',json:{platform:plat,lead_phone:lp,lead_email:le,cost,valid:d.valid,reason:d.reason,claim:d.claim}}).then(r=>{curId=r.dispute_id;refreshMe();return r});
+    recP.catch(e=>{toast(e.message);if(e.status===402)openUpgrade()});
     return}
   const fd=new FormData();fd.append('platform',plat);fd.append('notes',notes);fd.append('cost',cost);fd.append('lead_phone',lp);fd.append('lead_email',le);fd.append('lead_id',lid);fd.append('received',recv);
   if(me.plan==='growth'){fd.append('model',$('model').value);[...$('files').files].forEach(f=>fd.append('files',f))}
@@ -488,11 +520,11 @@ $('go').onclick=async()=>{
   const msgs=['Auditing marketplace refund policy…','Evaluating your call notes…','Writing your custom claim…'];let p=0,secs=0;
   const iv=setInterval(()=>{secs+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'%';$('pStat').textContent=secs>10?'Still working. The AI server is waking up…':msgs[Math.min(2,Math.floor(p/32))]},350);
   try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100%';$('pStat').textContent='Done';
-    showResult(d,true,plat);await refreshMe()}
+    showResult(d,true,plat,d.dispute_id);await refreshMe()}
   catch(e){clearInterval(iv);$('out').className='empty';$('out').textContent=e.message;if(e.status===402||e.status===403){toast(e.message);openUpgrade()}}
   finally{btn.disabled=false;btn.classList.remove('busy');setTimeout(()=>{pw.style.display='none';bar.style.width='0'},900)}};
 // ---- account
-function openAccount(){const m=me;$('aN').value=m.full_name||'';$('aP').value=m.phone||'';$('hA').value=m.acc_angi||'';$('hT').value=m.acc_thumbtack||'';$('hP').value=m.acc_porch||'';$('hN').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;$('accOv').hidden=false}
+function openAccount(){const m=me;$('aN').value=m.full_name||'';$('aP').value=m.phone||'';$('hA').value=m.acc_angi||'';$('hT').value=m.acc_thumbtack||'';$('hP').value=m.acc_porch||'';$('hN').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;$('accPlan').textContent='Current plan: '+({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[m.plan]+(m.plan==='growth'?' (unlimited disputes)':m.plan==='solo'?` · ${Math.max(0,m.solo_limit-m.month_used)} disputes left this month`:` · ${m.trials_left} trial disputes left`);$('accOv').hidden=false}
 $('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7+ characters and 1 special character.');
   const f={full_name:$('aN').value,phone:$('aP').value,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value};
   Object.assign(me,f);saveMe();closeOv('accOv');toast('Saved');
@@ -503,31 +535,40 @@ document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{i
 addEventListener('scroll',()=>document.querySelector('nav').classList.toggle('sc',scrollY>8),{passive:true});
 $('pcUp').onclick=openUpgrade;
 $('files').onchange=()=>{if($('files').files.length&&ctype!=='ai')document.querySelector('#ctype [data-m=ai]').click()};
-// ---- admin area (key is kept in memory only)
-let adminKey='',adminData=null;
+// ---- admin area (key kept in memory only; a wrong key locks it for 5 minutes)
+let adminKey='',adminData=null,lockUntil=+(ls('lc_adm_lock')||0),lockWhy='Admin is locked.',lockTimer=null;
+function lockTick(){const left=Math.ceil((lockUntil-Date.now())/1000),b=$('admGo');
+  if(left<=0){clearInterval(lockTimer);lockTimer=null;ls('lc_adm_lock',null);b.disabled=false;$('admM').textContent='';return}
+  b.disabled=true;$('admM').textContent=`${lockWhy} Try again in ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}.`}
+function startLock(sec,why){lockUntil=Date.now()+sec*1000;lockWhy=why;ls('lc_adm_lock',lockUntil);clearInterval(lockTimer);lockTick();lockTimer=setInterval(lockTick,1000)}
 async function loadAdmin(){
   let r;try{r=await fetch(API+'/api/admin/analytics',{headers:{'X-Admin-Key':adminKey}})}catch(e){throw new Error('Cannot reach the server. Please try again.')}
-  const d=await r.json().catch(()=>({}));
-  if(r.status===403)throw new Error('Incorrect admin key.');
-  if(r.status===429)throw new Error('Too many attempts. Try again in 15 minutes.');
+  const d=await r.json().catch(()=>({})),det=d.detail&&typeof d.detail==='object'?d.detail:{};
+  if(r.status===403||r.status===429){if(det.retry_after)startLock(det.retry_after,r.status===403?'Incorrect admin key.':'Admin is locked.');throw new Error(det.message||'Access denied.')}
   if(!r.ok)throw new Error('Could not load admin data.');
   adminData=d;renderAdmin()}
 function renderAdmin(){
   const d=adminData,s=d.summary,usd=n=>'$'+Math.round(n).toLocaleString();
-  $('aK').innerHTML=[['Total users',s.users],['Paid users',s.paid],['New (7 days)',s.new_7d],['Disputes',s.disputes],['Eligible credits',usd(s.eligible_total)],['Recovered',usd(s.recovered_total)]].map(([l,v])=>`<div class="kpi"><span>${l}</span><b>${v}</b></div>`).join('');
+  $('aK').innerHTML=[['Total users',s.users],['Paid users',s.paid],['New (7 days)',s.new_7d],['Disputes',s.disputes],['Eligible credits',usd(s.eligible_total)],['Claimed',usd(s.recovered_total)]].map(([l,v])=>`<div class="kpi"><span>${l}</span><b>${v}</b></div>`).join('');
+  $('aPl').innerHTML=d.plan_distribution.map(p=>`<span class="pl">${esc(p.plan)}: ${p.count}</span>`).join('');
   const q=$('aFilter').value.trim().toLowerCase();
   $('aU').innerHTML=d.users.filter(u=>!q||(u.email+' '+u.workspace).toLowerCase().includes(q)).map(u=>`<tr><td>${esc(u.email)}</td><td>${esc(u.workspace)}</td><td><span class="pl">${esc(u.plan)}</span></td><td>${u.plan==='free'?u.trials_left:'–'}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No users found.</td></tr>';
   $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>${esc(x.lead_phone)}</td><td>$${(+x.amount).toFixed(2)}</td><td><span class="bad ${x.valid?'y':'n'}">${x.valid?'Eligible':'Rejected'}</span></td><td>${x.valid?(x.recovered?'Yes':'No'):'–'}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No disputes yet.</td></tr>'}
-$('adminBtn').onclick=()=>{if(adminKey&&adminData){go('admin');return}$('admM').textContent='';$('admK').value='';$('adminOv').hidden=false;setTimeout(()=>$('admK').focus(),50)};
+$('adminBtn').onclick=()=>{if(adminKey&&adminData){go('admin');return}$('admK').value='';$('admM').textContent='';$('adminOv').hidden=false;
+  if(Date.now()<lockUntil){if(!lockTimer)lockTimer=setInterval(lockTick,1000);lockTick()}else $('admGo').disabled=false;setTimeout(()=>$('admK').focus(),50)};
 $('admGo').onclick=async()=>{
+  if(Date.now()<lockUntil)return lockTick();
   const k=$('admK').value.trim();if(!k)return $('admM').textContent='Enter the admin key.';
   const b=$('admGo');adminKey=k;b.disabled=true;b.classList.add('busy');$('admM').textContent='';
   try{await withWake(b,loadAdmin);closeOv('adminOv');go('admin')}
-  catch(e){adminKey='';$('admM').textContent=e.message}finally{b.disabled=false;b.classList.remove('busy')}};
+  catch(e){adminKey='';if(Date.now()>=lockUntil)$('admM').textContent=e.message}
+  finally{b.classList.remove('busy');b.disabled=Date.now()<lockUntil}};
 $('admK').addEventListener('keydown',e=>{if(e.key==='Enter')$('admGo').click()});
 $('admRefresh').onclick=async()=>{try{await loadAdmin();toast('Refreshed')}catch(e){toast(e.message)}};
 $('admExit').onclick=()=>{adminKey='';adminData=null;go(me?'app':'landing')};
 $('aFilter').oninput=()=>adminData&&renderAdmin();
+document.querySelectorAll('.inp').forEach(i=>i.addEventListener('input',()=>i.classList.remove('invalid')));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe()});
 $('yr').textContent=new Date().getFullYear();
 renderPlans();observe();render();
 if(me)go('app');
