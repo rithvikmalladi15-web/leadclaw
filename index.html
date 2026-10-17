@@ -51,17 +51,25 @@ a{color:var(--accent);text-decoration:none}
 .nav svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .icon-btn{width:38px;height:38px;padding:0;justify-content:center}
 .page{display:none}.page.active{display:block}
-.auth-wrap{max-width:460px;margin:40px auto 60px;padding:0 20px}
-.brand{display:flex;align-items:center;justify-content:center;gap:11px;font:800 26px var(--display);letter-spacing:-.03em;margin-bottom:26px}
+.auth-wrap{max-width:460px;margin:30px auto 60px;padding:0 20px}
+.brand{display:flex;align-items:center;justify-content:center;gap:11px;font:800 26px var(--display);letter-spacing:-.03em;margin-bottom:20px}
 .logo-m{width:36px;height:36px;border-radius:8px;background:var(--blue);display:grid;place-items:center;flex:none}
 .logo-m svg{width:21px;height:21px}
-.stepper{display:flex;justify-content:center;margin:0 0 26px;list-style:none;padding:0}
+
+/* Warm-up & Loading Bar Styles */
+.warmup-alert{background:var(--ambbg);border:1px solid rgba(180,83,9,.3);color:var(--amb);padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:16px;text-align:center}
+.loader-bar{width:100%;height:4px;background:var(--bdr);border-radius:2px;overflow:hidden;margin-top:10px;display:none}
+.loader-bar span{display:block;width:40%;height:100%;background:var(--blue);border-radius:2px;animation:indeterminate 1.2s infinite ease-in-out}
+@keyframes indeterminate{0%{transform:translateX(-100%)}100%{transform:translateX(250%)}}
+
+.stepper{display:flex;justify-content:center;margin:0 0 20px;list-style:none;padding:0}
 .st{flex:1;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--dim)}
 .st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none}
 .st::after{content:"";flex:1;height:2px;background:var(--bdr);border-radius:2px;margin:0 4px}
 .st:last-child::after{display:none}
 .st.on{color:var(--tx)}.st.on i{border-color:var(--blue);background:var(--blue);color:#fff}
 .st.done{color:var(--mu)}.st.done i{background:var(--tint);border-color:var(--blue);color:var(--accent)}
+
 .card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh)}
 h1{font:800 23px/1.2 var(--display);letter-spacing:-.025em;margin:0 0 7px}
 .sub{color:var(--mu);margin:0 0 20px;font-size:14.5px}
@@ -73,7 +81,7 @@ label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;colo
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border-radius:7px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:all .15s}
 .btn:hover:not(:disabled){background:var(--blue-h)}
 .btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr2)}
-.btn.sec:hover:not(:disabled){background:var(--tint);border-color:var(--blue);color:var(--blue)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
 .err-msg{color:var(--err);font-size:13px;margin:5px 0 0}
 body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
 .trial-banner{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--blue) 0%,#1e40af 100%);color:#fff;font:700 15.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px;box-shadow:0 6px 20px rgba(37,99,235,.3)}
@@ -90,8 +98,6 @@ body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;pad
 main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:24px}
 .claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:16px;font:13.5px/1.7 var(--mono);white-space:pre-wrap;max-height:300px;overflow:auto;margin-bottom:14px}
-.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px;z-index:100;backdrop-filter:blur(4px)}
-.modal{width:100%;max-width:470px;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;z-index:90}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 </style>
@@ -111,11 +117,17 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
     <div class="logo-m"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76" stroke="white" stroke-width="9" stroke-linecap="round"/></svg></div>
     LeadClaw
   </div>
+
+  <div class="warmup-alert">
+    System Note: Render free tier takes up to 50 seconds to wake up on the first click. Please wait briefly if loading.
+  </div>
+
   <ol class="stepper">
     <li class="st on" id="st1"><i>1</i><span>Account</span></li>
     <li class="st" id="st2"><i>2</i><span>Workspace</span></li>
     <li class="st" id="st3"><i>3</i><span>Plan</span></li>
   </ol>
+
   <div class="card">
     <div class="view" id="v-email">
       <h1>Get Started</h1>
@@ -126,16 +138,18 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
         <p class="err-msg" id="emailErr"></p>
       </div>
       <button class="btn" id="emailGo" type="button">Send Verification Code</button>
+      <div class="loader-bar" id="loadBar1"><span></span></div>
     </div>
 
     <div class="view" id="v-code" hidden>
       <h1>Check your email</h1>
-      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget"></b> (check Render logs).</p>
+      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget"></b> (check Render deployment logs).</p>
       <div class="field">
         <input class="inp code-inp" id="codeInp" maxlength="6" placeholder="000000">
         <p class="err-msg" id="codeErr"></p>
       </div>
       <button class="btn" id="codeGo" type="button">Confirm Code</button>
+      <div class="loader-bar" id="loadBar2"><span></span></div>
     </div>
 
     <div class="view" id="v-terms" hidden>
@@ -179,6 +193,7 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
         <input id="cost" class="inp" value="85.00">
       </div>
       <button class="btn" id="go" disabled>Generate Dispute Claim</button>
+      <div class="loader-bar" id="loadBar3"><span></span></div>
     </section>
     <section class="panel" id="result">
       <div style="color:var(--mu); text-align:center; padding:60px 0;">
@@ -186,21 +201,6 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
       </div>
     </section>
   </main>
-</div>
-
-<div class="ov" id="fbModal" hidden>
-  <div class="modal">
-    <h1>Send Feedback</h1>
-    <p class="sub">Directly logs to your Render database.</p>
-    <div class="field">
-      <label>Message</label>
-      <textarea class="inp" id="fbMsg" style="height:100px; padding-top:10px;" placeholder="Your feedback or feature request..."></textarea>
-    </div>
-    <div style="display:flex; gap:10px;">
-      <button class="btn" id="fbSend" type="button">Submit Feedback</button>
-      <button class="btn sec" id="fbClose" type="button">Cancel</button>
-    </div>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -249,17 +249,27 @@ const PLANS_DEF = [
     const email = \$('emailInp').value.trim();
     if (!validEmail(email)) { $('emailErr').textContent = 'Enter a valid email address.'; return; }$('emailErr').textContent = '';
 
-    const res = await fetch(API_BASE + '/api/auth/send-code', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
-    });
-    const data = await res.json();
-    if (data.status === 'success') {
-      localStorage.setItem('lc_temp_email', email);
-      \$('codeTarget').textContent = email;
-      \$('v-email').hidden = true;
-      \$('v-code').hidden = false;
-      toast('Verification code sent! Check Render logs.');
+    $('loadBar1').style.display = 'block';$('emailGo').disabled = true;
+
+    try {
+      const res = await fetch(API_BASE + '/api/auth/send-code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (res.ok && data.status === 'success') {
+        localStorage.setItem('lc_temp_email', email);
+        \$('codeTarget').textContent = email;
+        \$('v-email').hidden = true;
+        \$('v-code').hidden = false;
+        toast('Verification code sent! Check Render logs.');
+      } else {
+        \$('emailErr').textContent = 'Failed to send code. Try again.';
+      }
+    } catch {
+      \$('emailErr').textContent = 'Connection error. Server may be waking up.';
+    } finally {
+      $('loadBar1').style.display = 'none';$('emailGo').disabled = false;
     }
   };
 
@@ -268,17 +278,25 @@ const PLANS_DEF = [
     const code = \$('codeInp').value.trim();
     if (code.length !== 6) { $('codeErr').textContent = 'Enter 6-digit code.'; return; }$('codeErr').textContent = '';
 
-    const res = await fetch(API_BASE + '/api/auth/verify-code', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, code })
-    });
-    if (res.ok) {
-      \$('v-code').hidden = true;
-      \$('v-terms').hidden = false;
-      $('st1').className = 'st done';$('st2').className = 'st on';
-      toast('Email verified successfully!');
-    } else {
-      \$('codeErr').textContent = 'Invalid verification code.';
+    $('loadBar2').style.display = 'block';$('codeGo').disabled = true;
+
+    try {
+      const res = await fetch(API_BASE + '/api/auth/verify-code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, code })
+      });
+      if (res.ok) {
+        \$('v-code').hidden = true;
+        \$('v-terms').hidden = false;
+        $('st1').className = 'st done';$('st2').className = 'st on';
+        toast('Email verified successfully!');
+      } else {
+        \$('codeErr').textContent = 'Invalid verification code.';
+      }
+    } catch {
+      \$('codeErr').textContent = 'Connection error.';
+    } finally {
+      $('loadBar2').style.display = 'none';$('codeGo').disabled = false;
     }
   };
 
@@ -324,19 +342,6 @@ const PLANS_DEF = [
     toast('Workspace ready!');
   };
 
-  \$('fbOpen').onclick = () => { $('fbModal').hidden = false; };$('fbClose').onclick = () => { $('fbModal').hidden = true; };$('fbSend').onclick = async () => {
-    const message = \$('fbMsg').value.trim();
-    if (!message) { toast('Enter a message'); return; }
-
-    await fetch(API_BASE + '/api/feedback', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: localStorage.getItem('lc_user') || 'anon', workspace: localStorage.getItem('lc_workspace') || '', message })
-    });
-
-    toast('Feedback logged to database!');
-    $('fbMsg').value = '';$('fbModal').hidden = true;
-  };
-
   \$('backBtn').onclick = () => { localStorage.clear(); location.reload(); };
 
   function initDash() {
@@ -364,14 +369,22 @@ const PLANS_DEF = [
       fd.append('email', localStorage.getItem('lc_user') || '');
       fd.append('device_token', getDeviceToken());
 
-      const res = await fetch(API_BASE + '/api/dispute', { method: 'POST', body: fd });
-      const data = await res.json();
-      \$('trialCount').textContent = data.trials_left;
+      $('loadBar3').style.display = 'block';$('go').disabled = true;
 
-      \$('result').innerHTML = `
-        <div class="claim-box">${data.claim}</div>
-        <button class="btn" onclick="navigator.clipboard.writeText(${JSON.stringify(data.claim)});toast('Copied claim to clipboard!');">Copy Dispute Claim</button>
-      `;
+      try {
+        const res = await fetch(API_BASE + '/api/dispute', { method: 'POST', body: fd });
+        const data = await res.json();
+        \$('trialCount').textContent = data.trials_left;
+
+        \$('result').innerHTML = `
+          <div class="claim-box">${data.claim}</div>
+          <button class="btn" onclick="navigator.clipboard.writeText(${JSON.stringify(data.claim)});toast('Copied claim to clipboard!');">Copy Dispute Claim</button>
+        `;
+      } catch {
+        toast('Error generating claim. Try again.');
+      } finally {
+        $('loadBar3').style.display = 'none';$('go').disabled = false;
+      }
     };
   }
 })();
