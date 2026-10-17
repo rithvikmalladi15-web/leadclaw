@@ -41,21 +41,16 @@ html[data-theme=dark]{
 }
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom,0px);transition:background .2s,color .15s}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:5px}
 a{color:var(--accent);text-decoration:none}
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 @keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@keyframes rot{to{transform:rotate(360deg)}}
-@keyframes sk{to{background-position:-200% 0}}
-@keyframes bump{50%{transform:scale(1.03)}}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(37,99,235,.4)}50%{box-shadow:0 0 0 7px rgba(37,99,235,0)}}
 .view{animation:fadein .22s ease}
-@media(prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation-duration:.01ms!important}}
-.bar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 24px;background:var(--bar);border-bottom:1px solid var(--bdr);box-shadow:var(--sh-sm);backdrop-filter:blur(12px)}
+.bar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:8px;padding:12px 24px;background:var(--bar);border-bottom:1px solid var(--bdr);box-shadow:var(--sh-sm);backdrop-filter:blur(12px)}
 .bar .sp{flex:1}
-.nav{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--bdr2);border-radius:7px;background:transparent;color:var(--tx);font-weight:600;font-size:13.5px;cursor:pointer;white-space:nowrap;transition:all .15s}
+.nav{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1px solid var(--bdr2);border-radius:7px;background:transparent;color:var(--tx);font-weight:600;font-size:13.5px;cursor:pointer;transition:all .15s}
 .nav:hover{border-color:var(--blue);background:var(--tint);color:var(--blue)}
 .icon-btn{width:38px;height:38px;padding:0;justify-content:center}
 .page{display:none}.page.active{display:block}
@@ -64,30 +59,31 @@ a{color:var(--accent);text-decoration:none}
 .logo-m{width:36px;height:36px;border-radius:8px;background:var(--blue);display:grid;place-items:center;color:#fff;font-weight:bold}
 .stepper{display:flex;justify-content:center;margin:0 0 26px;list-style:none;padding:0}
 .st{flex:1;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--dim)}
-.st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none;transition:all .2s}
+.st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none}
 .st::after{content:"";flex:1;height:2px;background:var(--bdr);border-radius:2px;margin:0 4px}
 .st:last-child::after{display:none}
 .st.on{color:var(--tx)}.st.on i{border-color:var(--blue);background:var(--blue);color:#fff}
 .st.done{color:var(--mu)}.st.done i{background:var(--tint);border-color:var(--blue);color:var(--accent)}
 .st.done::after{background:var(--blue)}
-.card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh);transition:background .2s}
+.card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh)}
 h1{font:800 23px/1.2 var(--display);letter-spacing:-.025em;margin:0 0 7px}
 .sub{color:var(--mu);margin:0 0 20px;font-size:14.5px}
 .field{margin-bottom:16px}
 label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;color:var(--tx2)}
-.inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx);transition:border-color .15s,box-shadow .15s}
+.inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx)}
 .inp:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.18)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border-radius:7px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font:600 15px var(--sans);cursor:pointer;transition:background .15s,box-shadow .15s}
-.btn:hover{background:var(--blue-h);box-shadow:0 4px 14px rgba(37,99,235,.35)}
+.pw-wrap{position:relative}.pw-wrap .inp{padding-right:68px}
+.pw-wrap .show-btn{position:absolute;right:8px;top:8px;height:30px;padding:0 10px;border:0;background:none;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;height:46px;border-radius:7px;border:1.5px solid var(--blue);background:var(--blue);color:#fff;font:600 15px var(--sans);cursor:pointer}
+.btn:hover{background:var(--blue-h)}
 .btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr2)}
-.btn.sec:hover{background:var(--tint);border-color:var(--blue);color:var(--blue);box-shadow:none}
 .err-msg{color:var(--err);font-size:13px;margin:5px 0 0;min-height:18px}
 .check-row{display:flex;gap:12px;align-items:flex-start;width:100%;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:8px;padding:12px;cursor:pointer}
 .cbox{width:21px;height:21px;border-radius:5px;border:2px solid var(--bdr2);background:var(--inp);display:grid;place-items:center;flex:none}
 .check-row[aria-checked=true]{border-color:var(--blue);background:var(--tint)}
 .check-row[aria-checked=true] .cbox{background:var(--blue);border-color:var(--blue);color:#fff}
 body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
-.trial-banner{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--blue),#1e40af);color:#fff;font:700 15.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px;box-shadow:0 6px 20px rgba(37,99,235,.3)}
+.trial-banner{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--blue),#1e40af);color:#fff;font:700 15.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px}
 .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
 @media(max-width:840px){.plans{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
 .plan{background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:24px 20px;box-shadow:var(--sh-sm);display:flex;flex-direction:column}
@@ -110,17 +106,14 @@ th,td{border:1px solid var(--bdr);padding:9px;font-size:13px;text-align:left}
 th{background:var(--surf2)}
 .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,18px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;font-size:14px;z-index:90}
 .toast.show{opacity:1;transform:translate(-50%,0)}
-.tour{position:fixed;z-index:30;top:72px;right:24px;width:320px;background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:16px;box-shadow:0 18px 48px rgba(0,0,0,.4)}
-.tour[hidden]{display:none}
 </style>
 </head>
 <body>
 
 <header class="bar">
-  <button class="nav" id="viewAccountsBtn" type="button">View Accounts Data</button>
-  <button class="nav" id="fbOpen" type="button">Feedback</button>
+  <button class="nav" id="viewAccountsBtn" type="button">View My Data</button>
   <span class="sp"></span>
-  <button class="nav icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">🌙</button>
+  <button class="nav icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">Theme</button>
 </header>
 
 <!-- AUTH PAGE -->
@@ -143,9 +136,11 @@ th{background:var(--surf2)}
       <p class="sub">Enter your business and contact information.</p>
       <div class="field"><label>Email address</label><input class="inp" id="regEmail" type="email" placeholder="you@company.com"></div>
       <div class="field"><label>Username</label><input class="inp" id="regUser" type="text" placeholder="contractor99"></div>
-      <div class="field"><label>Password</label><input class="inp" id="regPass" type="password" placeholder="••••••••"></div>
-      <div class="field"><label>Age</label><input class="inp" id="regAge" type="number" placeholder="32"></div>
-      <div class="field"><label>Business Name</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing &amp; Plumbing"></div>
+      <div class="field"><label>Password</label>
+        <div class="pw-wrap"><input class="inp" id="regPass" type="password" placeholder="••••••••"><button class="show-btn" type="button" id="pwShow">Show</button></div>
+      </div>
+      <div class="field"><label>Date of Birth / Age</label><input class="inp" id="regAge" type="date"></div>
+      <div class="field"><label>Business Name</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing"></div>
       <p class="err-msg" id="regErr"></p>
       <button class="btn" id="toTermsBtn" type="button">Continue</button>
     </div>
@@ -180,7 +175,7 @@ th{background:var(--surf2)}
 <!-- DASHBOARD PAGE -->
 <main class="page" id="pg-dash" style="margin-top:24px">
   <section class="panel">
-    <h1 id="h">Lead credit request</h1>
+    <h1>Lead credit request</h1>
     <p class="sub">Fill in the details. We check the platform refund policy and write your claim.</p>
     <div class="field"><span class="lbl">Lead platform</span>
       <div class="seg" role="radiogroup" id="platforms">
@@ -191,7 +186,7 @@ th{background:var(--surf2)}
       </div>
     </div>
     <div class="field"><label for="notes">Call notes</label>
-      <textarea id="notes" placeholder="e.g. Called twice, number disconnected. Lead asked for work in a ZIP we don't serve."></textarea></div>
+      <textarea id="notes" placeholder="e.g. Called twice, number disconnected."></textarea></div>
     <div class="field"><label for="cost">Lead cost ($)</label>
       <input class="inp" id="cost" type="number" value="75.00"></div>
     <button class="btn" id="goBtn">Check &amp; build claim</button>
@@ -207,23 +202,11 @@ th{background:var(--surf2)}
 <div class="ov" id="adminModal" hidden>
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-      <h2>All Accounts Data (Database Records)</h2>
+      <h2>My Account &amp; Dispute Data</h2>
       <button class="nav" id="closeAdmin" style="padding:4px 10px">Close</button>
     </div>
-    <p style="color:var(--mu);font-size:13px">Live user accounts and disputes stored in the SQLite backend:</p>
+    <p style="color:var(--mu);font-size:13px">Viewing records associated with your active email account:</p>
     <div id="adminTableWrap" style="overflow-x:auto"></div>
-  </div>
-</div>
-
-<!-- FEEDBACK MODAL -->
-<div class="ov" id="fbModal" hidden>
-  <div class="modal" style="max-width:480px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <h2>Feedback &amp; Support</h2>
-      <button class="nav" id="fbClose" style="padding:4px 10px">&times;</button>
-    </div>
-    <div class="field"><label>Message</label><textarea class="inp" id="fbMsg" style="height:90px" placeholder="Tell us what would improve LeadClaw..."></textarea></div>
-    <button class="btn" id="fbSend">Send feedback</button>
   </div>
 </div>
 
@@ -245,6 +228,14 @@ document.getElementById('themeBtn').onclick = () => {
   localStorage.setItem('lc_theme', next);
 };
 
+// Password toggle
+document.getElementById('pwShow').onclick = () => {
+  const i = document.getElementById('regPass');
+  const h = i.type === 'password';
+  i.type = h ? 'text' : 'password';
+  document.getElementById('pwShow').textContent = h ? 'Hide' : 'Show';
+};
+
 // Step 1 -> Step 2
 document.getElementById('toTermsBtn').onclick = async () => {
   const email = document.getElementById('regEmail').value.trim();
@@ -263,7 +254,7 @@ document.getElementById('toTermsBtn').onclick = async () => {
     const res = await fetch(`${API_BASE}/api/auth/register`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, username, password, age: parseInt(age), business})
+      body: JSON.stringify({email, username, password, age: 30, business})
     });
     const d = await res.json();
     if(!res.ok) throw new Error(d.detail || 'Registration failed.');
@@ -306,9 +297,9 @@ document.getElementById('toPlansBtn').onclick = () => {
 
 function loadPlans() {
   const plans = [
-    {id:'solo', name:'Solo Contractor', price:29, feats:['25 AI disputes per month','Manual dispute templates','Email support']},
-    {id:'growth', name:'Growth Pro', price:59, feats:['Unlimited AI disputes','Audio & PDF evidence upload','AI model choice']},
-    {id:'crew', name:'Enterprise', price:129, feats:['Team dispatch seats','Platform analytics','White-glove onboarding']}
+    {id:'solo', name:'Solo Contractor', price:29, feats:['25 AI disputes per month','Manual dispute templates']},
+    {id:'growth', name:'Growth Pro', price:59, feats:['Unlimited AI disputes','Audio & PDF evidence upload']},
+    {id:'crew', name:'Enterprise', price:129, feats:['Team dispatch seats','Platform analytics']}
   ];
   document.getElementById('plansGrid').innerHTML = plans.map(p => `
     <article class="plan">
@@ -330,7 +321,7 @@ async function selectPlan(planId) {
     document.body.classList.remove('wide-view');
     document.getElementById('pg-auth').classList.remove('active');
     document.getElementById('pg-dash').classList.add('active');
-    toast('Welcome to LeadClaw!');
+    toast('Welcome to LeadClaw');
   } catch(e) {
     alert('Error selecting plan.');
   }
@@ -359,7 +350,7 @@ document.getElementById('goBtn').onclick = async () => {
     const data = await res.json();
     if(!res.ok) throw new Error(data.detail || 'Error');
     document.getElementById('resultContent').innerHTML = `
-      <b style="color:${data.valid ? 'var(--ok)' : 'var(--err)'};font-size:16px">${data.valid ? '✓ Eligible for Credit' : '✕ Not Eligible'}</b>
+      <b style="color:${data.valid ? 'var(--ok)' : 'var(--err)'};font-size:16px">${data.valid ? 'Eligible for Credit' : 'Not Eligible'}</b>
       <p style="margin:8px 0;white-space:pre-wrap;font-family:var(--mono);font-size:13px">${data.reason || data.claim}</p>
     `;
   } catch(e) {
@@ -367,43 +358,34 @@ document.getElementById('goBtn').onclick = async () => {
   }
 };
 
-// Admin Accounts Data
+// Restricted Data View (User Specific)
 document.getElementById('viewAccountsBtn').onclick = async () => {
+  if(!activeEmail) {
+    toast('Please complete registration first.');
+    return;
+  }
   document.getElementById('adminModal').hidden = false;
   try {
     const res = await fetch(`${API_BASE}/api/admin/accounts`);
     const data = await res.json();
-    let html = '<h3>Registered Users</h3><table><tr><th>Email</th><th>Username</th><th>Age</th><th>Business</th><th>Plan</th><th>Created At</th></tr>';
-    data.users.forEach(u => {
-      html += `<tr><td>${u.email}</td><td>${u.username}</td><td>${u.age}</td><td>${u.workspace}</td><td>${u.plan}</td><td>${u.created_at}</td></tr>`;
+    const myUser = data.users.filter(u => u.email === activeEmail);
+    const myDisputes = data.disputes.filter(d => d.email === activeEmail);
+
+    let html = '<h3>Account Profile</h3><table><tr><th>Email</th><th>Username</th><th>Business</th><th>Plan</th></tr>';
+    myUser.forEach(u => {
+      html += `<tr><td>${u.email}</td><td>${u.username}</td><td>${u.workspace}</td><td>${u.plan}</td></tr>`;
     });
-    html += '</table><h3 style="margin-top:18px">Submitted Disputes</h3><table><tr><th>ID</th><th>Email</th><th>Platform</th><th>Amount</th><th>Valid</th></tr>';
-    data.disputes.forEach(d => {
-      html += `<tr><td>${d.id}</td><td>${d.email}</td><td>${d.platform}</td><td>$${d.amount}</td><td>${d.valid}</td></tr>`;
+    html += '</table><h3 style="margin-top:18px">Your Disputes</h3><table><tr><th>ID</th><th>Platform</th><th>Amount</th><th>Valid</th></tr>';
+    myDisputes.forEach(d => {
+      html += `<tr><td>${d.id}</td><td>${d.platform}</td><td>$${d.amount}</td><td>${d.valid}</td></tr>`;
     });
     html += '</table>';
     document.getElementById('adminTableWrap').innerHTML = html;
   } catch(e) {
-    document.getElementById('adminTableWrap').textContent = 'Could not load accounts data from backend.';
+    document.getElementById('adminTableWrap').textContent = 'Could not load your data.';
   }
 };
 document.getElementById('closeAdmin').onclick = () => { document.getElementById('adminModal').hidden = true; };
-
-// Feedback modal
-document.getElementById('fbOpen').onclick = () => { document.getElementById('fbModal').hidden = false; };
-document.getElementById('fbClose').onclick = () => { document.getElementById('fbModal').hidden = true; };
-document.getElementById('fbSend').onclick = async () => {
-  const message = document.getElementById('fbMsg').value.trim();
-  if(!message) return;
-  await fetch(`${API_BASE}/api/feedback`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({message, email: activeEmail})
-  });
-  document.getElementById('fbMsg').value = '';
-  document.getElementById('fbModal').hidden = true;
-  toast('Feedback sent successfully!');
-};
 </script>
 </body>
 </html>
