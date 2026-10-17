@@ -1,9 +1,11 @@
-import asyncio, hashlib, hmac, json, logging, os, re, secrets, sqlite3, time
+import asyncio, hashlib, hmac, json, logging, os, re, secrets, time
 from contextlib import contextmanager
 from datetime import datetime, date
 from typing import List, Optional
 
 import httpx
+import psycopg2
+import psycopg2.extras
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -26,7 +28,7 @@ ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICES = {"solo": os.environ.get("STRIPE_PRICE_SOLO", ""), "growth": os.environ.get("STRIPE_PRICE_GROWTH", "")}
-DB_FILE = os.environ.get("DB_FILE", "leadclaw.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
 SESSION_TTL = 60 * 60 * 24 * 30
 SOLO_MONTHLY_LIMIT = 25
 MAX_FILE_BYTES = 15 * 1024 * 1024
@@ -36,13 +38,27 @@ if GEMINI_API_KEY:
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 
+class _Q:
+    """Thin wrapper so queries can keep using ? placeholders and chained .fetchone()."""
+    def __init__(self, cur):
+        self.cur = cur
+
+    def execute(self, sql, params=()):
+        self.cur.execute(sql.replace("?", "%s"), params)
+        return self.cur
+
+
 @contextmanager
 def db():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
+    if not DATABASE_URL:
+        raise RuntimeError("DATABASE_URL is not set.")
+    conn = psycopg2.connect(DATABASE_URL, connect_timeout=15)
     try:
-        yield conn
+        yield _Q(conn.cursor(cursor_factory=psycopg2.extras.DictCursor))
         conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
     finally:
         conn.close()
 
@@ -53,19 +69,14 @@ def init_db():
             email TEXT PRIMARY KEY, password TEXT, age INTEGER, workspace TEXT,
             full_name TEXT DEFAULT '', phone TEXT DEFAULT '', acc_angi TEXT DEFAULT '',
             acc_thumbtack TEXT DEFAULT '', acc_porch TEXT DEFAULT '', acc_networx TEXT DEFAULT '',
-            plan TEXT DEFAULT 'free', trials_left INTEGER DEFAULT 3, device_token TEXT,
-            reset_token TEXT DEFAULT '', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
-        c.execute("""CREATE TABLE IF NOT EXISTS disputes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, platform TEXT, lead_phone TEXT,
-            lead_email TEXT, claim TEXT, amount REAL, valid INTEGER, recovered INTEGER DEFAULT 0,
+            plan TEXT DEFAULT 'free', trials_left INTEGER DEFAULT 3, stripe_customer TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
-        c.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, created REAL)")
-        for table, col in [("users", "reset_expires REAL DEFAULT 0"), ("users", "stripe_customer TEXT DEFAULT ''"),
-                           ("disputes", "reason TEXT DEFAULT ''")]:
-            try:
-                c.execute(f"ALTER TABLE {table} ADD COLUMN {col}")
-            except sqlite3.OperationalError:
-                pass
+        c.execute("""CREATE TABLE IF NOT EXISTS disputes (
+            id SERIAL PRIMARY KEY, email TEXT, platform TEXT, lead_phone TEXT, lead_email TEXT,
+            claim TEXT, reason TEXT DEFAULT '', amount DOUBLE PRECISION, valid INTEGER,
+            recovered INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+        c.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, created DOUBLE PRECISION)")
+        c.execute("CREATE INDEX IF NOT EXISTS disputes_email_idx ON disputes (email)")
 
 
 init_db()
@@ -270,7 +281,7 @@ async def logout(authorization: str = Header("")):
 async def me(authorization: str = Header("")):
     u = current_user(authorization)
     with db() as c:
-        used = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date('now','start of month')", (u["email"],)).fetchone()[0]
+        used = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date_trunc('month', CURRENT_TIMESTAMP)", (u["email"],)).fetchone()[0]
         ds = [dict(r) for r in c.execute("SELECT id,platform,lead_phone,lead_email,claim,reason,amount,valid,recovered,created_at FROM disputes WHERE email=? ORDER BY id DESC LIMIT 200", (u["email"],))]
     return {"email": u["email"], "plan": u["plan"], "trials_left": u["trials_left"], "workspace": u["workspace"],
             "full_name": u["full_name"], "phone": u["phone"], "acc_angi": u["acc_angi"], "acc_thumbtack": u["acc_thumbtack"],
@@ -408,12 +419,12 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
             claim = template_claim(platform, policy, handle, lead_phone, lead_email, cost, notes, reason)
     with db() as c:
         if plan == "free":
-            c.execute("UPDATE users SET trials_left=MAX(0,trials_left-1) WHERE email=?", (u["email"],))
-        cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?)",
-                        (u["email"], platform, lead_phone, lead_email, claim, reason, cost, int(valid)))
+            c.execute("UPDATE users SET trials_left=GREATEST(0,trials_left-1) WHERE email=?", (u["email"],))
+        cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?) RETURNING id",
+                        (u["email"], platform, lead_phone, lead_email, claim, reason, cost, int(valid))).fetchone()[0]
         left = c.execute("SELECT trials_left FROM users WHERE email=?", (u["email"],)).fetchone()[0]
     return {"valid": valid, "confidence": float(data.get("confidence") or 0.9), "reason": reason, "claim": claim,
-            "amount": cost, "trials_left": left, "dispute_id": cur.lastrowid}
+            "amount": cost, "trials_left": left, "dispute_id": cur}
 
 
 class RecordReq(BaseModel):
@@ -430,25 +441,35 @@ async def record(req: RecordReq, authorization: str = Header("")):
         if u["plan"] == "free" and u["trials_left"] <= 0:
             raise HTTPException(402, "Free trial used up. Upgrade to keep filing disputes.")
         if u["plan"] == "solo":
-            n = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date('now','start of month')", (u["email"],)).fetchone()[0]
+            n = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date_trunc('month', CURRENT_TIMESTAMP)", (u["email"],)).fetchone()[0]
             if n >= SOLO_MONTHLY_LIMIT:
                 raise HTTPException(402, f"You've used all {SOLO_MONTHLY_LIMIT} disputes this month. Upgrade to Growth Pro for unlimited.")
         if u["plan"] == "free":
-            c.execute("UPDATE users SET trials_left=MAX(0,trials_left-1) WHERE email=?", (u["email"],))
-        cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?)",
-                        (u["email"], req.platform, req.lead_phone[:40], req.lead_email[:120], req.claim[:8000], req.reason[:500], req.cost, int(req.valid)))
-    return {"dispute_id": cur.lastrowid}
+            c.execute("UPDATE users SET trials_left=GREATEST(0,trials_left-1) WHERE email=?", (u["email"],))
+        cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?) RETURNING id",
+                        (u["email"], req.platform, req.lead_phone[:40], req.lead_email[:120], req.claim[:8000], req.reason[:500], req.cost, int(req.valid))).fetchone()[0]
+    return {"dispute_id": cur}
 
 
 @app.get("/api/admin/analytics")
-async def analytics(x_admin_key: str = Header("")):
-    if not ADMIN_KEY or not hmac.compare_digest(x_admin_key, ADMIN_KEY):
+async def analytics(request: Request, x_admin_key: str = Header("")):
+    ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "?")).split(",")[0].strip()
+    throttle("a:" + ip)
+    if not ADMIN_KEY or not hmac.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode()):
+        FAILS.setdefault("a:" + ip, []).append(time.time())
         raise HTTPException(403, "Forbidden.")
     with db() as c:
-        plans = [dict(r) for r in c.execute("SELECT plan, COUNT(*) count FROM users GROUP BY plan")]
-        users = [dict(r) for r in c.execute("SELECT email,workspace,plan,trials_left,created_at FROM users")]
-        total = c.execute("SELECT COUNT(*) FROM disputes").fetchone()[0]
-    return {"plan_distribution": plans, "users": users, "total_disputes": total}
+        plans = [dict(r) for r in c.execute("SELECT plan, COUNT(*) AS count FROM users GROUP BY plan")]
+        users = [dict(r) for r in c.execute(
+            "SELECT u.email,u.workspace,u.plan,u.trials_left,u.created_at,"
+            "(SELECT COUNT(*) FROM disputes d WHERE d.email=u.email) AS disputes FROM users u ORDER BY u.created_at DESC")]
+        disputes = [dict(r) for r in c.execute(
+            "SELECT id,email,platform,lead_phone,amount,valid,recovered,created_at FROM disputes ORDER BY id DESC LIMIT 300")]
+        u = c.execute("SELECT COUNT(*) n, COALESCE(SUM((plan<>'free')::int),0) paid, COALESCE(SUM((created_at>=NOW()-INTERVAL '7 days')::int),0) new7 FROM users").fetchone()
+        d = c.execute("SELECT COUNT(*) n, COALESCE(SUM(CASE WHEN valid=1 THEN amount END),0) el, COALESCE(SUM(CASE WHEN recovered=1 THEN amount END),0) rec FROM disputes").fetchone()
+    return {"summary": {"users": u["n"], "paid": u["paid"], "new_7d": u["new7"], "disputes": d["n"],
+                        "eligible_total": d["el"], "recovered_total": d["rec"]},
+            "plan_distribution": plans, "users": users, "disputes": disputes}
 
 
 if __name__ == "__main__":
