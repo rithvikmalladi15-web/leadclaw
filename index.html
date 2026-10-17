@@ -7,8 +7,8 @@
 <meta name="color-scheme" content="light dark">
 <script>try{var __t=localStorage.getItem('lc_theme')||'light';document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
 
-<!-- Favicon matching the blue claw icon -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='9' stroke-linecap='round' fill='none'/></svg>">
+<!-- Favicon matching the new sharp blue claw logo -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M15 52 L50 8 L65 18 L30 62 Z' fill='%232563eb'/><path d='M38 78 L73 34 L88 44 L53 88 Z' fill='%232563eb'/><path d='M62 102 L97 58 L112 68 L77 112 Z' fill='%232563eb'/></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,8 +56,8 @@ a{color:var(--accent);text-decoration:none}
 .page{display:none}.page.active{display:block}
 .auth-wrap{max-width:480px;margin:40px auto 60px;padding:0 20px}
 .brand{display:flex;align-items:center;justify-content:center;gap:11px;font:800 26px var(--display);letter-spacing:-.03em;margin-bottom:26px}
-.logo-m{width:36px;height:36px;border-radius:8px;background:var(--blue);display:grid;place-items:center;flex:none}
-.logo-m svg{width:22px;height:22px}
+.logo-m{width:38px;height:38px;border-radius:8px;background:var(--tint);border:1px solid var(--bdr);display:grid;place-items:center;flex:none}
+.logo-m svg{width:24px;height:24px}
 .stepper{display:flex;justify-content:center;margin:0 0 26px;list-style:none;padding:0}
 .st{flex:1;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--dim)}
 .st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none}
@@ -100,15 +100,12 @@ body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;pad
 .plan li{font-size:14px;color:var(--tx2);display:flex;gap:8px;align-items:flex-start}
 .plan li.dim{color:var(--dim);text-decoration:line-through}
 .trial-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--tint2);border:1px solid rgba(37,99,235,.28);border-radius:999px;font:600 13px var(--sans);color:var(--blue)}
-
-/* Loading Bar & Claim Result Components */
 .progress-wrap{display:none;margin-top:16px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px}
 .progress-header{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:8px}
 .progress-bar-bg{height:8px;width:100%;background:var(--bdr2);border-radius:999px;overflow:hidden}
 .progress-bar-fill{height:100%;width:0%;background:var(--blue);border-radius:999px;transition:width .3s ease}
 .claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin-top:14px;font-family:var(--mono);font-size:13px;white-space:pre-wrap;max-height:300px;overflow-y:auto}
 .action-row{display:flex;gap:10px;margin-top:14px}
-
 main{max-width:1180px;margin:0 auto;padding:8px 24px 56px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:start}
 @media(max-width:900px){main{grid-template-columns:1fr;padding:8px 16px 40px}}
 .panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:26px}
@@ -142,7 +139,11 @@ th{background:var(--surf2)}
 <div class="auth-wrap">
   <div class="brand">
     <div class="logo-m">
-      <svg viewBox="0 0 100 100" fill="none"><path d="M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76" stroke="white" stroke-width="9" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 100 100" fill="none">
+        <path d="M15 52 L50 8 L65 18 L30 62 Z" fill="#2563eb"/>
+        <path d="M38 78 L73 34 L88 44 L53 88 Z" fill="#2563eb"/>
+        <path d="M62 102 L97 58 L112 68 L77 112 Z" fill="#2563eb"/>
+      </svg>
     </div>
     LeadClaw
   </div>
@@ -152,8 +153,6 @@ th{background:var(--surf2)}
     <li class="st" id="st3"><i>3</i><span>Plan</span></li>
   </ol>
   <div class="card">
-
-    <!-- Auth Mode Tabs -->
     <div class="tabs" id="authTabs">
       <button class="tab on" id="tabSignup" type="button">Sign up</button>
       <button class="tab" id="tabLogin" type="button">Log in</button>
@@ -196,7 +195,6 @@ th{background:var(--surf2)}
       <div class="trial-banner">3 free AI disputes included. No credit card required.</div>
       <div class="plans" id="plansGrid"></div>
     </div>
-
   </div>
 </div>
 </div>
@@ -205,7 +203,7 @@ th{background:var(--surf2)}
 <main class="page" id="pg-dash" style="margin-top:24px">
   <section class="panel">
     <h1>Lead credit request</h1>
-    <p class="sub">Fill in the details. We check platform refund policies and generate your claim using Gemini 1.5 Flash / Groq Qwen3 4B.</p>
+    <p class="sub">Fill in the details. We check platform refund policies and generate your claim using Gemini 3.5 Flash / Groq Qwen3 4B.</p>
     <div class="field"><span class="lbl">Lead platform</span>
       <div class="seg" role="radiogroup" id="platforms">
         <button type="button" aria-checked="true" onclick="setPlat('Angi')">Angi</button>
@@ -215,12 +213,11 @@ th{background:var(--surf2)}
       </div>
     </div>
     <div class="field"><label for="notes">Call notes</label>
-      <textarea id="notes" placeholder="e.g. Called twice, number disconnected. Lead asked for work outside service area."></textarea></div>
+      <textarea id="notes" placeholder="e.g. Called twice, number disconnected."></textarea></div>
     <div class="field"><label for="cost">Lead cost ($)</label>
       <input class="inp" id="cost" type="number" value="75.00"></div>
     <button class="btn" id="goBtn">Check &amp; build claim</button>
 
-    <!-- Animated Loading Progress Bar -->
     <div class="progress-wrap" id="progressWrap">
       <div class="progress-header">
         <span id="progressStatus">Auditing lead credit policy...</span>
@@ -267,9 +264,14 @@ let currentPlatform = 'Angi';
 let isLoginMode = false;
 let generatedClaimText = '';
 
+let deviceToken = localStorage.getItem('lc_device_token');
+if (!deviceToken) {
+  deviceToken = 'dev_' + Math.random().toString(36).substring(2) + Date.now();
+  localStorage.setItem('lc_device_token', deviceToken);
+}
+
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-// Theme toggle
 document.getElementById('themeBtn').onclick = () => {
   const cur = document.documentElement.getAttribute('data-theme');
   const next = cur === 'dark' ? 'light' : 'dark';
@@ -277,7 +279,6 @@ document.getElementById('themeBtn').onclick = () => {
   localStorage.setItem('lc_theme', next);
 };
 
-// Password Toggle
 document.getElementById('pwShow').onclick = () => {
   const i = document.getElementById('regPass');
   const h = i.type === 'password';
@@ -285,7 +286,6 @@ document.getElementById('pwShow').onclick = () => {
   document.getElementById('pwShow').textContent = h ? 'Hide' : 'Show';
 };
 
-// Auth Tabs
 document.getElementById('tabSignup').onclick = () => {
   isLoginMode = false;
   document.getElementById('tabSignup').classList.add('on');
@@ -310,7 +310,6 @@ document.getElementById('tabLogin').onclick = () => {
   document.getElementById('stepper').style.display = 'none';
 };
 
-// Step 1 -> Next
 document.getElementById('toTermsBtn').onclick = async () => {
   const email = document.getElementById('regEmail').value.trim();
   const password = document.getElementById('regPass').value;
@@ -321,7 +320,7 @@ document.getElementById('toTermsBtn').onclick = async () => {
     return;
   }
 
-  if (!email.toLowerCase().endsWith('@gmail.com')) {
+  if (!email.toLowerCase().endswith('@gmail.com')) {
     errEl.textContent = 'A valid @gmail.com email address is required.';
     return;
   }
@@ -374,7 +373,6 @@ document.getElementById('toTermsBtn').onclick = async () => {
   }
 };
 
-// Terms toggle
 document.getElementById('agreeBtn').onclick = () => {
   agreedTerms = !agreedTerms;
   document.getElementById('agreeBtn').setAttribute('aria-checked', agreedTerms);
@@ -387,7 +385,6 @@ document.getElementById('backToDetails').onclick = () => {
   document.getElementById('st2').className = 'st';
 };
 
-// Step 2 -> Plans
 document.getElementById('toPlansBtn').onclick = () => {
   if(!agreedTerms) {
     document.getElementById('termsErr').textContent = 'You must agree to the terms to proceed.';
@@ -410,7 +407,7 @@ function loadPlans() {
     },
     {
       id:'growth', name:'Growth Pro', price:59, pop:true,
-      feats:['Unlimited AI disputes', 'AI custom generated claims', 'Audio & PDF evidence upload', 'Gemini 1.5 Flash & Groq Qwen3 4B', 'Gmail one-click send']
+      feats:['Unlimited AI disputes', 'AI custom generated claims', 'Audio & PDF evidence upload', 'Gemini 3.5 Flash & Groq Qwen3 4B', 'Gmail one-click send']
     },
     {
       id:'crew', name:'Enterprise', price:129, pop:false,
@@ -426,7 +423,7 @@ function loadPlans() {
         ${p.feats.map(f=>`<li>✓ <span>${f}</span></li>`).join('')}
         ${p.missing ? p.missing.map(m=>`<li class="dim">✕ <span>${m} (Missing on Solo)</span></li>`).join('') : ''}
       </ul>
-      <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Start Free Trial</button>
+      <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Upgrade Plan</button>
     </article>
   `).join('');
 }
@@ -436,7 +433,7 @@ async function selectPlan(planId) {
     await fetch(`${API_BASE}/api/auth/select-plan`, {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email: activeEmail, plan: planId, device_token: 'dev_' + Math.random()})
+      body: JSON.stringify({email: activeEmail, plan: planId, device_token: deviceToken})
     });
     enterDashboard(3);
   } catch(e) {
@@ -455,7 +452,6 @@ function enterDashboard(trials) {
   toast('Welcome to LeadClaw');
 }
 
-// Sign Out
 document.getElementById('logoutBtn').onclick = () => {
   activeEmail = '';
   document.getElementById('pg-dash').classList.remove('active');
@@ -478,7 +474,6 @@ function setPlat(p) {
   buttons.forEach(b => b.setAttribute('aria-checked', b.textContent === p ? 'true' : 'false'));
 }
 
-// Animated Loading Bar Progress Handler
 function triggerLoadingProgress(callback) {
   const wrap = document.getElementById('progressWrap');
   const fill = document.getElementById('progressBarFill');
@@ -512,7 +507,6 @@ function triggerLoadingProgress(callback) {
   }, 450);
 }
 
-// Dispute submission
 document.getElementById('goBtn').onclick = async () => {
   const notes = document.getElementById('notes').value;
   const cost = document.getElementById('cost').value;
@@ -522,6 +516,7 @@ document.getElementById('goBtn').onclick = async () => {
   fd.append('notes', notes);
   fd.append('cost', cost);
   fd.append('email', activeEmail);
+  fd.append('device_token', deviceToken);
 
   document.getElementById('claimActions').hidden = true;
   document.getElementById('resultContent').textContent = 'Initializing AI engine...';
@@ -530,6 +525,19 @@ document.getElementById('goBtn').onclick = async () => {
     try {
       const res = await fetch(`${API_BASE}/api/dispute`, {method: 'POST', body: fd});
       const data = await res.json();
+      
+      if(res.status === 402) {
+        document.getElementById('pg-dash').classList.remove('active');
+        document.getElementById('pg-auth').classList.add('active');
+        document.body.classList.add('wide-view');
+        document.getElementById('v-details').hidden = true;
+        document.getElementById('v-terms').hidden = true;
+        document.getElementById('v-plans').hidden = false;
+        loadPlans();
+        toast('Free trial completed. Please select a plan.');
+        return;
+      }
+
       if(!res.ok) throw new Error(data.detail || 'Error processing request');
       
       if(typeof data.trials_left === 'number') {
@@ -553,14 +561,12 @@ document.getElementById('goBtn').onclick = async () => {
   });
 };
 
-// Copy Claim Button
 document.getElementById('copyClaimBtn').onclick = () => {
   if(!generatedClaimText) return;
   navigator.clipboard.writeText(generatedClaimText);
   toast('Claim copied to clipboard!');
 };
 
-// Open in Gmail Button
 document.getElementById('openGmailBtn').onclick = () => {
   if(!generatedClaimText) return;
   const subject = encodeURIComponent(`[Dispute Request] ${currentPlatform} Lead Credit Request`);
@@ -569,7 +575,6 @@ document.getElementById('openGmailBtn').onclick = () => {
   window.open(gmailUrl, '_blank');
 };
 
-// Account Data Modal
 document.getElementById('viewAccountsBtn').onclick = async () => {
   if(!activeEmail) {
     toast('Please sign in first.');
