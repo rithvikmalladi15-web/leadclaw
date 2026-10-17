@@ -9,7 +9,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 :root{
   --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
@@ -66,9 +65,6 @@ a{color:var(--accent);text-decoration:none}
 .card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh)}
 h1{font:800 23px/1.2 var(--display);letter-spacing:-.025em;margin:0 0 7px}
 .sub{color:var(--mu);margin:0 0 20px;font-size:14.5px}
-.tabs{display:flex;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:3px;margin-bottom:20px;gap:3px}
-.tab{flex:1;padding:8px;border:0;background:transparent;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mu)}
-.tab.on{background:var(--surf);color:var(--tx);box-shadow:var(--sh-sm)}
 .field{margin-bottom:16px}
 label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;color:var(--tx2)}
 .inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx)}
@@ -79,8 +75,6 @@ label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;colo
 .btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr2)}
 .btn.sec:hover:not(:disabled){background:var(--tint);border-color:var(--blue);color:var(--blue)}
 .err-msg{color:var(--err);font-size:13px;margin:5px 0 0}
-.g-btn{background:var(--surf);border:1.5px solid var(--bdr2);color:var(--tx)}
-.g-icon{width:20px;height:20px;flex:none}
 body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
 .trial-banner{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--blue) 0%,#1e40af 100%);color:#fff;font:700 15.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px;box-shadow:0 6px 20px rgba(37,99,235,.3)}
 .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1200px;margin:0 auto}
@@ -96,8 +90,6 @@ body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;pad
 main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-template-columns:1fr 1fr;gap:24px}
 .panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:24px}
 .claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:16px;font:13.5px/1.7 var(--mono);white-space:pre-wrap;max-height:300px;overflow:auto;margin-bottom:14px}
-.gmail-card{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:8px;padding:12px}
-.gmail-card.connected{border-color:var(--ok);background:var(--okbg)}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px;z-index:100;backdrop-filter:blur(4px)}
 .modal{width:100%;max-width:470px;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,20px);background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;z-index:90}
@@ -126,14 +118,8 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
   </ol>
   <div class="card">
     <div class="view" id="v-email">
-      <h1>Welcome to LeadClaw</h1>
-      <p class="sub">Recover money from bad leads in minutes.</p>
-      <div class="tabs">
-        <button class="tab on" id="tabSignup" type="button">Sign up</button>
-        <button class="tab" id="tabLogin" type="button">Log in</button>
-      </div>
-      <button class="btn g-btn" id="googleBtn" type="button">Continue with Google</button>
-      <div style="text-align:center; color:var(--dim); font-size:13px; margin:16px 0;">or continue with email verification code</div>
+      <h1>Get Started</h1>
+      <p class="sub">Enter your email to receive a verification code.</p>
       <div class="field">
         <label>Email address</label>
         <input class="inp" id="emailInp" type="email" placeholder="you@company.com">
@@ -144,7 +130,7 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
 
     <div class="view" id="v-code" hidden>
       <h1>Check your email</h1>
-      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget"></b> (check Render deployment logs).</p>
+      <p class="sub">Enter the 6-digit code sent to <b id="codeTarget"></b> (check Render logs).</p>
       <div class="field">
         <input class="inp code-inp" id="codeInp" maxlength="6" placeholder="000000">
         <p class="err-msg" id="codeErr"></p>
@@ -154,17 +140,11 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
 
     <div class="view" id="v-terms" hidden>
       <h1>Set up your workspace</h1>
-      <p class="sub">Enter your contractor business name and connect Gmail.</p>
+      <p class="sub">Enter your contractor business name.</p>
       <div class="field">
         <label>Business Name</label>
         <input class="inp" id="wsName" type="text" placeholder="Apex Roofing & Plumbing">
         <p class="err-msg" id="wsErr"></p>
-      </div>
-      <div class="field">
-        <div class="gmail-card" id="gmailCard">
-          <div><b>Connect Gmail</b><p style="margin:2px 0 0; color:var(--mu); font-size:13px;">Auto-detect lead receipts.</p></div>
-          <button class="btn sec sm" id="gmailBtn" type="button" style="width:auto; height:36px; font-size:13px;">Connect</button>
-        </div>
       </div>
       <button class="btn" id="termsGo" type="button" style="margin-top:10px;">Continue to Plans</button>
     </div>
@@ -226,80 +206,7 @@ main{max-width:1180px;margin:0 auto;padding:12px 24px 56px;display:grid;grid-tem
 <div class="toast" id="toast"></div>
 
 <script>
-// Pointing to your Render backend URL
-<!-- Inside your Cloudflare/Frontend index.html -->
-<script>
-const API_BASE         = 'https://leadclaw-api.onrender.com';
-const GOOGLE_CLIENT_ID = '843627718759-1gs9i7afgfsnas1mjujinhg2nrvdom1v.apps.googleusercontent.com';
-
-let realGmailToken = '';
-
-// Initialize Google Identity Services SDK on page load
-window.onload = function() {
-  if (typeof google !== 'undefined') {
-    google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleRealGoogleLogin
-    });
-    
-    // Render the official Google button if desired, or trigger programmatically
-    google.accounts.id.renderButton(
-      document.getElementById('googleBtnContainer'),
-      { theme: 'outline', size: 'large', width: '100%' }
-    );
-  }
-};
-
-// Triggered when user clicks "Continue with Google"
-async function handleRealGoogleLogin(response) {
-  try {
-    const res = await fetch(API_BASE + '/api/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: response.credential })
-    });
-    
-    if (!res.ok) throw new Error('Google authorization failed');
-    
-    const data = await res.json();
-    realGmailToken = response.credential;
-    
-    // Automatically save real email and move to workspace setup
-    localStorage.setItem('lc_temp_email', data.email);
-    
-    document.getElementById('v-email').hidden = true;
-    document.getElementById('v-terms').hidden = false;
-    document.getElementById('st1').className = 'st done';
-    document.getElementById('st2').className = 'st on';
-    
-    showToast('Successfully connected to real Gmail account: ' + data.email);
-  } catch (err) {
-    showToast('Error connecting to Google/Gmail.');
-  }
-}
-
-// When finishing workspace setup, send the real token to Render database
-async function finalizeWorkspace(planId) {
-  const email = localStorage.getItem('lc_temp_email');
-  const workspace = document.getElementById('wsName').value.trim();
-  
-  await fetch(API_BASE + '/api/auth/setup-workspace', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: email,
-      workspace: workspace,
-      plan: planId,
-      device_token: getDeviceToken(),
-      gmail_token: realGmailToken // Stored securely in Render SQLite
-    })
-  });
-
-  localStorage.setItem('lc_user', email);
-  localStorage.setItem('lc_workspace', workspace);
-  // Proceed to dashboard...
-}
-</script>
+const API_BASE = 'https://leadclaw-api.onrender.com';
 
 const PLANS_DEF = [
   { id: 'solo', name: 'Standard Solo', price: 29, features: ['25 AI disputes per month', 'Formatted text claims', 'SQLite ledger tracking', 'Email support'] },
@@ -338,44 +245,6 @@ const PLANS_DEF = [
     document.body.classList.toggle('wide-view', id === 'pg-auth' && !\$('v-plans').hidden);
   }
 
-  $('tabSignup').onclick = () => {$('tabSignup').classList.add('on'); $('tabLogin').classList.remove('on'); };$('tabLogin').onclick = () => { $('tabLogin').classList.add('on');$('tabSignup').classList.remove('on'); };
-
-  // Google Sign-In Initialization
-  window.onload = function() {
-    if (typeof google !== 'undefined') {
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleResponse
-      });
-    }
-  };
-
-  \$('googleBtn').onclick = () => {
-    if (typeof google !== 'undefined') {
-      google.accounts.id.prompt();
-    } else {
-      toast('Google Sign-In loading...');
-    }
-  };
-
-  async function handleGoogleResponse(response) {
-    try {
-      const res = await fetch(API_BASE + '/api/auth/google', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: response.credential })
-      });
-      const data = await res.json();
-      localStorage.setItem('lc_temp_email', data.email);
-      \$('v-email').hidden = true;
-      \$('v-terms').hidden = false;
-      $('st1').className = 'st done';$('st2').className = 'st on';
-      toast('Google account authenticated!');
-    } catch {
-      toast('Google authentication failed.');
-    }
-  }
-
-  // Email Code Flow
   \$('emailGo').onclick = async () => {
     const email = \$('emailInp').value.trim();
     if (!validEmail(email)) { $('emailErr').textContent = 'Enter a valid email address.'; return; }$('emailErr').textContent = '';
@@ -411,18 +280,6 @@ const PLANS_DEF = [
     } else {
       \$('codeErr').textContent = 'Invalid verification code.';
     }
-  };
-
-  let gmailConnected = false;
-  \$('gmailBtn').onclick = async () => {
-    gmailConnected = !gmailConnected;
-    $('gmailCard').classList.toggle('connected', gmailConnected);$('gmailBtn').textContent = gmailConnected ? 'Connected' : 'Connect';
-    const email = localStorage.getItem('lc_temp_email') || 'user@gmail.com';
-    await fetch(API_BASE + '/api/auth/connect-gmail', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, connected: gmailConnected })
-    });
-    toast(gmailConnected ? 'Gmail connection established!' : 'Gmail disconnected.');
   };
 
   \$('termsGo').onclick = () => {
