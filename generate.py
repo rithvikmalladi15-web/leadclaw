@@ -364,6 +364,14 @@ async def webhook(request: Request, stripe_signature: str = Header("")):
             email = (obj.get("client_reference_id") or "").lower()
             if plan in STRIPE_PRICES and email:
                 c.execute("UPDATE users SET plan=?, stripe_customer=? WHERE email=?", (plan, obj.get("customer") or "", email))
+        elif ev["type"] == "customer.subscription.updated":
+            status = obj.get("status")
+            price = (((obj.get("items") or {}).get("data") or [{}])[0].get("price") or {}).get("id")
+            plan = next((k for k, v in STRIPE_PRICES.items() if v and v == price), None)
+            if status in ("canceled", "unpaid", "incomplete_expired"):
+                c.execute("UPDATE users SET plan='free' WHERE stripe_customer=?", (obj.get("customer"),))
+            elif status in ("active", "trialing", "past_due") and plan:
+                c.execute("UPDATE users SET plan=? WHERE stripe_customer=?", (plan, obj.get("customer")))
         elif ev["type"] == "customer.subscription.deleted":
             c.execute("UPDATE users SET plan='free' WHERE stripe_customer=?", (obj.get("customer"),))
     return {"received": True}
@@ -451,13 +459,18 @@ async def record(req: RecordReq, authorization: str = Header("")):
     return {"dispute_id": cur}
 
 
+ADMIN_LOCK_SECONDS = 300
+_admin_lock = {"until": 0.0}
+
+
 @app.get("/api/admin/analytics")
-async def analytics(request: Request, x_admin_key: str = Header("")):
-    ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "?")).split(",")[0].strip()
-    throttle("a:" + ip)
+async def analytics(x_admin_key: str = Header("")):
+    now = time.time()
+    if _admin_lock["until"] > now:  # one wrong key locks the admin area for 5 minutes, even for the right key
+        raise HTTPException(429, detail={"message": "Admin is locked after a wrong key.", "retry_after": int(_admin_lock["until"] - now) + 1})
     if not ADMIN_KEY or not hmac.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode()):
-        FAILS.setdefault("a:" + ip, []).append(time.time())
-        raise HTTPException(403, "Forbidden.")
+        _admin_lock["until"] = now + ADMIN_LOCK_SECONDS
+        raise HTTPException(403, detail={"message": "Incorrect admin key.", "retry_after": ADMIN_LOCK_SECONDS})
     with db() as c:
         plans = [dict(r) for r in c.execute("SELECT plan, COUNT(*) AS count FROM users GROUP BY plan")]
         users = [dict(r) for r in c.execute(
