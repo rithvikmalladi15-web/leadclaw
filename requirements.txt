@@ -5,3 +5,4 @@ httpx
 google-generativeai
 groq
 pydantic
+psycopg2-binary
