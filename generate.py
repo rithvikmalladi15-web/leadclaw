@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
 # ── App Definition ─────────────────────────────────────────────────────────
-app = FastAPI(title="LeadClaw API", version="8.1.0")
+app = FastAPI(title="LeadClaw API", version="9.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,6 +52,12 @@ def init_db():
         password      TEXT,
         age           INTEGER,
         workspace     TEXT,
+        full_name     TEXT DEFAULT '',
+        phone         TEXT DEFAULT '',
+        acc_angi      TEXT DEFAULT '',
+        acc_thumbtack TEXT DEFAULT '',
+        acc_porch     TEXT DEFAULT '',
+        acc_networx   TEXT DEFAULT '',
         plan          TEXT DEFAULT 'solo',
         trials_left   INTEGER DEFAULT 3,
         device_token  TEXT,
@@ -61,6 +67,8 @@ def init_db():
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
         email       TEXT,
         platform    TEXT,
+        lead_phone  TEXT,
+        lead_email  TEXT,
         claim       TEXT,
         amount      REAL,
         valid       INTEGER,
@@ -86,13 +94,22 @@ class RegisterRequest(BaseModel):
     email: str
     username: str
     password: str
-    dob: str  # YYYY-MM-DD
+    dob: str
     business: str
 
 class PlanSelectRequest(BaseModel):
     email: str
     plan: str
     device_token: str
+
+class ProfileUpdateRequest(BaseModel):
+    email: str
+    full_name: Optional[str] = ""
+    phone: Optional[str] = ""
+    acc_angi: Optional[str] = ""
+    acc_thumbtack: Optional[str] = ""
+    acc_porch: Optional[str] = ""
+    acc_networx: Optional[str] = ""
 
 class FeedbackRequest(BaseModel):
     email: Optional[str] = ""
@@ -146,8 +163,8 @@ HARD RULE: If the notes or transcript mention a competitor being hired or a pric
 rejection, valid MUST be false — even if other eligible reasons are present.
 
 If valid is true: write a detailed, persuasive, professional dispute letter tailored to the
-exact facts provided. Start with a Subject line, formal greeting, clear issue breakdown,
-policy citation, and a firm credit request.
+exact facts provided, including account names, lead phone numbers, and policy citations.
+Start with a Subject line, formal greeting, clear issue breakdown, policy citation, and a firm credit request.
 
 If valid is false: one or two plain sentences for "reason" and "claim" must be empty string.
 
@@ -165,7 +182,6 @@ def extract_json(text: str) -> dict:
         raise ValueError(f"No JSON found in: {text[:300]}")
     return json.loads(text[s:e + 1])
 
-# ── AI Model Callers ──────────────────────────────────────────────────────
 async def call_gemini_3_5_flash(prompt_text: str, file_parts: list = None) -> dict:
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is not configured.")
@@ -247,6 +263,18 @@ async def select_plan(req: PlanSelectRequest):
     conn.close()
     return {"status": "success", "plan": req.plan}
 
+@app.post("/api/user/profile")
+async def update_profile(req: ProfileUpdateRequest):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute(
+        "UPDATE users SET full_name=?, phone=?, acc_angi=?, acc_thumbtack=?, acc_porch=?, acc_networx=? WHERE email=?",
+        (req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, req.email)
+    )
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
 @app.get("/api/admin/analytics")
 async def get_customer_analytics():
     conn = sqlite3.connect(DB_FILE)
@@ -259,10 +287,10 @@ async def get_customer_analytics():
     c.execute("SELECT plan, COUNT(*) as count FROM users GROUP BY plan")
     plan_distribution = [dict(row) for row in c.fetchall()]
     
-    c.execute("SELECT email, username, age, workspace, plan, trials_left, created_at FROM users")
+    c.execute("SELECT email, username, age, workspace, full_name, phone, acc_angi, acc_thumbtack, acc_porch, acc_networx, plan, trials_left, created_at FROM users")
     users = [dict(row) for row in c.fetchall()]
     
-    c.execute("SELECT id, email, platform, amount, valid, recovered, created_at FROM disputes")
+    c.execute("SELECT id, email, platform, lead_phone, lead_email, amount, valid, recovered, created_at FROM disputes")
     disputes = [dict(row) for row in c.fetchall()]
     
     conn.close()
@@ -278,6 +306,8 @@ async def get_customer_analytics():
 @app.post("/api/dispute")
 async def analyze_dispute(
     platform:     str   = Form(...),
+    lead_phone:   str   = Form(""),
+    lead_email:   str   = Form(""),
     notes:        str   = Form(""),
     transcript:   str   = Form(""),
     cost:         float = Form(45.00),
@@ -291,7 +321,7 @@ async def analyze_dispute(
 
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("SELECT plan, trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
+    c.execute("SELECT plan, trials_left, full_name, workspace, acc_angi, acc_thumbtack, acc_porch, acc_networx FROM users WHERE email=? OR device_token=?", (email, device_token))
     row = c.fetchone()
     conn.close()
 
@@ -302,11 +332,21 @@ async def analyze_dispute(
     if not is_unlimited and trials_left <= 0:
         raise HTTPException(status_code=402, detail="Trial limit reached. Please upgrade your plan.")
 
+    account_handle = ""
+    if row:
+        if platform == "Angi": account_handle = row[4]
+        elif platform == "Thumbtack": account_handle = row[5]
+        elif platform == "Porch": account_handle = row[6]
+        elif platform == "Networx": account_handle = row[7]
+
     prompt_text = (
         f"Marketplace Platform: {platform}\n"
+        f"Contractor Account ID: {account_handle or 'Default Workspace'}\n"
         f"Policy: {policy}\n"
-        f"Lead Cost: ${cost:.2f}\n\n"
-        f"Contractor Notes:\n{notes or '(none)'}\n\n"
+        f"Lead Cost: ${cost:.2f}\n"
+        f"Lead Phone: {lead_phone or 'N/A'}\n"
+        f"Lead Email: {lead_email or 'N/A'}\n\n"
+        f"Contractor Call Notes:\n{notes or '(none)'}\n\n"
         f"Transcript:\n{transcript or '(none)'}"
     )
 
@@ -361,8 +401,8 @@ async def analyze_dispute(
             conn = sqlite3.connect(DB_FILE)
             c = conn.cursor()
             c.execute(
-                "INSERT INTO disputes (email, platform, claim, amount, valid) VALUES (?,?,?,?,?)",
-                (email, platform, result.get("claim",""), cost, int(result["valid"])),
+                "INSERT INTO disputes (email, platform, lead_phone, lead_email, claim, amount, valid) VALUES (?,?,?,?,?,?,?)",
+                (email, platform, lead_phone, lead_email, result.get("claim",""), cost, int(result["valid"])),
             )
             result["dispute_id"] = c.lastrowid
             conn.commit()
