@@ -1,6 +1,7 @@
 fastapi
-uvicorn
-python-multipart
+uvicorn[standard]
+gunicorn
 google-generativeai
 httpx
 pydantic
+python-multipart
