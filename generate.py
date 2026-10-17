@@ -4,6 +4,7 @@ import os
 import re
 import sqlite3
 import random
+from datetime import datetime, date
 from typing import List, Optional
 
 import httpx
@@ -18,7 +19,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
 # ── App ────────────────────────────────────────────────────────────────────
-app = FastAPI(title="LeadClaw API", version="5.0.0")
+app = FastAPI(title="LeadClaw API", version="6.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -85,7 +86,7 @@ class RegisterRequest(BaseModel):
     email: str
     username: str
     password: str
-    age: int
+    dob: str  # YYYY-MM-DD
     business: str
 
 class PlanSelectRequest(BaseModel):
@@ -221,10 +222,24 @@ def plan_tier(plan: str) -> int:
 # ── Routes ─────────────────────────────────────────────────────────────────
 @app.get("/")
 def health():
-    return {"ok": True, "service": "LeadClaw API", "version": "5.0.0"}
+    return {"ok": True, "service": "LeadClaw API", "version": "6.0.0"}
 
 @app.post("/api/auth/register")
 async def register_user(req: RegisterRequest):
+    # 1. Enforce Gmail Only
+    if not req.email.lower().endswith("@gmail.com"):
+        raise HTTPException(status_code=400, detail="You must provide a valid @gmail.com email address.")
+
+    # 2. Enforce Age 18+
+    try:
+        dob_date = datetime.strptime(req.dob, "%Y-%m-%d").date()
+        today = date.today()
+        calculated_age = today.year - dob_date.year - ((today.month, today.day) < (dob_date.month, dob_date.day))
+        if calculated_age < 18:
+            raise HTTPException(status_code=403, detail="You must be at least 18 years old to create an account.")
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid Date of Birth format. Please select from the calendar picker.")
+
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     try:
@@ -233,7 +248,7 @@ async def register_user(req: RegisterRequest):
                VALUES (?, ?, ?, ?, ?, 'solo', 3)
                ON CONFLICT(email) DO UPDATE SET
                  username=excluded.username, password=excluded.password, age=excluded.age, workspace=excluded.workspace""",
-            (req.email, req.username, req.password, req.age, req.business)
+            (req.email, req.username, req.password, calculated_age, req.business)
         )
         conn.commit()
     except Exception as e:
@@ -251,18 +266,37 @@ async def select_plan(req: PlanSelectRequest):
     conn.close()
     return {"status": "success", "plan": req.plan}
 
-@app.get("/api/admin/accounts")
-async def get_all_accounts():
-    """Admin endpoint to view all accounts data and system records."""
+@app.get("/api/admin/analytics")
+async def get_customer_analytics():
+    """Admin analytics route for querying SQLite customer records and dispute metrics."""
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
+    
+    c.execute("SELECT COUNT(*) as total_users, AVG(age) as avg_age FROM users")
+    stats = dict(c.fetchone())
+    
+    c.execute("SELECT plan, COUNT(*) as count FROM users GROUP BY plan")
+    plan_distribution = [dict(row) for row in c.fetchall()]
+    
     c.execute("SELECT email, username, age, workspace, plan, trials_left, created_at FROM users")
     users = [dict(row) for row in c.fetchall()]
-    c.execute("SELECT * FROM disputes")
+    
+    c.execute("SELECT id, email, platform, amount, valid, recovered, created_at FROM disputes")
     disputes = [dict(row) for row in c.fetchall()]
+    
     conn.close()
-    return {"users": users, "disputes": disputes}
+    
+    return {
+        "status": "success",
+        "summary": {
+            "total_customers": stats["total_users"] or 0,
+            "average_age": round(stats["avg_age"] or 0, 1)
+        },
+        "plan_distribution": plan_distribution,
+        "users": users,
+        "disputes": disputes
+    }
 
 @app.post("/api/dispute")
 async def analyze_dispute(
