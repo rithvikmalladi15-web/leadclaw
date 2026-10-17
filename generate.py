@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
 # ── App Definition ─────────────────────────────────────────────────────────
-app = FastAPI(title="LeadClaw API", version="8.0.0")
+app = FastAPI(title="LeadClaw API", version="8.1.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -228,10 +228,7 @@ async def register_user(req: RegisterRequest):
     c = conn.cursor()
     try:
         c.execute(
-            """INSERT INTO users (email, username, password, age, workspace, plan, trials_left)
-               VALUES (?, ?, ?, ?, ?, 'solo', 3)
-               ON CONFLICT(email) DO UPDATE SET
-                 username=excluded.username, password=excluded.password, age=excluded.age, workspace=excluded.workspace""",
+            "INSERT INTO users (email, username, password, age, workspace, plan, trials_left) VALUES (?, ?, ?, ?, ?, 'solo', 3) ON CONFLICT(email) DO UPDATE SET username=excluded.username, password=excluded.password, age=excluded.age, workspace=excluded.workspace",
             (req.email, req.username, req.password, calculated_age, req.business)
         )
         conn.commit()
@@ -351,10 +348,7 @@ async def analyze_dispute(
         if not is_unlimited:
             conn = sqlite3.connect(DB_FILE)
             c = conn.cursor()
-            c.execute("""UPDATE users 
-                         SET trials_left = MAX(0, trials_left - 1) 
-                         WHERE email=? OR device_token=?"", 
-                      (email, device_token))
+            c.execute("UPDATE users SET trials_left = MAX(0, trials_left - 1) WHERE email=? OR device_token=?", (email, device_token))
             c.execute("SELECT trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
             row_t = c.fetchone()
             conn.commit()
