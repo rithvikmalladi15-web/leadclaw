@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LeadClaw – Get your wasted lead money back</title>
-<meta name="description" content="AI that audits your Angi, Thumbtack, Porch and Networx leads and writes the refund dispute for you.">
+<title>LeadClaw – Refund disputes for bad Angi, Thumbtack, Porch &amp; Networx leads</title>
+<meta name="description" content="LeadClaw helps home-service contractors get refunds on bad leads from Angi, Thumbtack, Porch and Networx. Check eligibility and send a ready-made dispute email in minutes.">
 <link rel="canonical" href="https://leadclaw.pages.dev/">
 <meta property="og:url" content="https://leadclaw.pages.dev/">
 <meta property="og:title" content="LeadClaw – Get your wasted lead money back">
@@ -85,7 +85,7 @@ textarea{height:auto;min-height:104px;padding:11px 13px;resize:vertical}
 .seg button{border:0;background:none;padding:8px 4px;border-radius:6px;font-weight:600;color:var(--mu);cursor:pointer;transition:.15s}.seg button.on{background:var(--blue);color:#fff}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
 .chip{padding:5px 11px;background:var(--bg);border:1px solid var(--bdr);border-radius:999px;font-size:12.5px;font-weight:500;color:var(--mu);cursor:pointer;transition:.15s}.chip:hover{border-color:var(--blue);color:var(--acc);background:var(--tint)}
-.lock{position:relative}.lock>*{opacity:.45;pointer-events:none}.lock::after{content:"Growth Pro feature · Upgrade to unlock";position:absolute;inset:0;display:grid;place-items:center;font-size:13px;font-weight:600;color:var(--acc);cursor:pointer;background:color-mix(in srgb,var(--surf) 55%,transparent);border-radius:8px}
+.lock{position:relative}.lock>*{opacity:.5;pointer-events:none}
 .prog{display:none;margin-top:16px}.prog .t{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px}
 .prog .bar{height:6px;background:var(--surf2);border-radius:9px;overflow:hidden}.prog .bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .4s}
 .empty{color:var(--mu);text-align:center;padding:36px 10px}
@@ -117,23 +117,42 @@ nav.sc{box-shadow:0 2px 14px rgba(2,6,23,.07)}
 .wake{margin:12px 0 0;font-size:13px;color:var(--mu);font-weight:600;animation:up .3s both}
 .wake .bar{height:6px;background:var(--surf2);border-radius:9px;overflow:hidden;margin-top:6px}
 .wake .bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:9px;transition:width .4s}
+html[data-theme=light]{--yl:rgba(254,243,199,.92);--ylb:#f59e0b;--ylt:#92400e}
+html[data-theme=dark]{--yl:rgba(250,204,21,.12);--ylb:#a16207;--ylt:#fcd34d}
+.lock::after{content:"Growth Pro feature · Click to upgrade";position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:0 10px;font-size:13px;font-weight:700;color:var(--ylt);cursor:pointer;background:var(--yl);border:1.5px solid var(--ylb);border-radius:8px;transition:transform .15s}
+.lock:hover::after{transform:scale(1.01)}
+.seg button.locked{background:var(--yl);color:var(--ylt);box-shadow:inset 0 0 0 1.5px var(--ylb)}
+.seg button.locked:hover{filter:brightness(.97)}
+@keyframes flash{50%{box-shadow:0 0 0 5px var(--tint),0 0 0 7px var(--blue)}}.plan.flash{animation:flash 1.1s 2}
+.plancard{display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:var(--sh);animation:up .5s both}
+.pc-l{display:block;font-size:12px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.05em}
+.plancard>div:first-child b{font:800 22px var(--disp)}
+.pc-m{flex:1;min-width:220px}.pc-n{display:flex;align-items:baseline;gap:8px}.pc-n b{font:800 28px var(--disp)}.pc-n span{color:var(--mu);font-size:14px}
+.wl{font:800 24px var(--disp);letter-spacing:-.02em;margin:0 0 16px}
+.tg{font:500 12px var(--sans);color:var(--mu);letter-spacing:0;margin-left:4px;padding-left:10px;border-left:1px solid var(--bdr)}
+.top{grid-template-columns:repeat(3,1fr)}
+@media(max-width:700px){.hm,.tg{display:none}.top{grid-template-columns:1fr}.hero{padding-top:56px}nav{padding-left:14px;padding-right:14px}}
+.agrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:1000px){.agrid{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){.agrid{grid-template-columns:1fr 1fr}}
+.pl{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--tint);color:var(--acc);text-transform:capitalize}
 </style>
 <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('lc_theme')||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}</script>
 </head>
 <body>
 <nav>
-  <div class="logo" onclick="go('landing')"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
+  <div class="logo" onclick="go('landing')" title="LeadClaw"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw<small class="tg">Lead refund tool</small></div>
   <span class="sp"></span>
-  <span id="navPub"><button class="lnk" onclick="scrollToId('features')">Features</button><button class="lnk" onclick="scrollToId('pricing')">Pricing</button><button class="lnk" onclick="openAuth('login')">Log in</button> <button class="btn sm" onclick="openAuth('signup')">Start free trial</button></span>
+  <span id="navPub"><button class="lnk hm" onclick="scrollToId('how')">How it works</button><button class="lnk hm" onclick="scrollToId('features')">Features</button><button class="lnk hm" onclick="scrollToId('pricing')">Pricing</button><button class="lnk" onclick="openAuth('login')">Log in</button> <button class="btn sm" onclick="openAuth('signup')">Start free trial</button></span>
   <span id="navPriv" hidden style="display:flex;gap:8px;align-items:center"><span class="pill" id="planPill"></span><button class="lnk" onclick="go('app')">Dashboard</button><button class="lnk" onclick="openAccount()">Account</button><button class="btn sm sec" onclick="signout()">Sign out</button></span>
   <button class="lnk" id="themeBtn" aria-label="Toggle theme" title="Switch theme"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
+<button class="lnk" id="adminBtn" type="button" title="Admin area">Admin</button>
 </nav>
 
 <div id="landing">
 <div class="wrap hero">
-  <span class="pill">For Angi, Thumbtack, Porch &amp; Networx leads</span>
-  <h1>Stop paying for <span class="hl">dead leads.</span> Get the money back.</h1>
-  <p>Paste your call notes. LeadClaw's AI checks the platform's refund policy and writes a ready-to-send dispute in seconds.</p>
+  <span class="pill">Lead refund tool for home-service contractors</span>
+  <h1>Get refunds on <span class="hl">bad leads</span> from Angi, Thumbtack, Porch &amp; Networx</h1>
+  <p>Paid for a lead with a disconnected number, the wrong trade, or a duplicate? Enter the lead details and LeadClaw checks if it qualifies for a credit, then writes the dispute email for you, ready to send in Gmail.</p>
   <div class="cta"><button class="btn" onclick="openAuth('signup')">Start your free trial</button><button class="btn sec" onclick="scrollToId('pricing')">See pricing</button></div>
   <div class="facts"><span>3-dispute free trial</span><span>No credit card required</span><span>Cancel anytime</span></div>
   <div class="demo">
@@ -143,7 +162,15 @@ nav.sc{box-shadow:0 2px 14px rgba(2,6,23,.07)}
 Dear Angi Support, the phone number on this lead is permanently disconnected. Per the Angi Lead Credit Policy, I'm requesting a $75.00 credit…</pre>
   </div>
 </div>
-<section class="s" id="features"><div class="wrap">
+<section class="s" id="how"><div class="wrap">
+  <h2 class="h2 rv">How LeadClaw works</h2><p class="lead rv">Lead marketplaces refund bad leads, but only if you ask the right way. LeadClaw does that part for you.</p>
+  <div class="grid3">
+    <div class="fc rv"><i>STEP 1</i><h3>Enter the lead</h3><p>Add the lead's phone number, ID and a quick note on what went wrong, like a disconnected number or the wrong trade.</p></div>
+    <div class="fc rv"><i>STEP 2</i><h3>Check eligibility</h3><p>LeadClaw tells you right away whether the lead qualifies for a credit under the platform's policy.</p></div>
+    <div class="fc rv"><i>STEP 3</i><h3>Send the dispute</h3><p>Get a formatted dispute email and open it in Gmail, already addressed to the platform's support team.</p></div>
+  </div>
+</div></section>
+<section class="s alt" id="features"><div class="wrap">
   <h2 class="h2 rv">Everything you need to win credits</h2><p class="lead rv">Built for contractors who'd rather be on the job than on hold with support.</p>
   <div class="grid3">
     <div class="fc rv"><i>01</i><h3>AI policy audit</h3><p>Checks every lead against each marketplace's credit rules before you waste time filing.</p></div>
@@ -154,7 +181,7 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
     <div class="fc rv"><i>06</i><h3>Secure by design</h3><p>Hashed passwords, private dispute history, and Stripe-powered billing.</p></div>
   </div>
 </div></section>
-<section class="s alt" id="pricing"><div class="wrap">
+<section class="s" id="pricing"><div class="wrap">
   <h2 class="h2 rv">Pays for itself with one credit</h2><p class="lead rv">Start with a free trial of 3 AI disputes. No credit card required.</p>
   <div class="plans" id="plans"></div>
 </div></section>
@@ -162,8 +189,14 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
 </div>
 
 <main id="app" class="app" hidden>
+  <h1 class="wl" id="welcome">Dashboard</h1>
+  <div class="plancard">
+    <div><span class="pc-l">Current plan</span><b id="pcName">Free trial</b></div>
+    <div class="pc-m"><div class="pc-n"><b id="pcLeft">3</b><span id="pcUnit">trial disputes left</span></div><div class="meter"><i id="kBar"></i></div></div>
+    <button class="btn sm" id="pcUp" type="button">Choose a plan</button>
+  </div>
   <div class="top">
-    <div class="kpi"><span>Usage</span><b id="kUse">–</b><div class="meter"><i id="kBar"></i></div></div>
+    
     <div class="kpi"><span>Disputes filed</span><b id="kCount">0</b></div>
     <div class="kpi"><span>Eligible credits</span><b id="kElig">$0</b></div>
     <div class="kpi"><span>Recovered</span><b id="kRec" style="color:var(--ok)">$0</b></div>
@@ -181,10 +214,8 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
         <div class="seg" id="ctype" style="grid-template-columns:1fr 1fr"><button type="button" class="on" data-m="template">Instant template</button><button type="button" data-m="ai">Custom AI claim</button></div>
         <p class="note" id="aWarn" hidden>Custom AI claims can take up to 30 seconds while the AI server wakes up. Choose the instant template if you're in a hurry.</p></div>
       <div class="f"><label for="cost">Lead cost ($)</label><input class="inp" id="cost" type="number" min="1" step="0.01" value="75"></div>
-      <div class="two f" id="aiOpts" hidden>
-        <div id="modelBox"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>
-        <div id="fileBox"><label for="files">Audio / PDF evidence</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>
-      </div>
+      <div class="f" id="aiOpts" hidden><div id="modelBox"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div></div>
+      <div class="f" id="fileBox"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>
       <button class="btn full" id="go">Check &amp; build claim</button>
       <div class="prog" id="prog"><div class="t"><span id="pStat"></span><span id="pPct">0%</span></div><div class="bar"><i id="pBar"></i></div></div>
     </section>
@@ -197,6 +228,25 @@ Dear Angi Support, the phone number on this lead is permanently disconnected. Pe
     <div class="empty" id="hEmpty">No disputes yet.</div>
   </section>
 </main>
+
+<main id="admin" class="app" hidden>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+    <h1 class="wl" style="margin:0;flex:1">Admin dashboard</h1>
+    <button class="btn sm sec" id="admRefresh" type="button">Refresh</button><button class="btn sm" id="admExit" type="button">Exit admin</button>
+  </div>
+  <div class="agrid" id="aK"></div>
+  <section class="panel" style="margin-top:18px"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0;flex:1">Users</h2><input class="inp" id="aFilter" placeholder="Search email or business" style="max-width:260px;height:38px"></div>
+    <div class="tw"><table><thead><tr><th>Email</th><th>Business</th><th>Plan</th><th>Trials left</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div></section>
+  <section class="panel" style="margin-top:18px"><h2>Latest disputes</h2>
+    <div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Recovered</th></tr></thead><tbody id="aD"></tbody></table></div></section>
+</main>
+
+<div class="ov" id="adminOv" hidden><div class="modal">
+  <div style="display:flex;justify-content:space-between"><h2>Admin access</h2><button class="lnk" onclick="closeOv('adminOv')" aria-label="Close">✕</button></div>
+  <p class="sub">Enter the admin key to open the dashboard.</p>
+  <div class="f"><label for="admK">Admin key</label><input class="inp" id="admK" type="password" autocomplete="off"></div>
+  <p class="msg" id="admM"></p><button class="btn full" id="admGo">Open dashboard</button>
+</div></div>
 
 <!-- auth modal -->
 <div class="ov" id="authOv" hidden><div class="modal">
@@ -313,9 +363,9 @@ function wakeBar(after,msg){
   return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),350)}}
 async function withWake(el,fn,msg){let stop=null;const t=setTimeout(()=>{if(el)stop=wakeBar(el,msg)},1200);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
 function scrollToId(id){go('landing');setTimeout(()=>$(id).scrollIntoView({behavior:'smooth'}),30)}
-function go(v){$('landing').hidden=v!=='landing';$('app').hidden=v!=='app';window.scrollTo(0,0);if(v==='landing')observe()}
+function go(v){$('landing').hidden=v!=='landing';$('app').hidden=v!=='app';$('admin').hidden=v!=='admin';window.scrollTo(0,0);if(v==='landing')observe()}
 function closeOv(id){$(id).hidden=true}
-function openUpgrade(){go('landing');setTimeout(()=>$('pricing').scrollIntoView({behavior:'smooth'}),30)}
+function openUpgrade(){go('landing');setTimeout(()=>{$('pricing').scrollIntoView({behavior:'smooth'});const g=document.querySelector('.plan.pop');if(g){g.classList.add('flash');setTimeout(()=>g.classList.remove('flash'),2500)}},60)}
 $('themeBtn').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;ls('lc_theme',n)};
 let io;function observe(){io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.rv').forEach(el=>io.observe(el))}
 function renderPlans(){
@@ -369,13 +419,19 @@ function signout(silent){if(token&&!silent)fetch(API+'/api/auth/logout',{method:
 function render(){
   $('navPub').hidden=!!me;$('navPriv').hidden=!me;
   if(!me){renderPlans();return}
-  $('planPill').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]||me.plan;
+  const g0=me.plan==='growth',l0=me.plan==='free'?me.trials_left:Math.max(0,me.solo_limit-me.month_used);
+  $('planPill').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]+(g0?'':' · '+l0+' left');
   const g=me.plan==='growth';
   $('fileBox').classList.toggle('lock',!g);$('modelBox').classList.toggle('lock',!g);
   [$('fileBox'),$('modelBox')].forEach(b=>b.onclick=()=>{if(!g){toast('Upgrade to Growth Pro to unlock this.');openUpgrade()}});
-  const lim=me.plan==='solo'?me.solo_limit:3,used=me.plan==='free'?3-me.trials_left:me.month_used;
-  $('kUse').textContent=g?'Unlimited':me.plan==='free'?`${me.trials_left} of 3 trial disputes left`:`${used} / ${lim} this month`;
-  $('kBar').style.width=(g?100:Math.min(100,used/lim*100))+'%';
+  const lim=me.plan==='solo'?me.solo_limit:3,left=g?0:Math.max(0,me.plan==='free'?me.trials_left:me.solo_limit-me.month_used);
+  $('pcName').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]||me.plan;
+  $('pcLeft').textContent=g?'Unlimited':left;$('pcUnit').textContent=g?'disputes':me.plan==='free'?'trial disputes left':'disputes left this month';
+  $('kBar').style.width=(g?100:left/lim*100)+'%';
+  $('pcUp').hidden=g;$('pcUp').textContent=me.plan==='free'?'Choose a plan':'Upgrade to Growth Pro';
+  $('welcome').textContent='Welcome back, '+me.workspace;
+  document.querySelector('#ctype [data-m=ai]').classList.toggle('locked',me.plan==='solo');
+  document.querySelector('#ctype [data-m=ai]').textContent=me.plan==='solo'?'Custom AI · Growth Pro':'Custom AI claim';
   $('kCount').textContent=me.disputes.length;$('kElig').textContent='$'+me.eligible_total.toFixed(0);$('kRec').textContent='$'+me.recovered_total.toFixed(0);
   renderHist();renderPlans()}
 async function refreshMe(){try{me=await api('/api/me');saveMe();render()}catch(e){}}
@@ -442,9 +498,36 @@ $('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return to
   Object.assign(me,f);saveMe();closeOv('accOv');toast('Saved');
   api('/api/user/profile',{method:'POST',json:{password:pw,...f}}).catch(e=>toast(e.message))};
 $('billBtn').onclick=async()=>{try{const d=await withWake($('billBtn'),()=>api('/api/billing/portal',{method:'POST'}));location.href=d.url}catch(e){toast(e.message)}};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','accOv'].forEach(closeOv)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','accOv','adminOv'].forEach(closeOv)});
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.hidden=true}));
 addEventListener('scroll',()=>document.querySelector('nav').classList.toggle('sc',scrollY>8),{passive:true});
+$('pcUp').onclick=openUpgrade;
+$('files').onchange=()=>{if($('files').files.length&&ctype!=='ai')document.querySelector('#ctype [data-m=ai]').click()};
+// ---- admin area (key is kept in memory only)
+let adminKey='',adminData=null;
+async function loadAdmin(){
+  let r;try{r=await fetch(API+'/api/admin/analytics',{headers:{'X-Admin-Key':adminKey}})}catch(e){throw new Error('Cannot reach the server. Please try again.')}
+  const d=await r.json().catch(()=>({}));
+  if(r.status===403)throw new Error('Incorrect admin key.');
+  if(r.status===429)throw new Error('Too many attempts. Try again in 15 minutes.');
+  if(!r.ok)throw new Error('Could not load admin data.');
+  adminData=d;renderAdmin()}
+function renderAdmin(){
+  const d=adminData,s=d.summary,usd=n=>'$'+Math.round(n).toLocaleString();
+  $('aK').innerHTML=[['Total users',s.users],['Paid users',s.paid],['New (7 days)',s.new_7d],['Disputes',s.disputes],['Eligible credits',usd(s.eligible_total)],['Recovered',usd(s.recovered_total)]].map(([l,v])=>`<div class="kpi"><span>${l}</span><b>${v}</b></div>`).join('');
+  const q=$('aFilter').value.trim().toLowerCase();
+  $('aU').innerHTML=d.users.filter(u=>!q||(u.email+' '+u.workspace).toLowerCase().includes(q)).map(u=>`<tr><td>${esc(u.email)}</td><td>${esc(u.workspace)}</td><td><span class="pl">${esc(u.plan)}</span></td><td>${u.plan==='free'?u.trials_left:'–'}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No users found.</td></tr>';
+  $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>${esc(x.lead_phone)}</td><td>$${(+x.amount).toFixed(2)}</td><td><span class="bad ${x.valid?'y':'n'}">${x.valid?'Eligible':'Rejected'}</span></td><td>${x.valid?(x.recovered?'Yes':'No'):'–'}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No disputes yet.</td></tr>'}
+$('adminBtn').onclick=()=>{if(adminKey&&adminData){go('admin');return}$('admM').textContent='';$('admK').value='';$('adminOv').hidden=false;setTimeout(()=>$('admK').focus(),50)};
+$('admGo').onclick=async()=>{
+  const k=$('admK').value.trim();if(!k)return $('admM').textContent='Enter the admin key.';
+  const b=$('admGo');adminKey=k;b.disabled=true;b.classList.add('busy');$('admM').textContent='';
+  try{await withWake(b,loadAdmin);closeOv('adminOv');go('admin')}
+  catch(e){adminKey='';$('admM').textContent=e.message}finally{b.disabled=false;b.classList.remove('busy')}};
+$('admK').addEventListener('keydown',e=>{if(e.key==='Enter')$('admGo').click()});
+$('admRefresh').onclick=async()=>{try{await loadAdmin();toast('Refreshed')}catch(e){toast(e.message)}};
+$('admExit').onclick=()=>{adminKey='';adminData=null;go(me?'app':'landing')};
+$('aFilter').oninput=()=>adminData&&renderAdmin();
 $('yr').textContent=new Date().getFullYear();
 renderPlans();observe();render();
 if(me)go('app');
