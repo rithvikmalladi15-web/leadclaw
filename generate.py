@@ -3,6 +3,10 @@ import logging
 import os
 import re
 import sqlite3
+import random
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, date
 from typing import List, Optional
 
@@ -13,12 +17,10 @@ from pydantic import BaseModel
 import google.generativeai as genai
 from groq import Groq
 
-# ── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
-# ── App Definition ─────────────────────────────────────────────────────────
-app = FastAPI(title="LeadClaw API", version="9.0.0")
+app = FastAPI(title="LeadClaw API", version="13.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -28,7 +30,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Model Configuration: Gemini 3.5 Flash & Groq Qwen3 4B ────────────────
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 
@@ -40,7 +41,29 @@ if GEMINI_API_KEY:
 
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# ── SQLite Persistence ────────────────────────────────────────────────────
+SMTP_SENDER   = os.environ.get("SMTP_SENDER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+SMTP_SERVER   = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT     = int(os.environ.get("SMTP_PORT", 587))
+
+def send_reset_email(recipient: str, reset_code: str):
+    if not SMTP_SENDER or not SMTP_PASSWORD:
+        logger.warning("SMTP credentials not configured. Reset code: %s", reset_code)
+        return
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = SMTP_SENDER
+        msg["To"] = recipient
+        msg["Subject"] = "LeadClaw Password Reset Request"
+        body = f"Hello,\n\nYour LeadClaw password reset code is: {reset_code}\n\nEnter this code in the app to set a new password.\n\nBest regards,\nLeadClaw Team"
+        msg.attach(MIMEText(body, "plain"))
+        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
+            server.starttls()
+            server.login(SMTP_SENDER, SMTP_PASSWORD)
+            server.sendmail(SMTP_SENDER, recipient, msg.as_string())
+    except Exception as e:
+        logger.error("Failed to send reset email: %s", e)
+
 DB_FILE = "leadclaw.db"
 
 def init_db():
@@ -61,6 +84,7 @@ def init_db():
         plan          TEXT DEFAULT 'solo',
         trials_left   INTEGER DEFAULT 3,
         device_token  TEXT,
+        reset_token   TEXT DEFAULT '',
         created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )""")
     c.execute("""CREATE TABLE IF NOT EXISTS disputes (
@@ -75,27 +99,29 @@ def init_db():
         recovered   INTEGER DEFAULT 0,
         created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS feedback_entries (
-        id         INTEGER PRIMARY KEY AUTOINCREMENT,
-        email      TEXT,
-        workspace  TEXT,
-        type       TEXT,
-        message    TEXT,
-        priority   TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )""")
     conn.commit()
     conn.close()
 
 init_db()
 
-# ── Request Validation Models ─────────────────────────────────────────────
 class RegisterRequest(BaseModel):
     email: str
     username: str
     password: str
     dob: str
     business: str
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
 
 class PlanSelectRequest(BaseModel):
     email: str
@@ -104,6 +130,7 @@ class PlanSelectRequest(BaseModel):
 
 class ProfileUpdateRequest(BaseModel):
     email: str
+    password: Optional[str] = ""
     full_name: Optional[str] = ""
     phone: Optional[str] = ""
     acc_angi: Optional[str] = ""
@@ -111,18 +138,6 @@ class ProfileUpdateRequest(BaseModel):
     acc_porch: Optional[str] = ""
     acc_networx: Optional[str] = ""
 
-class FeedbackRequest(BaseModel):
-    email: Optional[str] = ""
-    workspace: Optional[str] = ""
-    type: Optional[str] = "Feedback"
-    message: str
-    priority: Optional[str] = "medium"
-
-class RecoverRequest(BaseModel):
-    dispute_id: int
-    email: str
-
-# ── Policy Enforcement Rules & Prompts ────────────────────────────────────
 PLATFORM_POLICY = {
     "Angi":      "Angi Lead Credit Policy",
     "Thumbtack": "Thumbtack Lead Price Credit Terms",
@@ -171,6 +186,13 @@ If valid is false: one or two plain sentences for "reason" and "claim" must be e
 Respond ONLY in valid JSON format with these exact keys:
 {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
 
+def validate_password_strength(password: str):
+    if len(password) < 7 or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+        raise HTTPException(
+            status_code=400,
+            detail="Password must be at least 7 characters long and contain at least 1 special character."
+        )
+
 def extract_json(text: str) -> dict:
     text = text.strip()
     if text.startswith("```json"):
@@ -217,20 +239,15 @@ def not_eligible(cost: float, confidence: float = 0.88, reason: str = NOT_ELIGIB
         "reason": reason, "claim": "", "amount": cost,
     }
 
-# ── Application Routes ─────────────────────────────────────────────────────
 @app.get("/")
 def health():
-    return {
-        "status": "healthy",
-        "service": "LeadClaw API",
-        "models": {"primary": "gemini-3.5-flash", "secondary": "groq/qwen3-4b"}
-    }
+    return {"status": "healthy", "service": "LeadClaw API"}
 
 @app.post("/api/auth/register")
 async def register_user(req: RegisterRequest):
     if not req.email.lower().endswith("@gmail.com"):
         raise HTTPException(status_code=400, detail="You must provide a valid @gmail.com email address.")
-
+    validate_password_strength(req.password)
     try:
         dob_date = datetime.strptime(req.dob, "%Y-%m-%d").date()
         today = date.today()
@@ -254,6 +271,56 @@ async def register_user(req: RegisterRequest):
         conn.close()
     return {"status": "success", "message": "Account created successfully."}
 
+@app.post("/api/auth/login")
+async def login_user(req: LoginRequest):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT email, password, trials_left, plan FROM users WHERE email=?", (req.email,))
+    row = c.fetchone()
+    conn.close()
+
+    if not row:
+        raise HTTPException(status_code=401, detail="No account found with this email address.")
+    stored_email, stored_password, trials_left, plan = row
+    if stored_password != req.password:
+        raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
+
+    return {"status": "success", "email": stored_email, "trials_left": trials_left, "plan": plan}
+
+@app.post("/api/auth/forgot-password")
+async def forgot_password(req: ForgotPasswordRequest):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT email FROM users WHERE email=?", (req.email,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Email address not found in our records.")
+
+    reset_code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+    c.execute("UPDATE users SET reset_token=? WHERE email=?", (reset_code, req.email))
+    conn.commit()
+    conn.close()
+
+    send_reset_email(req.email, reset_code)
+    return {"status": "success", "message": "Password reset code sent to your email."}
+
+@app.post("/api/auth/reset-password")
+async def reset_password(req: ResetPasswordRequest):
+    validate_password_strength(req.new_password)
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT reset_token FROM users WHERE email=?", (req.email,))
+    row = c.fetchone()
+    if not row or row[0] != req.code:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Invalid verification code.")
+
+    c.execute("UPDATE users SET password=?, reset_token='' WHERE email=?", (req.new_password, req.email))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "Password updated successfully."}
+
 @app.post("/api/auth/select-plan")
 async def select_plan(req: PlanSelectRequest):
     conn = sqlite3.connect(DB_FILE)
@@ -267,41 +334,20 @@ async def select_plan(req: PlanSelectRequest):
 async def update_profile(req: ProfileUpdateRequest):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute(
-        "UPDATE users SET full_name=?, phone=?, acc_angi=?, acc_thumbtack=?, acc_porch=?, acc_networx=? WHERE email=?",
-        (req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, req.email)
-    )
+    if req.password:
+        validate_password_strength(req.password)
+        c.execute(
+            "UPDATE users SET password=?, full_name=?, phone=?, acc_angi=?, acc_thumbtack=?, acc_porch=?, acc_networx=? WHERE email=?",
+            (req.password, req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, req.email)
+        )
+    else:
+        c.execute(
+            "UPDATE users SET full_name=?, phone=?, acc_angi=?, acc_thumbtack=?, acc_porch=?, acc_networx=? WHERE email=?",
+            (req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, req.email)
+        )
     conn.commit()
     conn.close()
     return {"status": "success"}
-
-@app.get("/api/admin/analytics")
-async def get_customer_analytics():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    
-    c.execute("SELECT COUNT(*) as total_users, AVG(age) as avg_age FROM users")
-    stats = dict(c.fetchone())
-    
-    c.execute("SELECT plan, COUNT(*) as count FROM users GROUP BY plan")
-    plan_distribution = [dict(row) for row in c.fetchall()]
-    
-    c.execute("SELECT email, username, age, workspace, full_name, phone, acc_angi, acc_thumbtack, acc_porch, acc_networx, plan, trials_left, created_at FROM users")
-    users = [dict(row) for row in c.fetchall()]
-    
-    c.execute("SELECT id, email, platform, lead_phone, lead_email, amount, valid, recovered, created_at FROM disputes")
-    disputes = [dict(row) for row in c.fetchall()]
-    
-    conn.close()
-    
-    return {
-        "status": "success",
-        "summary": {"total_customers": stats["total_users"] or 0, "average_age": round(stats["avg_age"] or 0, 1)},
-        "plan_distribution": plan_distribution,
-        "users": users,
-        "disputes": disputes
-    }
 
 @app.post("/api/dispute")
 async def analyze_dispute(
@@ -316,8 +362,8 @@ async def analyze_dispute(
     device_token: str   = Form("default"),
     files: List[UploadFile] = File(default=[]),
 ):
-    text_check = f"{notes} {transcript}"
-    policy     = PLATFORM_POLICY.get(platform, f"{platform} lead policy")
+    if not lead_phone.strip() or not lead_email.strip():
+        raise HTTPException(status_code=400, detail="Mandatory: Lead Phone Number and Lead Email must be filled out to process dispute templates.")
 
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
@@ -332,6 +378,12 @@ async def analyze_dispute(
     if not is_unlimited and trials_left <= 0:
         raise HTTPException(status_code=402, detail="Trial limit reached. Please upgrade your plan.")
 
+    if files and plan == "solo":
+        raise HTTPException(status_code=403, detail="Audio and PDF file reading is restricted to Growth Pro and Enterprise plans. Please upgrade.")
+
+    text_check = f"{notes} {transcript}"
+    policy     = PLATFORM_POLICY.get(platform, f"{platform} lead policy")
+
     account_handle = ""
     if row:
         if platform == "Angi": account_handle = row[4]
@@ -344,14 +396,14 @@ async def analyze_dispute(
         f"Contractor Account ID: {account_handle or 'Default Workspace'}\n"
         f"Policy: {policy}\n"
         f"Lead Cost: ${cost:.2f}\n"
-        f"Lead Phone: {lead_phone or 'N/A'}\n"
-        f"Lead Email: {lead_email or 'N/A'}\n\n"
+        f"Lead Phone: {lead_phone}\n"
+        f"Lead Email: {lead_email}\n\n"
         f"Contractor Call Notes:\n{notes or '(none)'}\n\n"
         f"Transcript:\n{transcript or '(none)'}"
     )
 
     try:
-        if model == "groq":
+        if model == "groq" and plan != "solo":
             data = await call_groq_qwen3_4b(prompt_text)
         else:
             file_parts = []
@@ -415,29 +467,6 @@ async def analyze_dispute(
     except Exception as e:
         logger.exception("Dispute review failed: %s", e)
         raise HTTPException(status_code=502, detail=f"AI review failed: {str(e)}")
-
-@app.post("/api/dispute/recover")
-async def mark_recovered(req: RecoverRequest):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("UPDATE disputes SET recovered=1 WHERE id=? AND email=?", (req.dispute_id, req.email))
-    conn.commit()
-    c.execute("SELECT SUM(amount) FROM disputes WHERE email=? AND recovered=1", (req.email,))
-    row = c.fetchone()
-    conn.close()
-    return {"status": "success", "total_recovered": row[0] or 0.0}
-
-@app.post("/api/feedback")
-async def submit_feedback(req: FeedbackRequest):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute(
-        "INSERT INTO feedback_entries (email,workspace,type,message,priority) VALUES (?,?,?,?,?)",
-        (req.email, req.workspace, req.type, req.message, req.priority),
-    )
-    conn.commit()
-    conn.close()
-    return {"status": "success"}
 
 if __name__ == "__main__":
     import uvicorn
