@@ -3,12 +3,11 @@ import logging
 import os
 import re
 import sqlite3
-import random
 from datetime import datetime, date
 from typing import List, Optional
 
 import httpx
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Body
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -18,8 +17,8 @@ from groq import Groq
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
-# ── App ────────────────────────────────────────────────────────────────────
-app = FastAPI(title="LeadClaw API", version="6.0.0")
+# ── App Definition ─────────────────────────────────────────────────────────
+app = FastAPI(title="LeadClaw API", version="8.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,18 +28,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Environment variables ──────────────────────────────────────────────────
+# ── Model Configuration: Gemini 3.5 Flash & Groq Qwen3 4B ────────────────
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+
 GROQ_API_KEY   = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL     = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
+GROQ_MODEL     = os.environ.get("GROQ_MODEL", "qwen3-4b")
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-# ── SQLite database ────────────────────────────────────────────────────────
+# ── SQLite Persistence ────────────────────────────────────────────────────
 DB_FILE = "leadclaw.db"
 
 def init_db():
@@ -81,7 +81,7 @@ def init_db():
 
 init_db()
 
-# ── Pydantic models ────────────────────────────────────────────────────────
+# ── Request Validation Models ─────────────────────────────────────────────
 class RegisterRequest(BaseModel):
     email: str
     username: str
@@ -105,23 +105,19 @@ class RecoverRequest(BaseModel):
     dispute_id: int
     email: str
 
-# ── Policy constants & AI Prompts ──────────────────────────────────────────
+# ── Policy Enforcement Rules & Prompts ────────────────────────────────────
 PLATFORM_POLICY = {
     "Angi":      "Angi Lead Credit Policy",
     "Thumbtack": "Thumbtack Lead Price Credit Terms",
     "Porch":     "Porch Pro Lead Guarantee",
     "Networx":   "Networx Lead Dispute Terms",
 }
+
 NOT_ELIGIBLE_REASON = (
     "Pricing objections, competitor hiring, project postponements, and customer "
     "choices are non-refundable under marketplace policy."
 )
-NON_REFUNDABLE_RE = re.compile(
-    r"competitor|hired|another contractor|chose another|price|pricing|expensive|quote|"
-    r"changed\s+(?:\w+\s+)?mind|not interested|on hold|postponed|delay|cancelled|"
-    r"budget|no answer|unresponsive|voicemail",
-    re.I,
-)
+
 INVALID_SAFETY_RE = re.compile(
     r"hired (?:another|a|an|someone|a different)|"
     r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
@@ -129,6 +125,7 @@ INVALID_SAFETY_RE = re.compile(
     r"competitor|too expensive|over (?:our|my) budget|on hold|postponed",
     re.I,
 )
+
 SYSTEM_PROMPT = """You are an expert compliance auditor for home service lead marketplaces
 (Angi, Thumbtack, Porch, Networx). Decide whether a lead qualifies for a credit refund.
 
@@ -168,9 +165,10 @@ def extract_json(text: str) -> dict:
         raise ValueError(f"No JSON found in: {text[:300]}")
     return json.loads(text[s:e + 1])
 
-async def call_gemini(prompt_text: str, file_parts: list = None) -> dict:
+# ── AI Model Callers ──────────────────────────────────────────────────────
+async def call_gemini_3_5_flash(prompt_text: str, file_parts: list = None) -> dict:
     if not GEMINI_API_KEY:
-        raise ValueError("GEMINI_API_KEY is not set.")
+        raise ValueError("GEMINI_API_KEY is not configured.")
     model = genai.GenerativeModel(
         model_name=GEMINI_MODEL,
         system_instruction=SYSTEM_PROMPT,
@@ -182,9 +180,9 @@ async def call_gemini(prompt_text: str, file_parts: list = None) -> dict:
     response = model.generate_content(contents)
     return extract_json(response.text or "")
 
-async def call_groq(prompt_text: str) -> dict:
+async def call_groq_qwen3_4b(prompt_text: str) -> dict:
     if not groq_client:
-        raise ValueError("GROQ_API_KEY is not set.")
+        raise ValueError("GROQ_API_KEY is not configured.")
     completion = groq_client.chat.completions.create(
         model=GROQ_MODEL,
         messages=[
@@ -203,34 +201,20 @@ def not_eligible(cost: float, confidence: float = 0.88, reason: str = NOT_ELIGIB
         "reason": reason, "claim": "", "amount": cost,
     }
 
-def get_user(email: str = None, device_token: str = None) -> Optional[dict]:
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    if email:
-        c.execute("SELECT email,username,age,workspace,plan,trials_left FROM users WHERE email=?", (email,))
-    elif device_token:
-        c.execute("SELECT email,username,age,workspace,plan,trials_left FROM users WHERE device_token=?", (device_token,))
-    else:
-        conn.close(); return None
-    row = c.fetchone(); conn.close()
-    if not row: return None
-    return {"email": row[0], "username": row[1], "age": row[2], "workspace": row[3], "plan": row[4], "trials_left": row[5]}
-
-def plan_tier(plan: str) -> int:
-    return {"solo": 1, "growth": 2, "crew": 3}.get(plan, 1)
-
-# ── Routes ─────────────────────────────────────────────────────────────────
+# ── Application Routes ─────────────────────────────────────────────────────
 @app.get("/")
 def health():
-    return {"ok": True, "service": "LeadClaw API", "version": "6.0.0"}
+    return {
+        "status": "healthy",
+        "service": "LeadClaw API",
+        "models": {"primary": "gemini-3.5-flash", "secondary": "groq/qwen3-4b"}
+    }
 
 @app.post("/api/auth/register")
 async def register_user(req: RegisterRequest):
-    # 1. Enforce Gmail Only
     if not req.email.lower().endswith("@gmail.com"):
         raise HTTPException(status_code=400, detail="You must provide a valid @gmail.com email address.")
 
-    # 2. Enforce Age 18+
     try:
         dob_date = datetime.strptime(req.dob, "%Y-%m-%d").date()
         today = date.today()
@@ -238,7 +222,7 @@ async def register_user(req: RegisterRequest):
         if calculated_age < 18:
             raise HTTPException(status_code=403, detail="You must be at least 18 years old to create an account.")
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Date of Birth format. Please select from the calendar picker.")
+        raise HTTPException(status_code=400, detail="Invalid Date of Birth format.")
 
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
@@ -268,7 +252,6 @@ async def select_plan(req: PlanSelectRequest):
 
 @app.get("/api/admin/analytics")
 async def get_customer_analytics():
-    """Admin analytics route for querying SQLite customer records and dispute metrics."""
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
@@ -289,10 +272,7 @@ async def get_customer_analytics():
     
     return {
         "status": "success",
-        "summary": {
-            "total_customers": stats["total_users"] or 0,
-            "average_age": round(stats["avg_age"] or 0, 1)
-        },
+        "summary": {"total_customers": stats["total_users"] or 0, "average_age": round(stats["avg_age"] or 0, 1)},
         "plan_distribution": plan_distribution,
         "users": users,
         "disputes": disputes
@@ -312,11 +292,15 @@ async def analyze_dispute(
     text_check = f"{notes} {transcript}"
     policy     = PLATFORM_POLICY.get(platform, f"{platform} lead policy")
 
-    user          = get_user(email=email, device_token=device_token)
-    trials_left   = user["trials_left"] if user else 3
-    user_plan     = user["plan"] if user else "solo"
-    tier          = plan_tier(user_plan)
-    is_unlimited  = tier >= 2 and user is not None
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT plan, trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
+    row = c.fetchone()
+    conn.close()
+
+    plan = row[0] if row else "solo"
+    trials_left = row[1] if row else 3
+    is_unlimited = plan in ["growth", "crew"]
 
     if not is_unlimited and trials_left <= 0:
         raise HTTPException(status_code=402, detail="Trial limit reached. Please upgrade your plan.")
@@ -331,7 +315,7 @@ async def analyze_dispute(
 
     try:
         if model == "groq":
-            data = await call_groq(prompt_text)
+            data = await call_groq_qwen3_4b(prompt_text)
         else:
             file_parts = []
             for f in files:
@@ -340,7 +324,7 @@ async def analyze_dispute(
                     n = (f.filename or "").lower()
                     mime = "audio/mpeg" if n.endswith(".mp3") else "audio/wav" if n.endswith(".wav") else "application/pdf"
                     file_parts.append({"mime_type": mime, "data": raw})
-            data = await call_gemini(prompt_text, file_parts or None)
+            data = await call_gemini_3_5_flash(prompt_text, file_parts or None)
 
         valid = bool(data.get("valid"))
 
@@ -365,22 +349,30 @@ async def analyze_dispute(
             }
 
         if not is_unlimited:
-            conn = sqlite3.connect(DB_FILE); c = conn.cursor()
-            c.execute("UPDATE users SET trials_left = MAX(0, trials_left - 1) WHERE email=? OR device_token=?", (email, device_token))
+            conn = sqlite3.connect(DB_FILE)
+            c = conn.cursor()
+            c.execute("""UPDATE users 
+                         SET trials_left = MAX(0, trials_left - 1) 
+                         WHERE email=? OR device_token=?"", 
+                      (email, device_token))
             c.execute("SELECT trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
-            row = c.fetchone(); conn.close()
-            trials_left = row[0] if row else 0
+            row_t = c.fetchone()
+            conn.commit()
+            conn.close()
+            trials_left = row_t[0] if row_t else 0
 
         result["trials_left"] = trials_left
 
         if email:
-            conn = sqlite3.connect(DB_FILE); c = conn.cursor()
+            conn = sqlite3.connect(DB_FILE)
+            c = conn.cursor()
             c.execute(
                 "INSERT INTO disputes (email, platform, claim, amount, valid) VALUES (?,?,?,?,?)",
                 (email, platform, result.get("claim",""), cost, int(result["valid"])),
             )
             result["dispute_id"] = c.lastrowid
-            conn.commit(); conn.close()
+            conn.commit()
+            conn.close()
 
         return result
 
@@ -392,21 +384,25 @@ async def analyze_dispute(
 
 @app.post("/api/dispute/recover")
 async def mark_recovered(req: RecoverRequest):
-    conn = sqlite3.connect(DB_FILE); c = conn.cursor()
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     c.execute("UPDATE disputes SET recovered=1 WHERE id=? AND email=?", (req.dispute_id, req.email))
     conn.commit()
     c.execute("SELECT SUM(amount) FROM disputes WHERE email=? AND recovered=1", (req.email,))
-    row = c.fetchone(); conn.close()
+    row = c.fetchone()
+    conn.close()
     return {"status": "success", "total_recovered": row[0] or 0.0}
 
 @app.post("/api/feedback")
 async def submit_feedback(req: FeedbackRequest):
-    conn = sqlite3.connect(DB_FILE); c = conn.cursor()
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
     c.execute(
         "INSERT INTO feedback_entries (email,workspace,type,message,priority) VALUES (?,?,?,?,?)",
         (req.email, req.workspace, req.type, req.message, req.priority),
     )
-    conn.commit(); conn.close()
+    conn.commit()
+    conn.close()
     return {"status": "success"}
 
 if __name__ == "__main__":
