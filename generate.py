@@ -3,6 +3,9 @@ import logging
 import os
 import random
 import sqlite3
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from typing import Optional
 import uvicorn
 import google.generativeai as genai
@@ -13,7 +16,7 @@ from pydantic import BaseModel
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
-app = FastAPI(title="LeadClaw API", version="9.0.0")
+app = FastAPI(title="LeadClaw API", version="10.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -85,30 +88,60 @@ def health():
 
 @app.post("/api/auth/send-code")
 async def send_code(req: EmailRequest):
+    email = req.email.strip().lower()
+    if not email.endswith("@gmail.com"):
+        raise HTTPException(status_code=400, detail="Please enter a valid @gmail.com address.")
+
     code = f"{random.randint(100000, 999999)}"
+    
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("INSERT OR REPLACE INTO verifications (email, code) VALUES (?,?)", (req.email, code))
+    c.execute("INSERT OR REPLACE INTO verifications (email, code) VALUES (?,?)", (email, code))
     conn.commit()
     conn.close()
-    logger.info("========================================")
-    logger.info("VERIFICATION CODE FOR %s: %s", req.email, code)
-    logger.info("========================================")
-    return {"status": "success", "debug_code": code}
+
+    # SMTP Configuration for sending real verification emails
+    sender_email = os.environ.get("GMAIL_USER", "")
+    sender_password = os.environ.get("GMAIL_APP_PASSWORD", "")
+
+    if sender_email and sender_password:
+        try:
+            msg = MIMEMultipart()
+            msg["From"] = f"LeadClaw Verification <{sender_email}>"
+            msg["To"] = email
+            msg["Subject"] = f"Your LeadClaw Verification Code: {code}"
+            
+            body = f"Hello,\n\nYour LeadClaw verification code is: {code}\n\nEnter this 6-digit code to complete setting up your workspace."
+            msg.attach(MIMEText(body, "plain"))
+
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            server.login(sender_email, sender_password)
+            server.sendmail(sender_email, email, msg.as_string())
+            server.quit()
+            logger.info("Verification code emailed to %s", email)
+        except Exception as e:
+            logger.error("SMTP dispatch error: %s", e)
+    
+    logger.info("VERIFICATION CODE FOR %s: %s", email, code)
+    return {"status": "success", "message": "Code generated.", "debug_code": code}
 
 @app.post("/api/auth/verify-code")
 async def verify_code(req: CodeVerifyRequest):
+    email = req.email.strip().lower()
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    c.execute("SELECT code FROM verifications WHERE email=?", (req.email,))
+    c.execute("SELECT code FROM verifications WHERE email=?", (email,))
     row = c.fetchone()
     conn.close()
-    if not row or row[0] != req.code:
+    
+    if not row or row[0] != req.code.strip():
         raise HTTPException(status_code=400, detail="Invalid verification code.")
     return {"status": "success"}
 
 @app.post("/api/auth/setup-workspace")
 async def setup_workspace(req: WorkspaceSetupRequest):
+    email = req.email.strip().lower()
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -116,7 +149,7 @@ async def setup_workspace(req: WorkspaceSetupRequest):
            VALUES (?,?,?, COALESCE((SELECT trials_left FROM users WHERE email=?), 3), ?)
            ON CONFLICT(email) DO UPDATE SET
              workspace=excluded.workspace, plan=excluded.plan, device_token=excluded.device_token""",
-        (req.email, req.workspace, req.plan, req.email, req.device_token),
+        (email, req.workspace, req.plan, email, req.device_token),
     )
     conn.commit()
     conn.close()
@@ -140,16 +173,27 @@ async def analyze_dispute(
         conn.close()
         raise HTTPException(status_code=402, detail="Trial limit reached.")
 
-    claim_text = (
-        f"Subject: Formal Lead Credit Dispute - {platform}\n\n"
-        f"To {platform} Support Team,\n\n"
-        f"I am writing to formally request a credit refund for a defective lead provided on "
-        f"{platform} with a billed amount of ${cost:.2f}.\n\n"
-        f"Reason for Dispute:\n{notes}\n\n"
-        f"Under marketplace guarantee guidelines regarding invalid contact information and non-serviceable criteria, "
-        f"this lead fails to meet qualifying standards. Please credit ${cost:.2f} back to my account ledger.\n\n"
-        f"Regards,\nContractor Account Team"
-    )
+    claim_text = ""
+    if GEMINI_API_KEY:
+        try:
+            model = genai.GenerativeModel("gemini-1.5-flash")
+            prompt = f"Write a formal lead credit dispute letter to {platform} support requesting a credit refund of ${cost:.2f}. Contractor notes: {notes}."
+            response = model.generate_content(prompt)
+            claim_text = response.text
+        except Exception as e:
+            logger.error("Gemini call failed, using template: %s", e)
+
+    if not claim_text:
+        claim_text = (
+            f"Subject: Formal Lead Credit Dispute - {platform}\n\n"
+            f"To {platform} Support Team,\n\n"
+            f"I am writing to formally request a credit refund for a defective lead provided on "
+            f"{platform} with a billed amount of ${cost:.2f}.\n\n"
+            f"Reason for Dispute:\n{notes}\n\n"
+            f"Under marketplace guarantee guidelines regarding invalid contact information and non-serviceable criteria, "
+            f"this lead fails to meet qualifying standards. Please credit ${cost:.2f} back to my account ledger.\n\n"
+            f"Regards,\nContractor Account Team"
+        )
 
     c.execute("UPDATE users SET trials_left = MAX(0, trials_left - 1) WHERE email=? OR device_token=?", (email, device_token))
     c.execute("SELECT trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
