@@ -7,7 +7,6 @@
 <meta name="color-scheme" content="light dark">
 <script>try{var __t=localStorage.getItem('lc_theme')||'light';document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
 
-<!-- Favicon -->
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='9' stroke-linecap='round' fill='none'/></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -100,6 +99,10 @@ body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;pad
 .plan li{font-size:14px;color:var(--tx2);display:flex;gap:8px;align-items:flex-start}
 .plan li.dim{color:var(--dim);text-decoration:line-through}
 .trial-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--tint2);border:1px solid rgba(37,99,235,.28);border-radius:999px;font:600 13px var(--sans);color:var(--blue)}
+.plan-badge-indicator{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:999px;font:600 13px var(--sans);color:var(--accent)}
+.chips-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{padding:6px 11px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer;color:var(--mu);transition:all .15s}
+.chip:hover{border-color:var(--blue);background:var(--tint);color:var(--blue)}
 .progress-wrap{display:none;margin-top:16px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px}
 .progress-header{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:8px}
 .progress-bar-bg{height:8px;width:100%;background:var(--bdr2);border-radius:999px;overflow:hidden}
@@ -120,6 +123,8 @@ th,td{border:1px solid var(--bdr);padding:9px;font-size:13px;text-align:left}
 th{background:var(--surf2)}
 .toast{position:fixed;left:50%;bottom:20px;transform:translate(-50%,18px);background:#0f172a;color:#fff;padding:10px 16px;border-radius:8px;opacity:0;pointer-events:none;transition:all .2s;font-size:14px;z-index:90}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.paywall-lock{position:relative;opacity:0.65}
+.paywall-lock::after{content:"🔒 Pro Feature (Click to Upgrade)";position:absolute;inset:0;background:rgba(15,23,42,0.12);display:grid;place-items:center;font-weight:700;font-size:13px;color:var(--blue);border-radius:7px;cursor:pointer}
 </style>
 </head>
 <body>
@@ -128,6 +133,7 @@ th{background:var(--surf2)}
   <button class="nav" id="viewAccountsBtn" type="button" style="display:none">View My Data &amp; Accounts</button>
   <button class="nav" id="logoutBtn" type="button" style="display:none">Sign out</button>
   <span class="sp"></span>
+  <div class="plan-badge-indicator" id="currentPlanIndicator" hidden>Plan: <span id="planNameDisplay" style="text-transform:uppercase">Solo</span></div>
   <div class="trial-badge" id="headerTrialBadge" hidden>Disputes left: <span id="trialCount" style="font-weight:700">3</span></div>
   <button class="nav" id="upgradeBtnHeader" type="button" style="background:var(--blue);color:#fff;border-color:var(--blue)">Upgrade Plan</button>
   <button class="nav icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
@@ -162,12 +168,17 @@ th{background:var(--surf2)}
       <h1 id="authTitle">Create your account</h1>
       <p class="sub" id="authSub">Enter your business and contact details.</p>
       <div class="field"><label>Email address (Gmail only)</label><input class="inp" id="regEmail" type="email" placeholder="you@gmail.com"></div>
-      <div class="field"><label>Username</label><input class="inp" id="regUser" type="text" placeholder="contractor99"></div>
-      <div class="field"><label>Password</label>
+      <div class="field" id="userField"><label>Username</label><input class="inp" id="regUser" type="text" placeholder="contractor99"></div>
+      <div class="field"><label>Password (Min 7 chars, 1 special character)</label>
         <div class="pw-wrap"><input class="inp" id="regPass" type="password" placeholder="••••••••"><button class="show-btn" type="button" id="pwShow">Show</button></div>
       </div>
       <div class="field" id="dobField"><label>Date of Birth (18+ required)</label><input class="inp" id="regAge" type="date"></div>
       <div class="field" id="bizField"><label>Business Name</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing &amp; Plumbing"></div>
+      
+      <div id="forgotLinkWrap" style="margin-bottom:12px;display:none">
+        <a href="#" id="forgotPasswordLink" style="font-size:13.5px;font-weight:600">Forgot your password?</a>
+      </div>
+
       <p class="err-msg" id="regErr"></p>
       <button class="btn" id="toTermsBtn" type="button">Continue</button>
     </div>
@@ -204,7 +215,8 @@ th{background:var(--surf2)}
 <main class="page" id="pg-dash" style="margin-top:24px">
   <section class="panel">
     <h1>Lead credit request</h1>
-    <p class="sub">Fill in the lead details. We check platform refund policies and generate your claim using Gemini 3.5 Flash / Groq Qwen3 4B.</p>
+    <p class="sub">Fill in lead details, or click a 10-second quick dispute chip below.</p>
+    
     <div class="field"><span class="lbl">Lead platform</span>
       <div class="seg" role="radiogroup" id="platforms">
         <button type="button" aria-checked="true" onclick="setPlat('Angi')">Angi</button>
@@ -215,12 +227,31 @@ th{background:var(--surf2)}
     </div>
     
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div class="field" style="margin:0"><label for="leadPhone">Lead Phone Number</label><input class="inp" id="leadPhone" type="text" placeholder="(555) 019-2834"></div>
-      <div class="field" style="margin:0"><label for="leadEmail">Lead Email Address</label><input class="inp" id="leadEmail" type="email" placeholder="client@gmail.com"></div>
+      <div class="field" style="margin:0"><label for="leadPhone">Lead Phone Number *</label><input class="inp" id="leadPhone" type="text" placeholder="(555) 019-2834"></div>
+      <div class="field" style="margin:0"><label for="leadEmail">Lead Email Address *</label><input class="inp" id="leadEmail" type="email" placeholder="client@gmail.com"></div>
     </div>
 
-    <div class="field"><label for="notes">Call notes &amp; lead issue details</label>
-      <textarea id="notes" placeholder="e.g. Called twice, phone number disconnected. Lead was out of service area."></textarea></div>
+    <div class="field">
+      <label for="notes">Call notes &amp; lead issue details</label>
+      <div class="chips-grid">
+        <button type="button" class="chip" onclick="fillChip('Permanently disconnected phone number. Called twice with no answer.')">⚡ Disconnected Phone</button>
+        <button type="button" class="chip" onclick="fillChip('Customer is strictly outside our service area/zip code.')">⚡ Out of Service Area</button>
+        <button type="button" class="chip" onclick="fillChip('Duplicate lead submission received within the same billing window.')">⚡ Duplicate Lead</button>
+        <button type="button" class="chip" onclick="fillChip('Spam / bot submission with fake contact information.')">⚡ Spam / Bot Lead</button>
+        <button type="button" class="chip" onclick="fillChip('Wrong trade category submitted by customer (services do not match our trade).')">⚡ Wrong Trade</button>
+        <button type="button" class="chip" onclick="fillChip('Homeowner completely unresponsive after multiple contact attempts.')">⚡ Unresponsive Lead</button>
+      </div>
+      <textarea id="notes" placeholder="Click any chip above to instantly fill notes, or type custom notes here..."></textarea>
+    </div>
+
+    <!-- File Upload Gated / Visible for All -->
+    <div class="field" id="fileUploadFieldContainer">
+      <label for="evidenceFiles">Audio / PDF Evidence Upload <span style="color:var(--blue);font-size:12px">(Growth Pro &amp; Enterprise)</span></label>
+      <div id="fileUploadWrapper">
+        <input class="inp" id="evidenceFiles" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px">
+      </div>
+    </div>
+
     <div class="field"><label for="cost">Lead cost ($)</label>
       <input class="inp" id="cost" type="number" value="75.00"></div>
     <button class="btn" id="goBtn">Check &amp; build claim</button>
@@ -256,13 +287,14 @@ th{background:var(--surf2)}
       <h2>My Account &amp; Marketplace Integration Data</h2>
       <button class="nav" id="closeAdmin" style="padding:4px 10px">Close</button>
     </div>
-    <p style="color:var(--mu);font-size:13px">Manage your contractor identity, marketplace account handles, and dispute history below:</p>
+    <p style="color:var(--mu);font-size:13px">Manage your contractor identity, password, marketplace account handles, and dispute history below:</p>
 
     <div style="background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin:16px 0">
-      <h3 style="margin:0 0 10px;font-size:15px">Contractor Profile &amp; Contact Info</h3>
+      <h3 style="margin:0 0 10px;font-size:15px">Contractor Profile &amp; Credentials</h3>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
         <div class="field" style="margin:0"><label style="font-size:12px">Full Contact Name</label><input class="inp" id="accFullName" type="text" placeholder="John Smith"></div>
         <div class="field" style="margin:0"><label style="font-size:12px">Business Phone</label><input class="inp" id="accPhone" type="text" placeholder="(555) 123-4567"></div>
+        <div class="field" style="margin:0"><label style="font-size:12px">New Password (Optional)</label><input class="inp" id="accPassword" type="password" placeholder="••••••••"></div>
       </div>
 
       <h3 style="margin:0 0 10px;font-size:15px">Marketplace Account Handles</h3>
@@ -272,7 +304,7 @@ th{background:var(--surf2)}
         <div class="field" style="margin:0"><label style="font-size:12px">Networx Account Handle / Email</label><input class="inp" id="accNetworx" type="text" placeholder="Networx Business ID"></div>
         <div class="field" style="margin:0"><label style="font-size:12px">Porch Account Handle / Email</label><input class="inp" id="accPorch" type="text" placeholder="Porch Pro Username"></div>
       </div>
-      <button class="btn sec" id="saveAccountsBtn" style="margin-top:14px;height:38px;font-size:13px">Save Profiles &amp; Handles</button>
+      <button class="btn sec" id="saveAccountsBtn" style="margin-top:14px;height:38px;font-size:13px">Save Profile, Password &amp; Handles</button>
     </div>
 
     <div id="adminTableWrap" style="overflow-x:auto"></div>
@@ -297,9 +329,9 @@ th{background:var(--surf2)}
 document.addEventListener('DOMContentLoaded', () => {
   const API_BASE = 'https://leadclaw-api.onrender.com';
   let activeEmail = '';
+  let activePlan = 'solo';
   let agreedTerms = false;
   let currentPlatform = 'Angi';
-  let isLoginMode = false;
   let generatedClaimText = '';
 
   let deviceToken = localStorage.getItem('lc_device_token');
@@ -314,6 +346,15 @@ document.addEventListener('DOMContentLoaded', () => {
     t.textContent = m;
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  window.fillChip = function(text) {
+    document.getElementById('notes').value = text;
+    toast('10-second quick dispute reason applied!');
+  };
+
+  function checkPasswordValid(pwd) {
+    return pwd.length >= 7 && /[!@#$%^&*(),.?":{}|<>]/.test(pwd);
   }
 
   document.getElementById('themeBtn').onclick = () => {
@@ -337,11 +378,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('authTitle').textContent = 'Create your account';
     document.getElementById('authSub').textContent = 'Enter your business and contact details.';
     document.getElementById('toTermsBtn').textContent = 'Continue';
+    document.getElementById('userField').style.display = 'block';
     document.getElementById('dobField').style.display = 'block';
     document.getElementById('bizField').style.display = 'block';
+    document.getElementById('forgotLinkWrap').style.display = 'none';
     document.getElementById('stepper').style.display = 'flex';
   };
 
+  let isLoginMode = false;
   document.getElementById('tabLogin').onclick = () => {
     isLoginMode = true;
     document.getElementById('tabLogin').classList.add('on');
@@ -349,9 +393,53 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('authTitle').textContent = 'Welcome back';
     document.getElementById('authSub').textContent = 'Sign in to access your dashboard.';
     document.getElementById('toTermsBtn').textContent = 'Sign In';
+    document.getElementById('userField').style.display = 'none';
     document.getElementById('dobField').style.display = 'none';
     document.getElementById('bizField').style.display = 'none';
+    document.getElementById('forgotLinkWrap').style.display = 'block';
     document.getElementById('stepper').style.display = 'none';
+  };
+
+  document.getElementById('forgotPasswordLink').onclick = async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('regEmail').value.trim();
+    const errEl = document.getElementById('regErr');
+    if(!email) {
+      errEl.textContent = 'Please enter your @gmail.com email address above first.';
+      return;
+    }
+    errEl.textContent = 'Sending reset code...';
+    try {
+      const res = await fetch(`${API_BASE}/api/auth/forgot-password`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email})
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.detail || 'Could not send reset code.');
+      
+      const code = prompt('Verification code sent! Enter your 6-digit code:');
+      if(!code) return;
+      const newPassword = prompt('Enter new password (min 7 chars, 1 special character):');
+      if(!newPassword) return;
+
+      if(!checkPasswordValid(newPassword)) {
+        alert('Password must be at least 7 characters and have 1 special character.');
+        return;
+      }
+
+      const resetRes = await fetch(`${API_BASE}/api/auth/reset-password`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, code, new_password: newPassword})
+      });
+      const resetData = await resetRes.json();
+      if(!resetRes.ok) throw new Error(resetData.detail || 'Reset failed.');
+      errEl.textContent = '';
+      toast('Password updated successfully! Please sign in.');
+    } catch(err) {
+      errEl.textContent = err.message;
+    }
   };
 
   document.getElementById('toTermsBtn').onclick = async () => {
@@ -364,14 +452,33 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    if (!email.toLowerCase().endsWith('@gmail.com')) {
+    if (!email.toLowerCase().endswith('@gmail.com')) {
       errEl.textContent = 'A valid @gmail.com email address is required.';
       return;
     }
 
+    if (!checkPasswordValid(password)) {
+      errEl.textContent = 'Password must be at least 7 characters long and contain 1 special character.';
+      return;
+    }
+
     if(isLoginMode) {
-      activeEmail = email;
-      enterDashboard(3);
+      errEl.textContent = 'Authenticating...';
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({email, password})
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.detail || 'Invalid email or password.');
+        errEl.textContent = '';
+        activeEmail = data.email;
+        activePlan = data.plan || 'solo';
+        enterDashboard(data.trials_left ?? 3);
+      } catch(e) {
+        errEl.textContent = e.message;
+      }
       return;
     }
 
@@ -408,6 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const d = await res.json();
       if(!res.ok) throw new Error(d.detail || 'Registration failed.');
       activeEmail = email;
+      activePlan = 'solo';
       document.getElementById('v-details').hidden = true;
       document.getElementById('v-terms').hidden = false;
       document.getElementById('st1').className = 'st done';
@@ -465,23 +573,25 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="price">$${p.price}<small>/mo</small></div>
         <ul>
           ${p.feats.map(f=>`<li>✓ <span>${f}</span></li>`).join('')}
-          ${p.missing ? p.missing.map(m=>`<li class="dim">✕ <span>${m} (Missing on Solo)</span></li>`).join('') : ''}
+          ${p.missing ? p.missing.map(m=>`<li class="dim">✕ <span>${m}</span></li>`).join('') : ''}
         </ul>
-        <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Upgrade with Stripe</button>
+        <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">${activePlan === p.id ? 'Current Plan' : 'Upgrade with Stripe'}</button>
       </article>
     `).join('');
   };
 
   window.selectPlan = async function(planId) {
     try {
-      await fetch(`${API_BASE}/api/auth/select-plan`, {
+      const res = await fetch(`${API_BASE}/api/auth/select-plan`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({email: activeEmail, plan: planId, device_token: deviceToken})
       });
+      if(!res.ok) throw new Error('Failed to update plan.');
+      activePlan = planId;
       document.getElementById('upgradeModal').hidden = true;
       enterDashboard(3);
-      toast('Plan successfully upgraded!');
+      toast('Plan successfully updated!');
     } catch(e) {
       alert('Error updating plan.');
     }
@@ -502,17 +612,36 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('viewAccountsBtn').style.display = 'inline-flex';
     document.getElementById('logoutBtn').style.display = 'inline-flex';
     document.getElementById('headerTrialBadge').hidden = false;
+    document.getElementById('currentPlanIndicator').hidden = false;
+    document.getElementById('planNameDisplay').textContent = activePlan;
     document.getElementById('trialCount').textContent = trials;
+    
+    // Apply paywall locking visually if Solo plan
+    const uploadWrapper = document.getElementById('fileUploadWrapper');
+    if(activePlan === 'solo') {
+      uploadWrapper.classList.add('paywall-lock');
+      uploadWrapper.onclick = () => {
+        document.getElementById('upgradeModal').hidden = false;
+        loadPlans('upgradePlansGrid');
+        toast('Audio & PDF evidence upload is a Growth Pro & Enterprise feature.');
+      };
+    } else {
+      uploadWrapper.classList.remove('paywall-lock');
+      uploadWrapper.onclick = null;
+    }
+
     toast('Welcome to LeadClaw');
   }
 
   document.getElementById('logoutBtn').onclick = () => {
     activeEmail = '';
+    activePlan = 'solo';
     document.getElementById('pg-dash').classList.remove('active');
     document.getElementById('pg-auth').classList.add('active');
     document.getElementById('viewAccountsBtn').style.display = 'none';
     document.getElementById('logoutBtn').style.display = 'none';
     document.getElementById('headerTrialBadge').hidden = true;
+    document.getElementById('currentPlanIndicator').hidden = true;
     document.getElementById('v-details').hidden = false;
     document.getElementById('v-terms').hidden = true;
     document.getElementById('v-plans').hidden = true;
@@ -567,6 +696,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const cost = document.getElementById('cost').value;
     const leadPhone = document.getElementById('leadPhone').value.trim();
     const leadEmail = document.getElementById('leadEmail').value.trim();
+    const fileInput = document.getElementById('evidenceFiles');
+
+    if(!leadPhone || !leadEmail) {
+      alert('Mandatory: Please fill out both the Lead Phone Number and Lead Email address to generate compliance dispute templates.');
+      return;
+    }
+
+    if(fileInput.files.length > 0 && activePlan === 'solo') {
+      document.getElementById('upgradeModal').hidden = false;
+      loadPlans('upgradePlansGrid');
+      toast('Audio & PDF evidence upload requires Growth Pro or Enterprise.');
+      return;
+    }
 
     const fd = new FormData();
     fd.append('platform', currentPlatform);
@@ -577,6 +719,12 @@ document.addEventListener('DOMContentLoaded', () => {
     fd.append('email', activeEmail);
     fd.append('device_token', deviceToken);
 
+    if (activePlan !== 'solo') {
+      for (let i = 0; i < fileInput.files.length; i++) {
+        fd.append('files', fileInput.files[i]);
+      }
+    }
+
     document.getElementById('claimActions').hidden = true;
     document.getElementById('resultContent').textContent = 'Initializing AI engine...';
     
@@ -585,10 +733,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(`${API_BASE}/api/dispute`, {method: 'POST', body: fd});
         const data = await res.json();
         
-        if(res.status === 402) {
+        if(res.status === 402 || res.status === 403) {
           document.getElementById('upgradeModal').hidden = false;
           loadPlans('upgradePlansGrid');
-          toast('Free trial completed. Please upgrade your plan.');
+          toast(data.detail || 'Please upgrade your plan.');
           return;
         }
 
@@ -635,19 +783,22 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     document.getElementById('adminModal').hidden = false;
-    
-    document.getElementById('accFullName').value = localStorage.getItem('lc_fullname_' + activeEmail) || '';
-    document.getElementById('accPhone').value = localStorage.getItem('lc_phone_' + activeEmail) || '';
-    document.getElementById('accAngi').value = localStorage.getItem('lc_acc_angi_' + activeEmail) || '';
-    document.getElementById('accThumbtack').value = localStorage.getItem('lc_acc_thumbtack_' + activeEmail) || '';
-    document.getElementById('accNetworx').value = localStorage.getItem('lc_acc_networx_' + activeEmail) || '';
-    document.getElementById('accPorch').value = localStorage.getItem('lc_acc_porch_' + activeEmail) || '';
 
     try {
       const res = await fetch(`${API_BASE}/api/admin/analytics`);
       const data = await res.json();
       const myUser = data.users.filter(u => u.email === activeEmail);
       const myDisputes = data.disputes.filter(d => d.email === activeEmail);
+
+      if(myUser.length > 0) {
+        document.getElementById('accFullName').value = myUser[0].full_name || '';
+        document.getElementById('accPhone').value = myUser[0].phone || '';
+        document.getElementById('accPassword').value = myUser[0].password || '';
+        document.getElementById('accAngi').value = myUser[0].acc_angi || '';
+        document.getElementById('accThumbtack').value = myUser[0].acc_thumbtack || '';
+        document.getElementById('accNetworx').value = myUser[0].acc_networx || '';
+        document.getElementById('accPorch').value = myUser[0].acc_porch || '';
+      }
 
       let html = '<h3 style="margin-top:16px">Account Profile</h3><table><tr><th>Email</th><th>Username</th><th>Business</th><th>Plan</th></tr>';
       myUser.forEach(u => {
@@ -667,17 +818,16 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('saveAccountsBtn').onclick = async () => {
     const fullName = document.getElementById('accFullName').value;
     const phone = document.getElementById('accPhone').value;
+    const password = document.getElementById('accPassword').value;
     const accAngi = document.getElementById('accAngi').value;
     const accThumbtack = document.getElementById('accThumbtack').value;
     const accNetworx = document.getElementById('accNetworx').value;
     const accPorch = document.getElementById('accPorch').value;
 
-    localStorage.setItem('lc_fullname_' + activeEmail, fullName);
-    localStorage.setItem('lc_phone_' + activeEmail, phone);
-    localStorage.setItem('lc_acc_angi_' + activeEmail, accAngi);
-    localStorage.setItem('lc_acc_thumbtack_' + activeEmail, accThumbtack);
-    localStorage.setItem('lc_acc_networx_' + activeEmail, accNetworx);
-    localStorage.setItem('lc_acc_porch_' + activeEmail, accPorch);
+    if (password && !checkPasswordValid(password)) {
+      alert('Password must be at least 7 characters and contain 1 special character.');
+      return;
+    }
 
     try {
       await fetch(`${API_BASE}/api/user/profile`, {
@@ -685,6 +835,7 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           email: activeEmail,
+          password: password,
           full_name: fullName,
           phone: phone,
           acc_angi: accAngi,
@@ -693,9 +844,9 @@ document.addEventListener('DOMContentLoaded', () => {
           acc_networx: accNetworx
         })
       });
-      toast('Profile & Marketplace accounts saved!');
+      toast('Profile & credentials saved securely!');
     } catch(e) {
-      toast('Saved locally.');
+      toast('Error saving profile.');
     }
   };
 
