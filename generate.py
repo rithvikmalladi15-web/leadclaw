@@ -1,522 +1,456 @@
-import json
-import logging
-import os
-import re
-import sqlite3
-import random
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import asyncio, hashlib, hmac, json, logging, os, re, secrets, sqlite3, time
+from contextlib import contextmanager
 from datetime import datetime, date
 from typing import List, Optional
 
 import httpx
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
 from groq import Groq
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("leadclaw")
+log = logging.getLogger("leadclaw")
+app = FastAPI(title="LeadClaw API", version="15.0.0")
 
-app = FastAPI(title="LeadClaw API", version="14.0.0")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://leadclaw.pages.dev").rstrip("/")
+app.add_middleware(CORSMiddleware, allow_origins=[FRONTEND_URL] if FRONTEND_URL else ["*"],
+                   allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
-
-GROQ_API_KEY   = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL     = os.environ.get("GROQ_MODEL", "qwen3-4b")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "qwen3-4b")
+ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
+STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICES = {"solo": os.environ.get("STRIPE_PRICE_SOLO", ""), "growth": os.environ.get("STRIPE_PRICE_GROWTH", "")}
+DB_FILE = os.environ.get("DB_FILE", "leadclaw.db")
+SESSION_TTL = 60 * 60 * 24 * 30
+SOLO_MONTHLY_LIMIT = 25
+MAX_FILE_BYTES = 15 * 1024 * 1024
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-
 groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
-SMTP_SENDER   = os.environ.get("SMTP_SENDER", "")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
-SMTP_SERVER   = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT     = int(os.environ.get("SMTP_PORT", 587))
 
-def send_reset_email(recipient: str, reset_code: str):
-    if not SMTP_SENDER or not SMTP_PASSWORD:
-        logger.warning("SMTP credentials not configured. Reset code: %s", reset_code)
-        return
+@contextmanager
+def db():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
     try:
-        msg = MIMEMultipart()
-        msg["From"] = SMTP_SENDER
-        msg["To"] = recipient
-        msg["Subject"] = "LeadClaw Password Reset Request"
-        body = f"Hello,\n\nYour LeadClaw password reset code is: {reset_code}\n\nEnter this code in the app to set a new password.\n\nBest regards,\nLeadClaw Team"
-        msg.attach(MIMEText(body, "plain"))
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_SENDER, SMTP_PASSWORD)
-            server.sendmail(SMTP_SENDER, recipient, msg.as_string())
-    except Exception as e:
-        logger.error("Failed to send reset email: %s", e)
+        yield conn
+        conn.commit()
+    finally:
+        conn.close()
 
-DB_FILE = "leadclaw.db"
 
 def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("""CREATE TABLE IF NOT EXISTS users (
-        email         TEXT PRIMARY KEY,
-        password      TEXT,
-        age           INTEGER,
-        workspace     TEXT,
-        full_name     TEXT DEFAULT '',
-        phone         TEXT DEFAULT '',
-        acc_angi      TEXT DEFAULT '',
-        acc_thumbtack TEXT DEFAULT '',
-        acc_porch     TEXT DEFAULT '',
-        acc_networx   TEXT DEFAULT '',
-        plan          TEXT DEFAULT 'solo',
-        trials_left   INTEGER DEFAULT 3,
-        device_token  TEXT,
-        reset_token   TEXT DEFAULT '',
-        created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS disputes (
-        id          INTEGER PRIMARY KEY AUTOINCREMENT,
-        email       TEXT,
-        platform    TEXT,
-        lead_phone  TEXT,
-        lead_email  TEXT,
-        claim       TEXT,
-        amount      REAL,
-        valid       INTEGER,
-        recovered   INTEGER DEFAULT 0,
-        created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )""")
-    conn.commit()
-    conn.close()
+    with db() as c:
+        c.execute("""CREATE TABLE IF NOT EXISTS users (
+            email TEXT PRIMARY KEY, password TEXT, age INTEGER, workspace TEXT,
+            full_name TEXT DEFAULT '', phone TEXT DEFAULT '', acc_angi TEXT DEFAULT '',
+            acc_thumbtack TEXT DEFAULT '', acc_porch TEXT DEFAULT '', acc_networx TEXT DEFAULT '',
+            plan TEXT DEFAULT 'free', trials_left INTEGER DEFAULT 3, device_token TEXT,
+            reset_token TEXT DEFAULT '', created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+        c.execute("""CREATE TABLE IF NOT EXISTS disputes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, platform TEXT, lead_phone TEXT,
+            lead_email TEXT, claim TEXT, amount REAL, valid INTEGER, recovered INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
+        c.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, created REAL)")
+        for table, col in [("users", "reset_expires REAL DEFAULT 0"), ("users", "stripe_customer TEXT DEFAULT ''"),
+                           ("disputes", "reason TEXT DEFAULT ''")]:
+            try:
+                c.execute(f"ALTER TABLE {table} ADD COLUMN {col}")
+            except sqlite3.OperationalError:
+                pass
+
 
 init_db()
 
-class RegisterRequest(BaseModel):
-    email: str
-    password: str
-    dob: str
-    business: str
+# ---------- security helpers ----------
+def hash_pw(pw: str) -> str:
+    salt = secrets.token_hex(16)
+    h = hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 200_000).hex()
+    return f"pbkdf2${salt}${h}"
 
-class LoginRequest(BaseModel):
-    email: str
-    password: str
 
-class ForgotPasswordRequest(BaseModel):
-    email: str
+def check_pw(pw: str, stored: str) -> bool:
+    if stored and stored.startswith("pbkdf2$"):
+        _, salt, h = stored.split("$")
+        return hmac.compare_digest(hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 200_000).hex(), h)
+    return bool(stored) and hmac.compare_digest(stored, pw)  # legacy plaintext; upgraded on login
 
-class ResetPasswordRequest(BaseModel):
-    email: str
-    code: str
-    new_password: str
 
-class PlanSelectRequest(BaseModel):
-    email: str
+def validate_password(pw: str):
+    if len(pw) < 7 or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", pw):
+        raise HTTPException(400, "Password must be at least 7 characters and contain 1 special character.")
+
+
+FAILS: dict = {}
+def throttle(key: str):
+    now = time.time()
+    FAILS[key] = [t for t in FAILS.get(key, []) if now - t < 900]
+    if len(FAILS[key]) >= 8:
+        raise HTTPException(429, "Too many attempts. Try again in 15 minutes.")
+
+
+def new_session(email: str) -> str:
+    tok = secrets.token_urlsafe(32)
+    with db() as c:
+        c.execute("INSERT INTO sessions VALUES (?,?,?)", (tok, email, time.time()))
+    return tok
+
+
+def current_user(authorization: str = "") -> dict:
+    tok = authorization.replace("Bearer ", "").strip()
+    with db() as c:
+        row = c.execute("SELECT u.* FROM sessions s JOIN users u ON u.email=s.email WHERE s.token=? AND s.created>?",
+                        (tok, time.time() - SESSION_TTL)).fetchone()
+    if not row:
+        raise HTTPException(401, "Session expired. Please sign in again.")
+    return dict(row)
+
+
+
+# ---------- models ----------
+class RegisterReq(BaseModel):
+    email: str; password: str; dob: str; business: str; accept_terms: bool = False
+class LoginReq(BaseModel):
+    email: str; password: str
+class ProfileReq(BaseModel):
+    password: Optional[str] = ""; full_name: Optional[str] = ""; phone: Optional[str] = ""
+    acc_angi: Optional[str] = ""; acc_thumbtack: Optional[str] = ""; acc_porch: Optional[str] = ""; acc_networx: Optional[str] = ""
+class PlanReq(BaseModel):
     plan: str
-    device_token: str
+class RecoveredReq(BaseModel):
+    recovered: bool
 
-class ProfileUpdateRequest(BaseModel):
-    email: str
-    password: Optional[str] = ""
-    full_name: Optional[str] = ""
-    phone: Optional[str] = ""
-    acc_angi: Optional[str] = ""
-    acc_thumbtack: Optional[str] = ""
-    acc_porch: Optional[str] = ""
-    acc_networx: Optional[str] = ""
-
-PLATFORM_POLICY = {
-    "Angi":      "Angi Lead Credit Policy",
-    "Thumbtack": "Thumbtack Lead Price Credit Terms",
-    "Porch":     "Porch Pro Lead Guarantee",
-    "Networx":   "Networx Lead Dispute Terms",
-}
-
-NOT_ELIGIBLE_REASON = (
-    "Pricing objections, competitor hiring, project postponements, and customer "
-    "choices are non-refundable under marketplace policy."
-)
-
+# ---------- AI ----------
+PLATFORM_POLICY = {"Angi": "Angi Lead Credit Policy", "Thumbtack": "Thumbtack Lead Price Credit Terms",
+                   "Porch": "Porch Pro Lead Guarantee", "Networx": "Networx Lead Dispute Terms"}
+NOT_ELIGIBLE_REASON = ("Pricing objections, competitor hiring, project postponements, and customer "
+                       "choices are non-refundable under marketplace policy.")
 INVALID_SAFETY_RE = re.compile(
-    r"hired (?:another|a|an|someone|a different)|"
-    r"went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
-    r"project went to|chose (?:another|a different) (?:contractor|company)|"
-    r"competitor|too expensive|over (?:our|my) budget|on hold|postponed",
-    re.I,
-)
+    r"hired (?:another|a|an|someone|a different)|went (?:with|to) (?:a |another |the )?(?:competitor|contractor)|"
+    r"project went to|chose (?:another|a different) (?:contractor|company)|competitor|too expensive|"
+    r"over (?:our|my) budget|on hold|postponed", re.I)
 
 SYSTEM_PROMPT = """You are an expert compliance auditor for home service lead marketplaces
 (Angi, Thumbtack, Porch, Networx). Decide whether a lead qualifies for a credit refund.
 
-ELIGIBLE (valid = true) — only when the LEAD ITSELF was defective:
+ELIGIBLE (valid = true) only when the LEAD ITSELF was defective:
 - Permanently disconnected, wrong, or invalid phone number
 - Customer is strictly outside the contractor's service area
 - Duplicate lead in the same billing window
 - Spam, bot, or fake submission
 - Wrong trade category
 
-NOT ELIGIBLE (valid = false) — whenever the outcome was a consumer or commercial choice:
-- Homeowner hired a competitor or another contractor
-- Homeowner rejected the price or quote, or said it was too expensive
-- Customer changed their mind, postponed, cancelled, or put the project on hold
+NOT ELIGIBLE (valid = false) when the outcome was a consumer or commercial choice:
+- Homeowner hired a competitor, rejected the price, changed their mind, postponed, cancelled or put on hold
 - Homeowner was unresponsive after a real initial contact
 
-HARD RULE: If the notes or transcript mention a competitor being hired or a price/quote
-rejection, valid MUST be false — even if other eligible reasons are present.
+HARD RULE: If the notes or transcript mention a competitor being hired or a price/quote rejection, valid MUST be false.
 
-If valid is true: write a detailed, persuasive, professional dispute letter tailored to the
-exact facts provided, including account names, lead phone numbers, and policy citations.
-Start with a Subject line, formal greeting, clear issue breakdown, policy citation, and a firm credit request.
+If valid is true: write the dispute email in EXACTLY this structure, filling every field from the facts provided:
+Subject: Urgent: Lead Credit Request - Account # <account id> - Lead ID <lead id>
+Dear Partner Support Team,
+a one-sentence formal request for a credit/refund for an invalid lead, then "LEAD IDENTIFICATION DATA" as bullet lines (Business Name, Platform Account ID, Lead ID Number, Date & Time Received, Lead Cost, Customer Phone, Customer Email),
+then "REASON FOR DISPUTE (POLICY VIOLATION)" stating the lead qualifies for a credit under the platform's policy, with ONE bullet naming the single best-matching reason and explaining it with the contractor's exact facts (never invent facts, never claim anything not in the notes/transcript/evidence),
+then "REQUEST" asking for the exact credit amount, a polite close, and a signature block with the contractor's name, business, phone and email. Use plain text with bullet characters, no markdown.
+If valid is false: "reason" is one or two plain sentences and "claim" is an empty string.
+Respond ONLY with JSON: {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
 
-If valid is false: one or two plain sentences for "reason" and "claim" must be empty string.
-
-Respond ONLY in valid JSON format with these exact keys:
-{"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
-
-def validate_password_strength(password: str):
-    if len(password) < 7 or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
-        raise HTTPException(
-            status_code=400,
-            detail="Password must be at least 7 characters long and contain at least 1 special character."
-        )
 
 def extract_json(text: str) -> dict:
-    text = text.strip()
-    if text.startswith("```json"):
-        text = text[7:]
-    if text.endswith("```"):
-        text = text[:-3]
+    text = re.sub(r"<think>.*?</think>", "", text or "", flags=re.S).strip()
     s, e = text.find("{"), text.rfind("}")
     if s == -1 or e == -1:
-        raise ValueError(f"No JSON found in: {text[:300]}")
+        raise ValueError("AI returned no JSON.")
     return json.loads(text[s:e + 1])
 
-async def call_gemini_3_5_flash(prompt_text: str, file_parts: list = None) -> dict:
+
+def _gemini(prompt, parts):
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is not configured.")
-    model = genai.GenerativeModel(
-        model_name=GEMINI_MODEL,
-        system_instruction=SYSTEM_PROMPT,
-        generation_config={"temperature": 0.1, "response_mime_type": "application/json"},
-    )
-    contents = [prompt_text]
-    if file_parts:
-        contents.extend(file_parts)
-    response = model.generate_content(contents)
-    return extract_json(response.text or "")
+    m = genai.GenerativeModel(GEMINI_MODEL, system_instruction=SYSTEM_PROMPT,
+                              generation_config={"temperature": 0.1, "response_mime_type": "application/json"})
+    return extract_json(m.generate_content([prompt, *parts]).text)
 
-async def call_groq_qwen3_4b(prompt_text: str) -> dict:
+
+def _groq(prompt):
     if not groq_client:
         raise ValueError("GROQ_API_KEY is not configured.")
-    completion = groq_client.chat.completions.create(
-        model=GROQ_MODEL,
-        messages=[
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user",   "content": prompt_text},
-        ],
-        temperature=0.1,
-        response_format={"type": "json_object"}
-    )
-    content = completion.choices[0].message.content
-    return extract_json(content)
+    r = groq_client.chat.completions.create(model=GROQ_MODEL, temperature=0.1,
+        messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
+        response_format={"type": "json_object"})
+    return extract_json(r.choices[0].message.content)
 
-def not_eligible(cost: float, confidence: float = 0.88, reason: str = NOT_ELIGIBLE_REASON) -> dict:
-    return {
-        "valid": False, "confidence": confidence,
-        "reason": reason, "claim": "", "amount": cost,
-    }
 
+async def run_ai(prompt, parts, prefer):
+    order = [_groq, _gemini] if prefer == "groq" else [_gemini, _groq]
+    err = None
+    for fn in order:
+        try:
+            if fn is _gemini:
+                return await asyncio.to_thread(_gemini, prompt, parts)
+            if parts:  # groq cannot read audio/pdf
+                continue
+            return await asyncio.to_thread(_groq, prompt)
+        except Exception as e:
+            err = e; log.warning("%s failed: %s", fn.__name__, e)
+    raise err or ValueError("No AI provider available.")
+
+
+def template_claim(platform, policy, handle, phone, lead_email, cost, notes, reason):
+    return (f"Subject: Lead Credit Request - {platform} - {phone}\n\nDear {platform} Support Team,\n\n"
+            f"I am writing to request a credit of ${cost:.2f} for a lead delivered to my account"
+            f"{f' ({handle})' if handle else ''}.\n\nLead details:\n- Phone: {phone}\n- Email: {lead_email}\n\n"
+            f"Issue: {notes.strip() or reason}\n\nThis lead does not meet the standards of the {policy}. "
+            f"Please review the lead and issue a credit to my account.\n\nThank you,\n[Your name]")
+
+
+# ---------- auth ----------
 @app.get("/")
 def health():
     return {"status": "healthy", "service": "LeadClaw API"}
 
+
 @app.post("/api/auth/register")
-async def register_user(req: RegisterRequest):
-    missing_fields = []
-    if not req.email.strip(): missing_fields.append("Email address")
-    if not req.password.strip(): missing_fields.append("Password")
-    if not req.dob.strip(): missing_fields.append("Date of Birth")
-    if not req.business.strip(): missing_fields.append("Business Name")
-
-    if missing_fields:
-        raise HTTPException(status_code=400, detail=f"Please fill out: {', '.join(missing_fields)}")
-
-    if not req.email.lower().endswith("@gmail.com"):
-        raise HTTPException(status_code=400, detail="A valid @gmail.com email address is required.")
-
-    validate_password_strength(req.password)
-
+async def register(req: RegisterReq):
+    email = req.email.strip().lower()
+    if not (email and req.password and req.dob.strip() and req.business.strip()):
+        raise HTTPException(400, "Please fill out all fields.")
+    if not email.endswith("@gmail.com"):
+        raise HTTPException(400, "A valid @gmail.com email address is required.")
+    if not req.accept_terms:
+        raise HTTPException(400, "You must accept the Terms & Policies.")
+    validate_password(req.password)
     try:
-        dob_date = datetime.strptime(req.dob, "%Y-%m-%d").date()
-        today = date.today()
-        calculated_age = today.year - dob_date.year - ((today.month, today.day) < (dob_date.month, dob_date.day))
-        if calculated_age < 18:
-            raise HTTPException(status_code=403, detail="You must be at least 18 years old to create an account.")
+        d = datetime.strptime(req.dob, "%Y-%m-%d").date()
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid Date of Birth format.")
+        raise HTTPException(400, "Invalid Date of Birth.")
+    t = date.today()
+    age = t.year - d.year - ((t.month, t.day) < (d.month, d.day))
+    if age < 18:
+        raise HTTPException(403, "You must be at least 18 years old.")
+    with db() as c:
+        if c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
+            raise HTTPException(409, "An account with this email already exists. Please log in.")
+        c.execute("INSERT INTO users (email,password,age,workspace,plan,trials_left) VALUES (?,?,?,?, 'free',3)",
+                  (email, hash_pw(req.password), age, req.business.strip()))
+    return {"status": "success", "token": new_session(email)}
 
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    try:
-        c.execute(
-            "INSERT INTO users (email, password, age, workspace, plan, trials_left) VALUES (?, ?, ?, ?, 'solo', 3) ON CONFLICT(email) DO UPDATE SET password=excluded.password, age=excluded.age, workspace=excluded.workspace",
-            (req.email, req.password, calculated_age, req.business)
-        )
-        conn.commit()
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    finally:
-        conn.close()
-    return {"status": "success", "message": "Account created successfully."}
 
 @app.post("/api/auth/login")
-async def login_user(req: LoginRequest):
-    missing = []
-    if not req.email.strip(): missing.append("Email address")
-    if not req.password.strip(): missing.append("Password")
-    if missing:
-        raise HTTPException(status_code=400, detail=f"Please fill out: {', '.join(missing)}")
+async def login(req: LoginReq):
+    email = req.email.strip().lower()
+    throttle(email)
+    with db() as c:
+        row = c.execute("SELECT password FROM users WHERE email=?", (email,)).fetchone()
+        if not row or not check_pw(req.password, row["password"]):
+            FAILS.setdefault(email, []).append(time.time())
+            raise HTTPException(401, "Incorrect email or password.")
+        if not row["password"].startswith("pbkdf2$"):
+            c.execute("UPDATE users SET password=? WHERE email=?", (hash_pw(req.password), email))
+    return {"status": "success", "token": new_session(email)}
 
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT email, password, trials_left, plan FROM users WHERE email=?", (req.email,))
-    row = c.fetchone()
-    conn.close()
 
-    if not row:
-        raise HTTPException(status_code=401, detail="No account found with this email address.")
-    stored_email, stored_password, trials_left, plan = row
-    if stored_password != req.password:
-        raise HTTPException(status_code=401, detail="Incorrect password. Please try again.")
-
-    return {"status": "success", "email": stored_email, "trials_left": trials_left, "plan": plan}
-
-@app.post("/api/auth/forgot-password")
-async def forgot_password(req: ForgotPasswordRequest):
-    if not req.email.strip():
-        raise HTTPException(status_code=400, detail="Please enter your email address.")
-
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT email FROM users WHERE email=?", (req.email,))
-    row = c.fetchone()
-    if not row:
-        conn.close()
-        raise HTTPException(status_code=404, detail="Email address not found in our records.")
-
-    reset_code = "".join([str(random.randint(0, 9)) for _ in range(6)])
-    c.execute("UPDATE users SET reset_token=? WHERE email=?", (reset_code, req.email))
-    conn.commit()
-    conn.close()
-
-    send_reset_email(req.email, reset_code)
-    return {"status": "success", "message": "Password reset code sent to your email."}
-
-@app.post("/api/auth/reset-password")
-async def reset_password(req: ResetPasswordRequest):
-    validate_password_strength(req.new_password)
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT reset_token FROM users WHERE email=?", (req.email,))
-    row = c.fetchone()
-    if not row or row[0] != req.code:
-        conn.close()
-        raise HTTPException(status_code=400, detail="Invalid verification code.")
-
-    c.execute("UPDATE users SET password=?, reset_token='' WHERE email=?", (req.new_password, req.email))
-    conn.commit()
-    conn.close()
-    return {"status": "success", "message": "Password updated successfully."}
-
-@app.post("/api/auth/select-plan")
-async def select_plan(req: PlanSelectRequest):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("UPDATE users SET plan=?, device_token=? WHERE email=?", (req.plan, req.device_token, req.email))
-    conn.commit()
-    conn.close()
-    return {"status": "success", "plan": req.plan}
-
-@app.post("/api/user/profile")
-async def update_profile(req: ProfileUpdateRequest):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    if req.password:
-        validate_password_strength(req.password)
-        c.execute(
-            "UPDATE users SET password=?, full_name=?, phone=?, acc_angi=?, acc_thumbtack=?, acc_porch=?, acc_networx=? WHERE email=?",
-            (req.password, req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, req.email)
-        )
-    else:
-        c.execute(
-            "UPDATE users SET full_name=?, phone=?, acc_angi=?, acc_thumbtack=?, acc_porch=?, acc_networx=? WHERE email=?",
-            (req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, req.email)
-        )
-    conn.commit()
-    conn.close()
+@app.post("/api/auth/logout")
+async def logout(authorization: str = Header("")):
+    with db() as c:
+        c.execute("DELETE FROM sessions WHERE token=?", (authorization.replace("Bearer ", "").strip(),))
     return {"status": "success"}
 
-@app.get("/api/admin/analytics")
-async def get_customer_analytics():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    c = conn.cursor()
-    
-    c.execute("SELECT COUNT(*) as total_users, AVG(age) as avg_age FROM users")
-    stats = dict(c.fetchone())
-    
-    c.execute("SELECT plan, COUNT(*) as count FROM users GROUP BY plan")
-    plan_distribution = [dict(row) for row in c.fetchall()]
-    
-    c.execute("SELECT email, password, age, workspace, full_name, phone, acc_angi, acc_thumbtack, acc_porch, acc_networx, plan, trials_left, created_at FROM users")
-    users = [dict(row) for row in c.fetchall()]
-    
-    c.execute("SELECT id, email, platform, lead_phone, lead_email, amount, valid, recovered, created_at FROM disputes")
-    disputes = [dict(row) for row in c.fetchall()]
-    
-    conn.close()
-    
-    return {
-        "status": "success",
-        "summary": {"total_customers": stats["total_users"] or 0, "average_age": round(stats["avg_age"] or 0, 1)},
-        "plan_distribution": plan_distribution,
-        "users": users,
-        "disputes": disputes
-    }
 
-@app.post("/api/dispute")
-async def analyze_dispute(
-    platform:     str   = Form(...),
-    lead_phone:   str   = Form(""),
-    lead_email:   str   = Form(""),
-    notes:        str   = Form(""),
-    transcript:   str   = Form(""),
-    cost:         float = Form(45.00),
-    model:        str   = Form("gemini"),
-    email:        str   = Form(""),
-    device_token: str   = Form("default"),
-    files: List[UploadFile] = File(default=[]),
-):
-    missing_lead_info = []
-    if not lead_phone.strip(): missing_lead_info.append("Lead Phone Number")
-    if not lead_email.strip(): missing_lead_info.append("Lead Email Address")
-    if missing_lead_info:
-        raise HTTPException(status_code=400, detail=f"Please fill out: {', '.join(missing_lead_info)}")
+# ---------- account ----------
+@app.get("/api/me")
+async def me(authorization: str = Header("")):
+    u = current_user(authorization)
+    with db() as c:
+        used = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date('now','start of month')", (u["email"],)).fetchone()[0]
+        ds = [dict(r) for r in c.execute("SELECT id,platform,lead_phone,lead_email,claim,reason,amount,valid,recovered,created_at FROM disputes WHERE email=? ORDER BY id DESC LIMIT 200", (u["email"],))]
+    return {"email": u["email"], "plan": u["plan"], "trials_left": u["trials_left"], "workspace": u["workspace"],
+            "full_name": u["full_name"], "phone": u["phone"], "acc_angi": u["acc_angi"], "acc_thumbtack": u["acc_thumbtack"],
+            "acc_porch": u["acc_porch"], "acc_networx": u["acc_networx"], "month_used": used,
+            "solo_limit": SOLO_MONTHLY_LIMIT, "billing": bool(u["stripe_customer"]), "disputes": ds,
+            "eligible_total": sum(d["amount"] for d in ds if d["valid"]),
+            "recovered_total": sum(d["amount"] for d in ds if d["recovered"])}
 
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("SELECT plan, trials_left, full_name, workspace, acc_angi, acc_thumbtack, acc_porch, acc_networx FROM users WHERE email=? OR device_token=?", (email, device_token))
-    row = c.fetchone()
-    conn.close()
 
-    plan = row[0] if row else "solo"
-    trials_left = row[1] if row else 3
-    is_unlimited = (plan == "growth")
+@app.post("/api/user/profile")
+async def profile(req: ProfileReq, authorization: str = Header("")):
+    u = current_user(authorization)
+    with db() as c:
+        c.execute("UPDATE users SET full_name=?,phone=?,acc_angi=?,acc_thumbtack=?,acc_porch=?,acc_networx=? WHERE email=?",
+                  (req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, u["email"]))
+        if req.password:
+            validate_password(req.password)
+            c.execute("UPDATE users SET password=? WHERE email=?", (hash_pw(req.password), u["email"]))
+    return {"status": "success"}
 
-    if not is_unlimited and trials_left <= 0:
-        raise HTTPException(status_code=402, detail="Trial limit reached. Please upgrade your plan.")
 
-    if files and plan == "solo":
-        raise HTTPException(status_code=403, detail="Audio and PDF file reading is restricted to Growth Pro users. Please upgrade.")
+@app.post("/api/disputes/{dispute_id}/recovered")
+async def mark_recovered(dispute_id: int, req: RecoveredReq, authorization: str = Header("")):
+    u = current_user(authorization)
+    with db() as c:
+        c.execute("UPDATE disputes SET recovered=? WHERE id=? AND email=?", (int(req.recovered), dispute_id, u["email"]))
+    return {"status": "success"}
 
-    text_check = f"{notes} {transcript}"
-    policy     = PLATFORM_POLICY.get(platform, f"{platform} lead policy")
 
-    account_handle = ""
-    if row:
-        if platform == "Angi": account_handle = row[4]
-        elif platform == "Thumbtack": account_handle = row[5]
-        elif platform == "Porch": account_handle = row[6]
-        elif platform == "Networx": account_handle = row[7]
+# ---------- billing (Stripe) ----------
+async def stripe_call(path, data):
+    if not STRIPE_SECRET:
+        raise HTTPException(503, "Billing is not configured yet.")
+    async with httpx.AsyncClient(timeout=20) as h:
+        r = await h.post(f"https://api.stripe.com/v1/{path}", data=data, auth=(STRIPE_SECRET, ""))
+    if r.status_code >= 400:
+        log.error("stripe: %s", r.text)
+        raise HTTPException(502, "Payment provider error.")
+    return r.json()
 
-    prompt_text = (
-        f"Marketplace Platform: {platform}\n"
-        f"Contractor Account ID: {account_handle or 'Default Workspace'}\n"
-        f"Policy: {policy}\n"
-        f"Lead Cost: ${cost:.2f}\n"
-        f"Lead Phone: {lead_phone}\n"
-        f"Lead Email: {lead_email}\n\n"
-        f"Contractor Call Notes:\n{notes or '(none)'}\n\n"
-        f"Transcript:\n{transcript or '(none)'}"
-    )
 
+@app.post("/api/billing/checkout")
+async def checkout(req: PlanReq, authorization: str = Header("")):
+    u = current_user(authorization)
+    if req.plan not in STRIPE_PRICES or not STRIPE_PRICES[req.plan]:
+        raise HTTPException(400, "Unknown plan.")
+    base = FRONTEND_URL or "http://localhost:8080"
+    s = await stripe_call("checkout/sessions", {
+        "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
+        "line_items[0][price]": STRIPE_PRICES[req.plan], "line_items[0][quantity]": "1",
+        "metadata[plan]": req.plan, "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
+    return {"url": s["url"]}
+
+
+@app.post("/api/billing/portal")
+async def portal(authorization: str = Header("")):
+    u = current_user(authorization)
+    if not u["stripe_customer"]:
+        raise HTTPException(400, "No active subscription.")
+    s = await stripe_call("billing_portal/sessions", {"customer": u["stripe_customer"], "return_url": FRONTEND_URL or "http://localhost:8080"})
+    return {"url": s["url"]}
+
+
+@app.post("/api/billing/webhook")
+async def webhook(request: Request, stripe_signature: str = Header("")):
+    payload = await request.body()
     try:
-        if model == "groq" and plan == "growth":
-            data = await call_groq_qwen3_4b(prompt_text)
-        else:
-            file_parts = []
-            for f in files:
-                raw = await f.read()
-                if raw:
-                    n = (f.filename or "").lower()
-                    mime = "audio/mpeg" if n.endswith(".mp3") else "audio/wav" if n.endswith(".wav") else "application/pdf"
-                    file_parts.append({"mime_type": mime, "data": raw})
-            data = await call_gemini_3_5_flash(prompt_text, file_parts or None)
+        parts = dict(p.split("=", 1) for p in stripe_signature.split(","))
+        expected = hmac.new(STRIPE_WEBHOOK.encode(), f"{parts['t']}.".encode() + payload, hashlib.sha256).hexdigest()
+        ok = bool(STRIPE_WEBHOOK) and hmac.compare_digest(expected, parts["v1"]) and abs(time.time() - int(parts["t"])) < 600
+    except Exception:
+        ok = False
+    if not ok:
+        raise HTTPException(400, "Bad signature.")
+    ev = json.loads(payload)
+    obj = ev["data"]["object"]
+    with db() as c:
+        if ev["type"] == "checkout.session.completed":
+            plan = (obj.get("metadata") or {}).get("plan")
+            email = (obj.get("client_reference_id") or "").lower()
+            if plan in STRIPE_PRICES and email:
+                c.execute("UPDATE users SET plan=?, stripe_customer=? WHERE email=?", (plan, obj.get("customer") or "", email))
+        elif ev["type"] == "customer.subscription.deleted":
+            c.execute("UPDATE users SET plan='free' WHERE stripe_customer=?", (obj.get("customer"),))
+    return {"received": True}
 
-        valid = bool(data.get("valid"))
 
-        if valid and INVALID_SAFETY_RE.search(text_check):
-            result = not_eligible(cost)
-        elif not valid:
-            result = not_eligible(
-                cost,
-                confidence=float(data.get("confidence") or 0.88),
-                reason=data.get("reason") or NOT_ELIGIBLE_REASON,
-            )
-        else:
-            claim = str(data.get("claim") or "").strip()
-            if not claim:
-                raise ValueError("Model returned valid=True but produced no claim text.")
-            result = {
-                "valid":      True,
-                "confidence": float(data.get("confidence") or 0.9),
-                "reason":     data.get("reason", ""),
-                "claim":      claim,
-                "amount":     cost,
-            }
-
-        if not is_unlimited:
-            conn = sqlite3.connect(DB_FILE)
-            c = conn.cursor()
-            c.execute("UPDATE users SET trials_left = MAX(0, trials_left - 1) WHERE email=? OR device_token=?", (email, device_token))
-            c.execute("SELECT trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
-            row_t = c.fetchone()
-            conn.commit()
-            conn.close()
-            trials_left = row_t[0] if row_t else 0
-
-        result["trials_left"] = trials_left
-
-        if email:
-            conn = sqlite3.connect(DB_FILE)
-            c = conn.cursor()
-            c.execute(
-                "INSERT INTO disputes (email, platform, lead_phone, lead_email, claim, amount, valid) VALUES (?,?,?,?,?,?,?)",
-                (email, platform, lead_phone, lead_email, result.get("claim",""), cost, int(result["valid"])),
-            )
-            result["dispute_id"] = c.lastrowid
-            conn.commit()
-            conn.close()
-
-        return result
-
-    except HTTPException:
-        raise
+# ---------- disputes ----------
+@app.post("/api/dispute")
+async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_email: str = Form(""),
+                  notes: str = Form(""), transcript: str = Form(""), cost: float = Form(45.0), lead_id: str = Form(""), received: str = Form(""),
+                  model: str = Form("gemini"), authorization: str = Header(""),
+                  files: List[UploadFile] = File(default=[])):
+    u = current_user(authorization)
+    if platform not in PLATFORM_POLICY:
+        raise HTTPException(400, "Unknown platform.")
+    if not lead_phone.strip() or not lead_email.strip():
+        raise HTTPException(400, "Lead phone and email are required.")
+    if not (0 < cost <= 10000):
+        raise HTTPException(400, "Enter a valid lead cost.")
+    plan = u["plan"]
+    files = [f for f in files if f and f.filename]
+    if plan == "free" and u["trials_left"] <= 0:
+        raise HTTPException(402, "Free trial used up. Upgrade to keep filing disputes.")
+    if plan == "solo":
+        raise HTTPException(403, "Custom AI claims are a Growth Pro feature. Use the instant template.")
+    if files and plan != "growth":
+        raise HTTPException(403, "Audio/PDF evidence is a Growth Pro feature.")
+    parts = []
+    for f in files:
+        raw = await f.read()
+        if len(raw) > MAX_FILE_BYTES:
+            raise HTTPException(413, "Evidence files must be under 15 MB.")
+        n = f.filename.lower()
+        if raw:
+            parts.append({"mime_type": "audio/mpeg" if n.endswith(".mp3") else "audio/wav" if n.endswith(".wav") else "application/pdf", "data": raw})
+    handle = u.get("acc_" + platform.lower(), "")
+    policy = PLATFORM_POLICY[platform]
+    prompt = (f"Marketplace Platform: {platform}\nContractor Account ID: {handle or 'Default Workspace'}\nPolicy: {policy}\n"
+              f"Lead Cost: ${cost:.2f}\nLead ID: {lead_id or 'Not provided'}\nDate/Time Received: {received or 'Not provided'}\nBusiness Name: {u['workspace']}\nContractor Name: {u['full_name'] or 'Not provided'}\nContractor Phone: {u['phone'] or 'Not provided'}\nContractor Email: {u['email']}\nLead Phone: {lead_phone}\nLead Email: {lead_email}\n\n"
+              f"Contractor Call Notes:\n{notes or '(none)'}\n\nTranscript:\n{transcript or '(none)'}")
+    try:
+        data = await run_ai(prompt, parts, "groq" if model == "groq" and plan == "growth" else "gemini")
     except Exception as e:
-        logger.exception("Dispute review failed: %s", e)
-        raise HTTPException(status_code=502, detail=f"AI review failed: {str(e)}")
+        log.exception("AI failed")
+        raise HTTPException(502, "Our AI is temporarily unavailable. You were not charged a dispute — please retry.")
+    valid = bool(data.get("valid")) and not INVALID_SAFETY_RE.search(f"{notes} {transcript}")
+    ai_valid = bool(data.get("valid"))
+    reason = (data.get("reason") or "").strip() if (valid or not ai_valid) else ""
+    reason = reason or (NOT_ELIGIBLE_REASON if not valid else "Lead defect confirmed.")
+    claim = ""
+    if valid:
+        claim = str(data.get("claim") or "").strip()
+        if plan == "solo" or not claim:
+            claim = template_claim(platform, policy, handle, lead_phone, lead_email, cost, notes, reason)
+    with db() as c:
+        if plan == "free":
+            c.execute("UPDATE users SET trials_left=MAX(0,trials_left-1) WHERE email=?", (u["email"],))
+        cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?)",
+                        (u["email"], platform, lead_phone, lead_email, claim, reason, cost, int(valid)))
+        left = c.execute("SELECT trials_left FROM users WHERE email=?", (u["email"],)).fetchone()[0]
+    return {"valid": valid, "confidence": float(data.get("confidence") or 0.9), "reason": reason, "claim": claim,
+            "amount": cost, "trials_left": left, "dispute_id": cur.lastrowid}
+
+
+class RecordReq(BaseModel):
+    platform: str; lead_phone: str; lead_email: str; cost: float; valid: bool; reason: str = ""; claim: str = ""
+
+
+@app.post("/api/dispute/record")
+async def record(req: RecordReq, authorization: str = Header("")):
+    """Saves an instant-template dispute (generated in the browser) and enforces plan limits."""
+    u = current_user(authorization)
+    if req.platform not in PLATFORM_POLICY or not (0 < req.cost <= 10000):
+        raise HTTPException(400, "Invalid dispute.")
+    with db() as c:
+        if u["plan"] == "free" and u["trials_left"] <= 0:
+            raise HTTPException(402, "Free trial used up. Upgrade to keep filing disputes.")
+        if u["plan"] == "solo":
+            n = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date('now','start of month')", (u["email"],)).fetchone()[0]
+            if n >= SOLO_MONTHLY_LIMIT:
+                raise HTTPException(402, f"You've used all {SOLO_MONTHLY_LIMIT} disputes this month. Upgrade to Growth Pro for unlimited.")
+        if u["plan"] == "free":
+            c.execute("UPDATE users SET trials_left=MAX(0,trials_left-1) WHERE email=?", (u["email"],))
+        cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?)",
+                        (u["email"], req.platform, req.lead_phone[:40], req.lead_email[:120], req.claim[:8000], req.reason[:500], req.cost, int(req.valid)))
+    return {"dispute_id": cur.lastrowid}
+
+
+@app.get("/api/admin/analytics")
+async def analytics(x_admin_key: str = Header("")):
+    if not ADMIN_KEY or not hmac.compare_digest(x_admin_key, ADMIN_KEY):
+        raise HTTPException(403, "Forbidden.")
+    with db() as c:
+        plans = [dict(r) for r in c.execute("SELECT plan, COUNT(*) count FROM users GROUP BY plan")]
+        users = [dict(r) for r in c.execute("SELECT email,workspace,plan,trials_left,created_at FROM users")]
+        total = c.execute("SELECT COUNT(*) FROM disputes").fetchone()[0]
+    return {"plan_distribution": plans, "users": users, "total_disputes": total}
+
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
