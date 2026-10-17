@@ -27,7 +27,6 @@ html[data-theme=light]{
   --mu:#475569;--dim:#94a3b8;--accent:#2563eb;--tint:#eff6ff;--tint2:#dbeafe;
   --ok:#15803d;--okbg:#f0fdf4;--okbdr:#86efac;
   --err:#dc2626;--errbg:#fef2f2;--errbdr:#fca5a5;
-  --amb:#b45309;--ambbg:#fffbeb;
   --sh:0 1px 3px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.07);
   --sh-sm:0 1px 2px rgba(15,23,42,.05),0 3px 10px rgba(15,23,42,.05);
 }
@@ -38,7 +37,6 @@ html[data-theme=dark]{
   --mu:#94a3b8;--dim:#64748b;--accent:#60a5fa;--tint:rgba(59,130,246,.15);--tint2:rgba(59,130,246,.08);
   --ok:#4ade80;--okbg:rgba(34,197,94,.12);--okbdr:rgba(74,222,128,.35);
   --err:#f87171;--errbg:rgba(248,113,113,.12);--errbdr:rgba(248,113,113,.35);
-  --amb:#fbbf24;--ambbg:rgba(251,191,36,.1);
   --sh:0 2px 8px rgba(0,0,0,.5),0 12px 32px rgba(0,0,0,.4);
   --sh-sm:0 2px 6px rgba(0,0,0,.4);
 }
@@ -71,6 +69,9 @@ a{color:var(--accent);text-decoration:none}
 .card{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:30px;box-shadow:var(--sh)}
 h1{font:800 23px/1.2 var(--display);letter-spacing:-.025em;margin:0 0 7px}
 .sub{color:var(--mu);margin:0 0 20px;font-size:14.5px}
+.tabs{display:flex;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:3px;margin-bottom:20px;gap:3px}
+.tab{flex:1;padding:8px;border:0;background:transparent;border-radius:6px;font-weight:600;font-size:14px;cursor:pointer;color:var(--mu);transition:all .15s}
+.tab.on{background:var(--surf);color:var(--tx);box-shadow:var(--sh-sm)}
 .field{margin-bottom:16px}
 label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;color:var(--tx2)}
 .inp{display:block;width:100%;height:46px;padding:0 13px;background:var(--inp);border:1.5px solid var(--bdr2);border-radius:7px;font-size:15px;color:var(--tx)}
@@ -88,21 +89,33 @@ label,.lbl{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;colo
 .check-row[aria-checked=true] .cbox{background:var(--blue);border-color:var(--blue);color:#fff}
 body.wide-view .card{max-width:none;background:none;border:0;box-shadow:none;padding:0}
 .trial-banner{display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,var(--blue),#1e40af);color:#fff;font:700 15.5px var(--display);padding:14px 18px;border-radius:10px;margin-bottom:22px}
-.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-@media(max-width:840px){.plans{grid-template-columns:1fr;max-width:440px;margin:0 auto}}
-.plan{background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:24px 20px;box-shadow:var(--sh-sm);display:flex;flex-direction:column}
-.plan h2{font:700 17px var(--display);margin:0 0 8px}
-.plan .price{font:800 36px/1 var(--display);margin-bottom:16px}
-.plan ul{list-style:none;padding:0;margin:0 0 20px;flex:1}
-.plan li{font-size:14px;margin-bottom:8px;color:var(--mu)}
-.dash-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;max-width:1180px;margin:0 auto;padding:18px 24px 6px}
-main{max-width:1180px;margin:0 auto;padding:8px 24px 56px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:20px;align-items:start}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+@media(max-width:900px){.plans{grid-template-columns:1fr}}
+.plan{background:var(--surf);border:1.5px solid var(--bdr);border-radius:12px;padding:28px 24px;box-shadow:var(--sh-sm);display:flex;flex-direction:column;position:relative}
+.plan.pop{border:2px solid var(--blue);box-shadow:0 4px 20px rgba(37,99,235,.2)}
+.pop-tag{position:absolute;top:-13px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font:700 12px var(--sans);padding:4px 13px;border-radius:999px}
+.plan h2{font:700 18px var(--display);margin:0 0 6px}
+.plan .price{font:800 38px/1 var(--display);margin-bottom:14px}
+.plan ul{list-style:none;padding:0;margin:0 0 20px;flex:1;display:grid;gap:10px}
+.plan li{font-size:14px;color:var(--tx2);display:flex;gap:8px;align-items:flex-start}
+.plan li.dim{color:var(--dim);text-decoration:line-through}
+.trial-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:var(--tint2);border:1px solid rgba(37,99,235,.28);border-radius:999px;font:600 13px var(--sans);color:var(--blue)}
+
+/* Loading Bar & Claim Result Components */
+.progress-wrap{display:none;margin-top:16px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px}
+.progress-header{display:flex;justify-content:space-between;font-size:13.5px;font-weight:600;margin-bottom:8px}
+.progress-bar-bg{height:8px;width:100%;background:var(--bdr2);border-radius:999px;overflow:hidden}
+.progress-bar-fill{height:100%;width:0%;background:var(--blue);border-radius:999px;transition:width .3s ease}
+.claim-box{background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin-top:14px;font-family:var(--mono);font-size:13px;white-space:pre-wrap;max-height:300px;overflow-y:auto}
+.action-row{display:flex;gap:10px;margin-top:14px}
+
+main{max-width:1180px;margin:0 auto;padding:8px 24px 56px;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:24px;align-items:start}
 @media(max-width:900px){main{grid-template-columns:1fr;padding:8px 16px 40px}}
-.panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:24px}
+.panel{background:var(--surf);border:1px solid var(--bdr);border-radius:11px;padding:26px}
 .seg{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:var(--surf2);border:1px solid var(--bdr);border-radius:10px;padding:4px}
 .seg button{border:0;background:transparent;padding:9px 6px;border-radius:7px;color:var(--mu);font-weight:500;cursor:pointer}
 .seg button[aria-checked=true]{background:var(--blue);color:#fff}
-textarea{width:100%;min-height:112px;resize:vertical;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:11px 12px;line-height:1.55}
+textarea{width:100%;min-height:120px;resize:vertical;background:var(--inp);border:1px solid var(--bdr2);border-radius:9px;padding:11px 12px;line-height:1.55}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:grid;place-items:center;padding:16px;z-index:100;backdrop-filter:blur(4px)}
 .modal{width:100%;max-width:700px;max-height:90vh;overflow-y:auto;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px;box-shadow:0 22px 56px rgba(0,0,0,.4)}
 table{width:100%;border-collapse:collapse;margin-top:12px}
@@ -115,9 +128,10 @@ th{background:var(--surf2)}
 <body>
 
 <header class="bar">
-  <button class="nav" id="viewAccountsBtn" type="button">View My Data</button>
-  <button class="nav" id="fbOpen" type="button">Feedback</button>
+  <button class="nav" id="viewAccountsBtn" type="button" style="display:none">View My Data</button>
+  <button class="nav" id="logoutBtn" type="button" style="display:none">Sign out</button>
   <span class="sp"></span>
+  <div class="trial-badge" id="headerTrialBadge" hidden>Disputes left: <span id="trialCount" style="font-weight:700">3</span></div>
   <button class="nav icon-btn" id="themeBtn" type="button" aria-label="Toggle theme">
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
   </button>
@@ -139,17 +153,23 @@ th{background:var(--surf2)}
   </ol>
   <div class="card">
 
+    <!-- Auth Mode Tabs -->
+    <div class="tabs" id="authTabs">
+      <button class="tab on" id="tabSignup" type="button">Sign up</button>
+      <button class="tab" id="tabLogin" type="button">Log in</button>
+    </div>
+
     <!-- Step 1: Account Info -->
     <div class="view" id="v-details">
-      <h1>Create your account</h1>
-      <p class="sub">Enter your business and contact details.</p>
+      <h1 id="authTitle">Create your account</h1>
+      <p class="sub" id="authSub">Enter your business and contact details.</p>
       <div class="field"><label>Email address (Gmail only)</label><input class="inp" id="regEmail" type="email" placeholder="you@gmail.com"></div>
       <div class="field"><label>Username</label><input class="inp" id="regUser" type="text" placeholder="contractor99"></div>
       <div class="field"><label>Password</label>
         <div class="pw-wrap"><input class="inp" id="regPass" type="password" placeholder="••••••••"><button class="show-btn" type="button" id="pwShow">Show</button></div>
       </div>
-      <div class="field"><label>Date of Birth (18+ required)</label><input class="inp" id="regAge" type="date"></div>
-      <div class="field"><label>Business Name</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing &amp; Plumbing"></div>
+      <div class="field" id="dobField"><label>Date of Birth (18+ required)</label><input class="inp" id="regAge" type="date"></div>
+      <div class="field" id="bizField"><label>Business Name</label><input class="inp" id="regBiz" type="text" placeholder="Apex Roofing &amp; Plumbing"></div>
       <p class="err-msg" id="regErr"></p>
       <button class="btn" id="toTermsBtn" type="button">Continue</button>
     </div>
@@ -185,7 +205,7 @@ th{background:var(--surf2)}
 <main class="page" id="pg-dash" style="margin-top:24px">
   <section class="panel">
     <h1>Lead credit request</h1>
-    <p class="sub">Fill in the details. We check the platform refund policy and write your claim.</p>
+    <p class="sub">Fill in the details. We check platform refund policies and generate your claim using Gemini 1.5 Flash / Groq Qwen3 4B.</p>
     <div class="field"><span class="lbl">Lead platform</span>
       <div class="seg" role="radiogroup" id="platforms">
         <button type="button" aria-checked="true" onclick="setPlat('Angi')">Angi</button>
@@ -195,19 +215,37 @@ th{background:var(--surf2)}
       </div>
     </div>
     <div class="field"><label for="notes">Call notes</label>
-      <textarea id="notes" placeholder="e.g. Called twice, number disconnected."></textarea></div>
+      <textarea id="notes" placeholder="e.g. Called twice, number disconnected. Lead asked for work outside service area."></textarea></div>
     <div class="field"><label for="cost">Lead cost ($)</label>
       <input class="inp" id="cost" type="number" value="75.00"></div>
     <button class="btn" id="goBtn">Check &amp; build claim</button>
+
+    <!-- Animated Loading Progress Bar -->
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-header">
+        <span id="progressStatus">Auditing lead credit policy...</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+    </div>
   </section>
 
   <section class="panel" id="resultPanel">
     <h3>AI Claim Result</h3>
     <div id="resultContent" style="margin-top:12px;font-size:14px;color:var(--mu)">Submit your lead details on the left to verify eligibility and generate a professional dispute statement.</div>
+    <div id="claimActions" hidden>
+      <div class="claim-box" id="claimBoxText"></div>
+      <div class="action-row">
+        <button class="btn sec" id="copyClaimBtn" type="button">Copy Claim Text</button>
+        <button class="btn" id="openGmailBtn" type="button">Open in Gmail</button>
+      </div>
+    </div>
   </section>
 </main>
 
-<!-- RESTRICTED ACCOUNTS DATA MODAL -->
+<!-- RESTRICTED ACCOUNT DATA MODAL -->
 <div class="ov" id="adminModal" hidden>
   <div class="modal">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
@@ -219,30 +257,19 @@ th{background:var(--surf2)}
   </div>
 </div>
 
-<!-- FEEDBACK MODAL -->
-<div class="ov" id="fbModal" hidden>
-  <div class="modal" style="max-width:480px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <h2>Feedback &amp; Support</h2>
-      <button class="nav" id="fbClose" style="padding:4px 10px">&times;</button>
-    </div>
-    <div class="field"><label>Message</label><textarea class="inp" id="fbMsg" style="height:90px" placeholder="Tell us what would improve LeadClaw..."></textarea></div>
-    <button class="btn" id="fbSend">Send feedback</button>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// Live Render Backend API
 const API_BASE = 'https://leadclaw-api.onrender.com';
 let activeEmail = '';
 let agreedTerms = false;
 let currentPlatform = 'Angi';
+let isLoginMode = false;
+let generatedClaimText = '';
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 
-// Theme
+// Theme toggle
 document.getElementById('themeBtn').onclick = () => {
   const cur = document.documentElement.getAttribute('data-theme');
   const next = cur === 'dark' ? 'light' : 'dark';
@@ -258,27 +285,62 @@ document.getElementById('pwShow').onclick = () => {
   document.getElementById('pwShow').textContent = h ? 'Hide' : 'Show';
 };
 
-// Step 1 -> Step 2
+// Auth Tabs
+document.getElementById('tabSignup').onclick = () => {
+  isLoginMode = false;
+  document.getElementById('tabSignup').classList.add('on');
+  document.getElementById('tabLogin').classList.remove('on');
+  document.getElementById('authTitle').textContent = 'Create your account';
+  document.getElementById('authSub').textContent = 'Enter your business and contact details.';
+  document.getElementById('toTermsBtn').textContent = 'Continue';
+  document.getElementById('dobField').style.display = 'block';
+  document.getElementById('bizField').style.display = 'block';
+  document.getElementById('stepper').style.display = 'flex';
+};
+
+document.getElementById('tabLogin').onclick = () => {
+  isLoginMode = true;
+  document.getElementById('tabLogin').classList.add('on');
+  document.getElementById('tabSignup').classList.remove('on');
+  document.getElementById('authTitle').textContent = 'Welcome back';
+  document.getElementById('authSub').textContent = 'Sign in to access your dashboard.';
+  document.getElementById('toTermsBtn').textContent = 'Sign In';
+  document.getElementById('dobField').style.display = 'none';
+  document.getElementById('bizField').style.display = 'none';
+  document.getElementById('stepper').style.display = 'none';
+};
+
+// Step 1 -> Next
 document.getElementById('toTermsBtn').onclick = async () => {
   const email = document.getElementById('regEmail').value.trim();
-  const username = document.getElementById('regUser').value.trim();
   const password = document.getElementById('regPass').value;
-  const dobVal = document.getElementById('regAge').value;
-  const business = document.getElementById('regBiz').value.trim();
   const errEl = document.getElementById('regErr');
 
-  if(!email || !username || !password || !dobVal || !business) {
+  if(!email || !password) {
     errEl.textContent = 'Please fill out all required fields.';
     return;
   }
 
-  // Gmail Check
   if (!email.toLowerCase().endsWith('@gmail.com')) {
     errEl.textContent = 'A valid @gmail.com email address is required.';
     return;
   }
 
-  // 18+ Age Check
+  if(isLoginMode) {
+    activeEmail = email;
+    enterDashboard(3);
+    return;
+  }
+
+  const username = document.getElementById('regUser').value.trim();
+  const dobVal = document.getElementById('regAge').value;
+  const business = document.getElementById('regBiz').value.trim();
+
+  if(!username || !dobVal || !business) {
+    errEl.textContent = 'Please fill out all required fields.';
+    return;
+  }
+
   const dob = new Date(dobVal);
   const today = new Date();
   let age = today.getFullYear() - dob.getFullYear();
@@ -341,16 +403,30 @@ document.getElementById('toPlansBtn').onclick = () => {
 
 function loadPlans() {
   const plans = [
-    {id:'solo', name:'Solo Contractor', price:29, feats:['25 AI disputes per month','Manual dispute templates']},
-    {id:'growth', name:'Growth Pro', price:59, feats:['Unlimited AI disputes','Audio & PDF evidence upload']},
-    {id:'crew', name:'Enterprise', price:129, feats:['Team dispatch seats','Platform analytics']}
+    {
+      id:'solo', name:'Solo Contractor', price:29, pop:false,
+      feats:['25 AI disputes per month', 'Manual dispute templates', 'Email support'],
+      missing:['AI custom generated claims', 'Audio & PDF evidence upload', 'Gmail one-click send']
+    },
+    {
+      id:'growth', name:'Growth Pro', price:59, pop:true,
+      feats:['Unlimited AI disputes', 'AI custom generated claims', 'Audio & PDF evidence upload', 'Gemini 1.5 Flash & Groq Qwen3 4B', 'Gmail one-click send']
+    },
+    {
+      id:'crew', name:'Enterprise', price:129, pop:false,
+      feats:['Everything in Growth Pro', 'Team dispatch seats', 'Platform analytics dashboard', 'White-glove onboarding']
+    }
   ];
   document.getElementById('plansGrid').innerHTML = plans.map(p => `
-    <article class="plan">
+    <article class="plan${p.pop?' pop':''}">
+      ${p.pop?'<span class="pop-tag">Most Popular</span>':''}
       <h2>${p.name}</h2>
       <div class="price">$${p.price}<small>/mo</small></div>
-      <ul>${p.feats.map(f=>`<li>✓ ${f}</li>`).join('')}</ul>
-      <button class="btn" onclick="selectPlan('${p.id}')">Start Free Trial</button>
+      <ul>
+        ${p.feats.map(f=>`<li>✓ <span>${f}</span></li>`).join('')}
+        ${p.missing ? p.missing.map(m=>`<li class="dim">✕ <span>${m} (Missing on Solo)</span></li>`).join('') : ''}
+      </ul>
+      <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Start Free Trial</button>
     </article>
   `).join('');
 }
@@ -362,19 +438,78 @@ async function selectPlan(planId) {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({email: activeEmail, plan: planId, device_token: 'dev_' + Math.random()})
     });
-    document.body.classList.remove('wide-view');
-    document.getElementById('pg-auth').classList.remove('active');
-    document.getElementById('pg-dash').classList.add('active');
-    toast('Welcome to LeadClaw');
+    enterDashboard(3);
   } catch(e) {
     alert('Error selecting plan.');
   }
 }
 
+function enterDashboard(trials) {
+  document.body.classList.remove('wide-view');
+  document.getElementById('pg-auth').classList.remove('active');
+  document.getElementById('pg-dash').classList.add('active');
+  document.getElementById('viewAccountsBtn').style.display = 'inline-flex';
+  document.getElementById('logoutBtn').style.display = 'inline-flex';
+  document.getElementById('headerTrialBadge').hidden = false;
+  document.getElementById('trialCount').textContent = trials;
+  toast('Welcome to LeadClaw');
+}
+
+// Sign Out
+document.getElementById('logoutBtn').onclick = () => {
+  activeEmail = '';
+  document.getElementById('pg-dash').classList.remove('active');
+  document.getElementById('pg-auth').classList.add('active');
+  document.getElementById('viewAccountsBtn').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+  document.getElementById('headerTrialBadge').hidden = true;
+  document.getElementById('v-details').hidden = false;
+  document.getElementById('v-terms').hidden = true;
+  document.getElementById('v-plans').hidden = true;
+  document.getElementById('st1').className = 'st on';
+  document.getElementById('st2').className = 'st';
+  document.getElementById('st3').className = 'st';
+  toast('Signed out successfully');
+};
+
 function setPlat(p) {
   currentPlatform = p;
   const buttons = document.querySelectorAll('#platforms button');
   buttons.forEach(b => b.setAttribute('aria-checked', b.textContent === p ? 'true' : 'false'));
+}
+
+// Animated Loading Bar Progress Handler
+function triggerLoadingProgress(callback) {
+  const wrap = document.getElementById('progressWrap');
+  const fill = document.getElementById('progressBarFill');
+  const status = document.getElementById('progressStatus');
+  const percent = document.getElementById('progressPercent');
+  
+  wrap.style.display = 'block';
+  fill.style.width = '0%';
+  
+  const steps = [
+    { p: 25, msg: 'Auditing marketplace refund policy...' },
+    { p: 55, msg: 'Evaluating contractor call notes...' },
+    { p: 85, msg: 'Structuring formal claim statement...' },
+    { p: 100, msg: 'Claim generated successfully!' }
+  ];
+
+  let stepIdx = 0;
+  const interval = setInterval(() => {
+    if (stepIdx < steps.length) {
+      fill.style.width = steps[stepIdx].p + '%';
+      percent.textContent = steps[stepIdx].p + '%';
+      status.textContent = steps[stepIdx].msg;
+      stepIdx++;
+    } else {
+      clearInterval(interval);
+      setTimeout(() => {
+        wrap.style.display = 'none';
+        if(callback) callback();
+      }, 400);
+    }
+  }, 450);
 }
 
 // Dispute submission
@@ -388,24 +523,56 @@ document.getElementById('goBtn').onclick = async () => {
   fd.append('cost', cost);
   fd.append('email', activeEmail);
 
-  document.getElementById('resultContent').textContent = 'Analyzing dispute with AI...';
-  try {
-    const res = await fetch(`${API_BASE}/api/dispute`, {method: 'POST', body: fd});
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.detail || 'Error');
-    document.getElementById('resultContent').innerHTML = `
-      <b style="color:${data.valid ? 'var(--ok)' : 'var(--err)'};font-size:16px">${data.valid ? 'Eligible for Credit' : 'Not Eligible'}</b>
-      <p style="margin:8px 0;white-space:pre-wrap;font-family:var(--mono);font-size:13px">${data.reason || data.claim}</p>
-    `;
-  } catch(e) {
-    document.getElementById('resultContent').textContent = 'Error: ' + e.message;
-  }
+  document.getElementById('claimActions').hidden = true;
+  document.getElementById('resultContent').textContent = 'Initializing AI engine...';
+  
+  triggerLoadingProgress(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/dispute`, {method: 'POST', body: fd});
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.detail || 'Error processing request');
+      
+      if(typeof data.trials_left === 'number') {
+        document.getElementById('trialCount').textContent = data.trials_left;
+      }
+
+      generatedClaimText = data.claim || data.reason || '';
+
+      document.getElementById('resultContent').innerHTML = `
+        <b style="color:${data.valid ? 'var(--ok)' : 'var(--err)'};font-size:16px">${data.valid ? 'Eligible for Credit' : 'Not Eligible'}</b>
+        <p style="margin:6px 0 12px;color:var(--mu)">${data.reason || 'AI evaluation complete.'}</p>
+      `;
+
+      if(data.valid && generatedClaimText) {
+        document.getElementById('claimBoxText').textContent = generatedClaimText;
+        document.getElementById('claimActions').hidden = false;
+      }
+    } catch(e) {
+      document.getElementById('resultContent').textContent = 'Error: ' + e.message;
+    }
+  });
 };
 
-// Restricted Account Data Modal
+// Copy Claim Button
+document.getElementById('copyClaimBtn').onclick = () => {
+  if(!generatedClaimText) return;
+  navigator.clipboard.writeText(generatedClaimText);
+  toast('Claim copied to clipboard!');
+};
+
+// Open in Gmail Button
+document.getElementById('openGmailBtn').onclick = () => {
+  if(!generatedClaimText) return;
+  const subject = encodeURIComponent(`[Dispute Request] ${currentPlatform} Lead Credit Request`);
+  const body = encodeURIComponent(generatedClaimText);
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
+  window.open(gmailUrl, '_blank');
+};
+
+// Account Data Modal
 document.getElementById('viewAccountsBtn').onclick = async () => {
   if(!activeEmail) {
-    toast('Please complete registration first.');
+    toast('Please sign in first.');
     return;
   }
   document.getElementById('adminModal').hidden = false;
@@ -430,22 +597,6 @@ document.getElementById('viewAccountsBtn').onclick = async () => {
   }
 };
 document.getElementById('closeAdmin').onclick = () => { document.getElementById('adminModal').hidden = true; };
-
-// Feedback Modal
-document.getElementById('fbOpen').onclick = () => { document.getElementById('fbModal').hidden = false; };
-document.getElementById('fbClose').onclick = () => { document.getElementById('fbModal').hidden = true; };
-document.getElementById('fbSend').onclick = async () => {
-  const message = document.getElementById('fbMsg').value.trim();
-  if(!message) return;
-  await fetch(`${API_BASE}/api/feedback`, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({message, email: activeEmail})
-  });
-  document.getElementById('fbMsg').value = '';
-  document.getElementById('fbModal').hidden = true;
-  toast('Feedback sent successfully!');
-};
 </script>
 </body>
 </html>
