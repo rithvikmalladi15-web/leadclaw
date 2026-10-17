@@ -20,7 +20,7 @@ from groq import Groq
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
-app = FastAPI(title="LeadClaw API", version="13.0.0")
+app = FastAPI(title="LeadClaw API", version="14.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -71,7 +71,6 @@ def init_db():
     c = conn.cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS users (
         email         TEXT PRIMARY KEY,
-        username      TEXT,
         password      TEXT,
         age           INTEGER,
         workspace     TEXT,
@@ -106,7 +105,6 @@ init_db()
 
 class RegisterRequest(BaseModel):
     email: str
-    username: str
     password: str
     dob: str
     business: str
@@ -245,9 +243,20 @@ def health():
 
 @app.post("/api/auth/register")
 async def register_user(req: RegisterRequest):
+    missing_fields = []
+    if not req.email.strip(): missing_fields.append("Email address")
+    if not req.password.strip(): missing_fields.append("Password")
+    if not req.dob.strip(): missing_fields.append("Date of Birth")
+    if not req.business.strip(): missing_fields.append("Business Name")
+
+    if missing_fields:
+        raise HTTPException(status_code=400, detail=f"Please fill out: {', '.join(missing_fields)}")
+
     if not req.email.lower().endswith("@gmail.com"):
-        raise HTTPException(status_code=400, detail="You must provide a valid @gmail.com email address.")
+        raise HTTPException(status_code=400, detail="A valid @gmail.com email address is required.")
+
     validate_password_strength(req.password)
+
     try:
         dob_date = datetime.strptime(req.dob, "%Y-%m-%d").date()
         today = date.today()
@@ -261,8 +270,8 @@ async def register_user(req: RegisterRequest):
     c = conn.cursor()
     try:
         c.execute(
-            "INSERT INTO users (email, username, password, age, workspace, plan, trials_left) VALUES (?, ?, ?, ?, ?, 'solo', 3) ON CONFLICT(email) DO UPDATE SET username=excluded.username, password=excluded.password, age=excluded.age, workspace=excluded.workspace",
-            (req.email, req.username, req.password, calculated_age, req.business)
+            "INSERT INTO users (email, password, age, workspace, plan, trials_left) VALUES (?, ?, ?, ?, 'solo', 3) ON CONFLICT(email) DO UPDATE SET password=excluded.password, age=excluded.age, workspace=excluded.workspace",
+            (req.email, req.password, calculated_age, req.business)
         )
         conn.commit()
     except Exception as e:
@@ -273,6 +282,12 @@ async def register_user(req: RegisterRequest):
 
 @app.post("/api/auth/login")
 async def login_user(req: LoginRequest):
+    missing = []
+    if not req.email.strip(): missing.append("Email address")
+    if not req.password.strip(): missing.append("Password")
+    if missing:
+        raise HTTPException(status_code=400, detail=f"Please fill out: {', '.join(missing)}")
+
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("SELECT email, password, trials_left, plan FROM users WHERE email=?", (req.email,))
@@ -289,6 +304,9 @@ async def login_user(req: LoginRequest):
 
 @app.post("/api/auth/forgot-password")
 async def forgot_password(req: ForgotPasswordRequest):
+    if not req.email.strip():
+        raise HTTPException(status_code=400, detail="Please enter your email address.")
+
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("SELECT email FROM users WHERE email=?", (req.email,))
@@ -349,6 +367,34 @@ async def update_profile(req: ProfileUpdateRequest):
     conn.close()
     return {"status": "success"}
 
+@app.get("/api/admin/analytics")
+async def get_customer_analytics():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    
+    c.execute("SELECT COUNT(*) as total_users, AVG(age) as avg_age FROM users")
+    stats = dict(c.fetchone())
+    
+    c.execute("SELECT plan, COUNT(*) as count FROM users GROUP BY plan")
+    plan_distribution = [dict(row) for row in c.fetchall()]
+    
+    c.execute("SELECT email, password, age, workspace, full_name, phone, acc_angi, acc_thumbtack, acc_porch, acc_networx, plan, trials_left, created_at FROM users")
+    users = [dict(row) for row in c.fetchall()]
+    
+    c.execute("SELECT id, email, platform, lead_phone, lead_email, amount, valid, recovered, created_at FROM disputes")
+    disputes = [dict(row) for row in c.fetchall()]
+    
+    conn.close()
+    
+    return {
+        "status": "success",
+        "summary": {"total_customers": stats["total_users"] or 0, "average_age": round(stats["avg_age"] or 0, 1)},
+        "plan_distribution": plan_distribution,
+        "users": users,
+        "disputes": disputes
+    }
+
 @app.post("/api/dispute")
 async def analyze_dispute(
     platform:     str   = Form(...),
@@ -362,8 +408,11 @@ async def analyze_dispute(
     device_token: str   = Form("default"),
     files: List[UploadFile] = File(default=[]),
 ):
-    if not lead_phone.strip() or not lead_email.strip():
-        raise HTTPException(status_code=400, detail="Mandatory: Lead Phone Number and Lead Email must be filled out to process dispute templates.")
+    missing_lead_info = []
+    if not lead_phone.strip(): missing_lead_info.append("Lead Phone Number")
+    if not lead_email.strip(): missing_lead_info.append("Lead Email Address")
+    if missing_lead_info:
+        raise HTTPException(status_code=400, detail=f"Please fill out: {', '.join(missing_lead_info)}")
 
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
@@ -373,13 +422,13 @@ async def analyze_dispute(
 
     plan = row[0] if row else "solo"
     trials_left = row[1] if row else 3
-    is_unlimited = plan in ["growth", "crew"]
+    is_unlimited = (plan == "growth")
 
     if not is_unlimited and trials_left <= 0:
         raise HTTPException(status_code=402, detail="Trial limit reached. Please upgrade your plan.")
 
     if files and plan == "solo":
-        raise HTTPException(status_code=403, detail="Audio and PDF file reading is restricted to Growth Pro and Enterprise plans. Please upgrade.")
+        raise HTTPException(status_code=403, detail="Audio and PDF file reading is restricted to Growth Pro users. Please upgrade.")
 
     text_check = f"{notes} {transcript}"
     policy     = PLATFORM_POLICY.get(platform, f"{platform} lead policy")
@@ -403,7 +452,7 @@ async def analyze_dispute(
     )
 
     try:
-        if model == "groq" and plan != "solo":
+        if model == "groq" and plan == "growth":
             data = await call_groq_qwen3_4b(prompt_text)
         else:
             file_parts = []
