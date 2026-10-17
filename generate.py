@@ -9,12 +9,11 @@ import google.generativeai as genai
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import httpx
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
-app = FastAPI(title="LeadClaw API", version="8.0.0")
+app = FastAPI(title="LeadClaw API", version="9.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,6 +24,8 @@ app.add_middleware(
 )
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
+
 if GEMINI_API_KEY:
     try:
         genai.configure(api_key=GEMINI_API_KEY)
@@ -41,7 +42,6 @@ def init_db():
         workspace     TEXT,
         plan          TEXT DEFAULT 'solo',
         trials_left   INTEGER DEFAULT 3,
-        gmail_token   TEXT,
         device_token  TEXT
     )""")
     c.execute("""CREATE TABLE IF NOT EXISTS verifications (
@@ -68,19 +68,11 @@ class CodeVerifyRequest(BaseModel):
     email: str
     code: str
 
-class GoogleAuthRequest(BaseModel):
-    token: str
-
 class WorkspaceSetupRequest(BaseModel):
     email: str
     workspace: str
     plan: str
     device_token: str
-    gmail_token: Optional[str] = None
-
-class GmailConnectRequest(BaseModel):
-    email: str
-    connected: bool
 
 class FeedbackRequest(BaseModel):
     email: Optional[str] = ""
@@ -99,7 +91,9 @@ async def send_code(req: EmailRequest):
     c.execute("INSERT OR REPLACE INTO verifications (email, code) VALUES (?,?)", (req.email, code))
     conn.commit()
     conn.close()
+    logger.info("========================================")
     logger.info("VERIFICATION CODE FOR %s: %s", req.email, code)
+    logger.info("========================================")
     return {"status": "success", "debug_code": code}
 
 @app.post("/api/auth/verify-code")
@@ -113,39 +107,20 @@ async def verify_code(req: CodeVerifyRequest):
         raise HTTPException(status_code=400, detail="Invalid verification code.")
     return {"status": "success"}
 
-@app.post("/api/auth/google")
-async def google_auth(req: GoogleAuthRequest):
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(f"https://oauth2.googleapis.com/tokeninfo?id_token={req.token}")
-        if resp.status_code != 200:
-            return {"status": "success", "email": "google_user@gmail.com"}
-        data = resp.json()
-        email = data.get("email", "google_user@gmail.com")
-        return {"status": "success", "email": email}
-
 @app.post("/api/auth/setup-workspace")
 async def setup_workspace(req: WorkspaceSetupRequest):
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
-        """INSERT INTO users (email, workspace, plan, trials_left, gmail_token, device_token)
-           VALUES (?,?,?, COALESCE((SELECT trials_left FROM users WHERE email=?), 3), ?, ?)
+        """INSERT INTO users (email, workspace, plan, trials_left, device_token)
+           VALUES (?,?,?, COALESCE((SELECT trials_left FROM users WHERE email=?), 3), ?)
            ON CONFLICT(email) DO UPDATE SET
-             workspace=excluded.workspace, plan=excluded.plan, gmail_token=COALESCE(excluded.gmail_token, users.gmail_token), device_token=excluded.device_token""",
-        (req.email, req.workspace, req.plan, req.email, req.gmail_token, req.device_token),
+             workspace=excluded.workspace, plan=excluded.plan, device_token=excluded.device_token""",
+        (req.email, req.workspace, req.plan, req.email, req.device_token),
     )
     conn.commit()
     conn.close()
     return {"status": "success"}
-
-@app.post("/api/auth/connect-gmail")
-async def connect_gmail(req: GmailConnectRequest):
-    conn = sqlite3.connect(DB_FILE)
-    c = conn.cursor()
-    c.execute("UPDATE users SET gmail_connected=? WHERE email=?", (1 if req.connected else 0, req.email))
-    conn.commit()
-    conn.close()
-    return {"status": "success", "gmail_connected": req.connected}
 
 @app.post("/api/dispute")
 async def analyze_dispute(
