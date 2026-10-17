@@ -7,8 +7,8 @@
 <meta name="color-scheme" content="light dark">
 <script>try{var __t=localStorage.getItem('lc_theme')||'light';document.documentElement.setAttribute('data-theme',__t)}catch(e){}</script>
 
-<!-- Favicon matching the new sharp blue claw logo -->
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M15 52 L50 8 L65 18 L30 62 Z' fill='%232563eb'/><path d='M38 78 L73 34 L88 44 L53 88 Z' fill='%232563eb'/><path d='M62 102 L97 58 L112 68 L77 112 Z' fill='%232563eb'/></svg>">
+<!-- Original Favicon -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='9' stroke-linecap='round' fill='none'/></svg>">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -56,8 +56,8 @@ a{color:var(--accent);text-decoration:none}
 .page{display:none}.page.active{display:block}
 .auth-wrap{max-width:480px;margin:40px auto 60px;padding:0 20px}
 .brand{display:flex;align-items:center;justify-content:center;gap:11px;font:800 26px var(--display);letter-spacing:-.03em;margin-bottom:26px}
-.logo-m{width:38px;height:38px;border-radius:8px;background:var(--tint);border:1px solid var(--bdr);display:grid;place-items:center;flex:none}
-.logo-m svg{width:24px;height:24px}
+.logo-m{width:36px;height:36px;border-radius:8px;background:var(--blue);display:grid;place-items:center;flex:none}
+.logo-m svg{width:22px;height:22px}
 .stepper{display:flex;justify-content:center;margin:0 0 26px;list-style:none;padding:0}
 .st{flex:1;display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--dim)}
 .st i{width:26px;height:26px;border-radius:50%;border:2px solid var(--bdr2);display:grid;place-items:center;font:700 12px var(--mono);font-style:normal;flex:none}
@@ -139,10 +139,9 @@ th{background:var(--surf2)}
 <div class="auth-wrap">
   <div class="brand">
     <div class="logo-m">
+      <!-- Original Logo Mark -->
       <svg viewBox="0 0 100 100" fill="none">
-        <path d="M15 52 L50 8 L65 18 L30 62 Z" fill="#2563eb"/>
-        <path d="M38 78 L73 34 L88 44 L53 88 Z" fill="#2563eb"/>
-        <path d="M62 102 L97 58 L112 68 L77 112 Z" fill="#2563eb"/>
+        <path d="M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76" stroke="white" stroke-width="9" stroke-linecap="round"/>
       </svg>
     </div>
     LeadClaw
@@ -257,351 +256,371 @@ th{background:var(--surf2)}
 <div class="toast" id="toast"></div>
 
 <script>
-const API_BASE = 'https://leadclaw-api.onrender.com';
-let activeEmail = '';
-let agreedTerms = false;
-let currentPlatform = 'Angi';
-let isLoginMode = false;
-let generatedClaimText = '';
+document.addEventListener('DOMContentLoaded', () => {
+  const API_BASE = 'https://leadclaw-api.onrender.com';
+  let activeEmail = '';
+  let agreedTerms = false;
+  let currentPlatform = 'Angi';
+  let isLoginMode = false;
+  let generatedClaimText = '';
 
-let deviceToken = localStorage.getItem('lc_device_token');
-if (!deviceToken) {
-  deviceToken = 'dev_' + Math.random().toString(36).substring(2) + Date.now();
-  localStorage.setItem('lc_device_token', deviceToken);
-}
-
-function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
-
-document.getElementById('themeBtn').onclick = () => {
-  const cur = document.documentElement.getAttribute('data-theme');
-  const next = cur === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('lc_theme', next);
-};
-
-document.getElementById('pwShow').onclick = () => {
-  const i = document.getElementById('regPass');
-  const h = i.type === 'password';
-  i.type = h ? 'text' : 'password';
-  document.getElementById('pwShow').textContent = h ? 'Hide' : 'Show';
-};
-
-document.getElementById('tabSignup').onclick = () => {
-  isLoginMode = false;
-  document.getElementById('tabSignup').classList.add('on');
-  document.getElementById('tabLogin').classList.remove('on');
-  document.getElementById('authTitle').textContent = 'Create your account';
-  document.getElementById('authSub').textContent = 'Enter your business and contact details.';
-  document.getElementById('toTermsBtn').textContent = 'Continue';
-  document.getElementById('dobField').style.display = 'block';
-  document.getElementById('bizField').style.display = 'block';
-  document.getElementById('stepper').style.display = 'flex';
-};
-
-document.getElementById('tabLogin').onclick = () => {
-  isLoginMode = true;
-  document.getElementById('tabLogin').classList.add('on');
-  document.getElementById('tabSignup').classList.remove('on');
-  document.getElementById('authTitle').textContent = 'Welcome back';
-  document.getElementById('authSub').textContent = 'Sign in to access your dashboard.';
-  document.getElementById('toTermsBtn').textContent = 'Sign In';
-  document.getElementById('dobField').style.display = 'none';
-  document.getElementById('bizField').style.display = 'none';
-  document.getElementById('stepper').style.display = 'none';
-};
-
-document.getElementById('toTermsBtn').onclick = async () => {
-  const email = document.getElementById('regEmail').value.trim();
-  const password = document.getElementById('regPass').value;
-  const errEl = document.getElementById('regErr');
-
-  if(!email || !password) {
-    errEl.textContent = 'Please fill out all required fields.';
-    return;
+  let deviceToken = localStorage.getItem('lc_device_token');
+  if (!deviceToken) {
+    deviceToken = 'dev_' + Math.random().toString(36).substring(2) + Date.now();
+    localStorage.setItem('lc_device_token', deviceToken);
   }
 
-  if (!email.toLowerCase().endswith('@gmail.com')) {
-    errEl.textContent = 'A valid @gmail.com email address is required.';
-    return;
+  function toast(m){
+    const t = document.getElementById('toast');
+    if(!t) return;
+    t.textContent = m;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
   }
 
-  if(isLoginMode) {
-    activeEmail = email;
-    enterDashboard(3);
-    return;
-  }
+  // Theme toggle
+  document.getElementById('themeBtn').onclick = () => {
+    const cur = document.documentElement.getAttribute('data-theme');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('lc_theme', next);
+  };
 
-  const username = document.getElementById('regUser').value.trim();
-  const dobVal = document.getElementById('regAge').value;
-  const business = document.getElementById('regBiz').value.trim();
+  // Password show/hide
+  document.getElementById('pwShow').onclick = () => {
+    const i = document.getElementById('regPass');
+    const h = i.type === 'password';
+    i.type = h ? 'text' : 'password';
+    document.getElementById('pwShow').textContent = h ? 'Hide' : 'Show';
+  };
 
-  if(!username || !dobVal || !business) {
-    errEl.textContent = 'Please fill out all required fields.';
-    return;
-  }
+  // Auth Tabs
+  document.getElementById('tabSignup').onclick = () => {
+    isLoginMode = false;
+    document.getElementById('tabSignup').classList.add('on');
+    document.getElementById('tabLogin').classList.remove('on');
+    document.getElementById('authTitle').textContent = 'Create your account';
+    document.getElementById('authSub').textContent = 'Enter your business and contact details.';
+    document.getElementById('toTermsBtn').textContent = 'Continue';
+    document.getElementById('dobField').style.display = 'block';
+    document.getElementById('bizField').style.display = 'block';
+    document.getElementById('stepper').style.display = 'flex';
+  };
 
-  const dob = new Date(dobVal);
-  const today = new Date();
-  let age = today.getFullYear() - dob.getFullYear();
-  const m = today.getMonth() - dob.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
-    age--;
-  }
+  document.getElementById('tabLogin').onclick = () => {
+    isLoginMode = true;
+    document.getElementById('tabLogin').classList.add('on');
+    document.getElementById('tabSignup').classList.remove('on');
+    document.getElementById('authTitle').textContent = 'Welcome back';
+    document.getElementById('authSub').textContent = 'Sign in to access your dashboard.';
+    document.getElementById('toTermsBtn').textContent = 'Sign In';
+    document.getElementById('dobField').style.display = 'none';
+    document.getElementById('bizField').style.display = 'none';
+    document.getElementById('stepper').style.display = 'none';
+  };
 
-  if (age < 18) {
-    errEl.textContent = 'You must be at least 18 years old to create an account.';
-    return;
-  }
+  // Step 1 -> Terms / Direct Login
+  document.getElementById('toTermsBtn').onclick = async () => {
+    const email = document.getElementById('regEmail').value.trim();
+    const password = document.getElementById('regPass').value;
+    const errEl = document.getElementById('regErr');
 
-  errEl.textContent = '';
-
-  try {
-    const res = await fetch(`${API_BASE}/api/auth/register`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email, username, password, dob: dobVal, business})
-    });
-    const d = await res.json();
-    if(!res.ok) throw new Error(d.detail || 'Registration failed.');
-    activeEmail = email;
-    document.getElementById('v-details').hidden = true;
-    document.getElementById('v-terms').hidden = false;
-    document.getElementById('st1').className = 'st done';
-    document.getElementById('st2').className = 'st on';
-  } catch(e) {
-    errEl.textContent = e.message;
-  }
-};
-
-document.getElementById('agreeBtn').onclick = () => {
-  agreedTerms = !agreedTerms;
-  document.getElementById('agreeBtn').setAttribute('aria-checked', agreedTerms);
-};
-
-document.getElementById('backToDetails').onclick = () => {
-  document.getElementById('v-terms').hidden = true;
-  document.getElementById('v-details').hidden = false;
-  document.getElementById('st1').className = 'st on';
-  document.getElementById('st2').className = 'st';
-};
-
-document.getElementById('toPlansBtn').onclick = () => {
-  if(!agreedTerms) {
-    document.getElementById('termsErr').textContent = 'You must agree to the terms to proceed.';
-    return;
-  }
-  document.getElementById('v-terms').hidden = true;
-  document.getElementById('v-plans').hidden = false;
-  document.body.classList.add('wide-view');
-  document.getElementById('st2').className = 'st done';
-  document.getElementById('st3').className = 'st on';
-  loadPlans();
-};
-
-function loadPlans() {
-  const plans = [
-    {
-      id:'solo', name:'Solo Contractor', price:29, pop:false,
-      feats:['25 AI disputes per month', 'Manual dispute templates', 'Email support'],
-      missing:['AI custom generated claims', 'Audio & PDF evidence upload', 'Gmail one-click send']
-    },
-    {
-      id:'growth', name:'Growth Pro', price:59, pop:true,
-      feats:['Unlimited AI disputes', 'AI custom generated claims', 'Audio & PDF evidence upload', 'Gemini 3.5 Flash & Groq Qwen3 4B', 'Gmail one-click send']
-    },
-    {
-      id:'crew', name:'Enterprise', price:129, pop:false,
-      feats:['Everything in Growth Pro', 'Team dispatch seats', 'Platform analytics dashboard', 'White-glove onboarding']
+    if(!email || !password) {
+      errEl.textContent = 'Please fill out all required fields.';
+      return;
     }
-  ];
-  document.getElementById('plansGrid').innerHTML = plans.map(p => `
-    <article class="plan${p.pop?' pop':''}">
-      ${p.pop?'<span class="pop-tag">Most Popular</span>':''}
-      <h2>${p.name}</h2>
-      <div class="price">$${p.price}<small>/mo</small></div>
-      <ul>
-        ${p.feats.map(f=>`<li>✓ <span>${f}</span></li>`).join('')}
-        ${p.missing ? p.missing.map(m=>`<li class="dim">✕ <span>${m} (Missing on Solo)</span></li>`).join('') : ''}
-      </ul>
-      <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Upgrade Plan</button>
-    </article>
-  `).join('');
-}
 
-async function selectPlan(planId) {
-  try {
-    await fetch(`${API_BASE}/api/auth/select-plan`, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email: activeEmail, plan: planId, device_token: deviceToken})
-    });
-    enterDashboard(3);
-  } catch(e) {
-    alert('Error selecting plan.');
-  }
-}
-
-function enterDashboard(trials) {
-  document.body.classList.remove('wide-view');
-  document.getElementById('pg-auth').classList.remove('active');
-  document.getElementById('pg-dash').classList.add('active');
-  document.getElementById('viewAccountsBtn').style.display = 'inline-flex';
-  document.getElementById('logoutBtn').style.display = 'inline-flex';
-  document.getElementById('headerTrialBadge').hidden = false;
-  document.getElementById('trialCount').textContent = trials;
-  toast('Welcome to LeadClaw');
-}
-
-document.getElementById('logoutBtn').onclick = () => {
-  activeEmail = '';
-  document.getElementById('pg-dash').classList.remove('active');
-  document.getElementById('pg-auth').classList.add('active');
-  document.getElementById('viewAccountsBtn').style.display = 'none';
-  document.getElementById('logoutBtn').style.display = 'none';
-  document.getElementById('headerTrialBadge').hidden = true;
-  document.getElementById('v-details').hidden = false;
-  document.getElementById('v-terms').hidden = true;
-  document.getElementById('v-plans').hidden = true;
-  document.getElementById('st1').className = 'st on';
-  document.getElementById('st2').className = 'st';
-  document.getElementById('st3').className = 'st';
-  toast('Signed out successfully');
-};
-
-function setPlat(p) {
-  currentPlatform = p;
-  const buttons = document.querySelectorAll('#platforms button');
-  buttons.forEach(b => b.setAttribute('aria-checked', b.textContent === p ? 'true' : 'false'));
-}
-
-function triggerLoadingProgress(callback) {
-  const wrap = document.getElementById('progressWrap');
-  const fill = document.getElementById('progressBarFill');
-  const status = document.getElementById('progressStatus');
-  const percent = document.getElementById('progressPercent');
-  
-  wrap.style.display = 'block';
-  fill.style.width = '0%';
-  
-  const steps = [
-    { p: 25, msg: 'Auditing marketplace refund policy...' },
-    { p: 55, msg: 'Evaluating contractor call notes...' },
-    { p: 85, msg: 'Structuring formal claim statement...' },
-    { p: 100, msg: 'Claim generated successfully!' }
-  ];
-
-  let stepIdx = 0;
-  const interval = setInterval(() => {
-    if (stepIdx < steps.length) {
-      fill.style.width = steps[stepIdx].p + '%';
-      percent.textContent = steps[stepIdx].p + '%';
-      status.textContent = steps[stepIdx].msg;
-      stepIdx++;
-    } else {
-      clearInterval(interval);
-      setTimeout(() => {
-        wrap.style.display = 'none';
-        if(callback) callback();
-      }, 400);
+    if (!email.toLowerCase().endsWith('@gmail.com')) {
+      errEl.textContent = 'A valid @gmail.com email address is required.';
+      return;
     }
-  }, 450);
-}
 
-document.getElementById('goBtn').onclick = async () => {
-  const notes = document.getElementById('notes').value;
-  const cost = document.getElementById('cost').value;
+    if(isLoginMode) {
+      activeEmail = email;
+      enterDashboard(3);
+      return;
+    }
 
-  const fd = new FormData();
-  fd.append('platform', currentPlatform);
-  fd.append('notes', notes);
-  fd.append('cost', cost);
-  fd.append('email', activeEmail);
-  fd.append('device_token', deviceToken);
+    const username = document.getElementById('regUser').value.trim();
+    const dobVal = document.getElementById('regAge').value;
+    const business = document.getElementById('regBiz').value.trim();
 
-  document.getElementById('claimActions').hidden = true;
-  document.getElementById('resultContent').textContent = 'Initializing AI engine...';
-  
-  triggerLoadingProgress(async () => {
+    if(!username || !dobVal || !business) {
+      errEl.textContent = 'Please fill out all required fields.';
+      return;
+    }
+
+    const dob = new Date(dobVal);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+
+    if (age < 18) {
+      errEl.textContent = 'You must be at least 18 years old to create an account.';
+      return;
+    }
+
+    errEl.textContent = '';
+
     try {
-      const res = await fetch(`${API_BASE}/api/dispute`, {method: 'POST', body: fd});
-      const data = await res.json();
-      
-      if(res.status === 402) {
-        document.getElementById('pg-dash').classList.remove('active');
-        document.getElementById('pg-auth').classList.add('active');
-        document.body.classList.add('wide-view');
-        document.getElementById('v-details').hidden = true;
-        document.getElementById('v-terms').hidden = true;
-        document.getElementById('v-plans').hidden = false;
-        loadPlans();
-        toast('Free trial completed. Please select a plan.');
-        return;
-      }
-
-      if(!res.ok) throw new Error(data.detail || 'Error processing request');
-      
-      if(typeof data.trials_left === 'number') {
-        document.getElementById('trialCount').textContent = data.trials_left;
-      }
-
-      generatedClaimText = data.claim || data.reason || '';
-
-      document.getElementById('resultContent').innerHTML = `
-        <b style="color:${data.valid ? 'var(--ok)' : 'var(--err)'};font-size:16px">${data.valid ? 'Eligible for Credit' : 'Not Eligible'}</b>
-        <p style="margin:6px 0 12px;color:var(--mu)">${data.reason || 'AI evaluation complete.'}</p>
-      `;
-
-      if(data.valid && generatedClaimText) {
-        document.getElementById('claimBoxText').textContent = generatedClaimText;
-        document.getElementById('claimActions').hidden = false;
-      }
+      const res = await fetch(`${API_BASE}/api/auth/register`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email, username, password, dob: dobVal, business})
+      });
+      const d = await res.json();
+      if(!res.ok) throw new Error(d.detail || 'Registration failed.');
+      activeEmail = email;
+      document.getElementById('v-details').hidden = true;
+      document.getElementById('v-terms').hidden = false;
+      document.getElementById('st1').className = 'st done';
+      document.getElementById('st2').className = 'st on';
     } catch(e) {
-      document.getElementById('resultContent').textContent = 'Error: ' + e.message;
+      errEl.textContent = e.message;
     }
-  });
-};
+  };
 
-document.getElementById('copyClaimBtn').onclick = () => {
-  if(!generatedClaimText) return;
-  navigator.clipboard.writeText(generatedClaimText);
-  toast('Claim copied to clipboard!');
-};
+  // Terms toggle
+  document.getElementById('agreeBtn').onclick = () => {
+    agreedTerms = !agreedTerms;
+    document.getElementById('agreeBtn').setAttribute('aria-checked', agreedTerms);
+  };
 
-document.getElementById('openGmailBtn').onclick = () => {
-  if(!generatedClaimText) return;
-  const subject = encodeURIComponent(`[Dispute Request] ${currentPlatform} Lead Credit Request`);
-  const body = encodeURIComponent(generatedClaimText);
-  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
-  window.open(gmailUrl, '_blank');
-};
+  document.getElementById('backToDetails').onclick = () => {
+    document.getElementById('v-terms').hidden = true;
+    document.getElementById('v-details').hidden = false;
+    document.getElementById('st1').className = 'st on';
+    document.getElementById('st2').className = 'st';
+  };
 
-document.getElementById('viewAccountsBtn').onclick = async () => {
-  if(!activeEmail) {
-    toast('Please sign in first.');
-    return;
+  // Step 2 -> Plans
+  document.getElementById('toPlansBtn').onclick = () => {
+    if(!agreedTerms) {
+      document.getElementById('termsErr').textContent = 'You must agree to the terms to proceed.';
+      return;
+    }
+    document.getElementById('v-terms').hidden = true;
+    document.getElementById('v-plans').hidden = false;
+    document.body.classList.add('wide-view');
+    document.getElementById('st2').className = 'st done';
+    document.getElementById('st3').className = 'st on';
+    loadPlans();
+  };
+
+  window.loadPlans = function() {
+    const plans = [
+      {
+        id:'solo', name:'Solo Contractor', price:29, pop:false,
+        feats:['25 AI disputes per month', 'Manual dispute templates', 'Email support'],
+        missing:['AI custom generated claims', 'Audio & PDF evidence upload', 'Gmail one-click send']
+      },
+      {
+        id:'growth', name:'Growth Pro', price:59, pop:true,
+        feats:['Unlimited AI disputes', 'AI custom generated claims', 'Audio & PDF evidence upload', 'Gemini 3.5 Flash & Groq Qwen3 4B', 'Gmail one-click send']
+      },
+      {
+        id:'crew', name:'Enterprise', price:129, pop:false,
+        feats:['Everything in Growth Pro', 'Team dispatch seats', 'Platform analytics dashboard', 'White-glove onboarding']
+      }
+    ];
+    document.getElementById('plansGrid').innerHTML = plans.map(p => `
+      <article class="plan${p.pop?' pop':''}">
+        ${p.pop?'<span class="pop-tag">Most Popular</span>':''}
+        <h2>${p.name}</h2>
+        <div class="price">$${p.price}<small>/mo</small></div>
+        <ul>
+          ${p.feats.map(f=>`<li>✓ <span>${f}</span></li>`).join('')}
+          ${p.missing ? p.missing.map(m=>`<li class="dim">✕ <span>${m} (Missing on Solo)</span></li>`).join('') : ''}
+        </ul>
+        <button class="btn${p.pop?'':' sec'}" onclick="selectPlan('${p.id}')">Upgrade Plan (Stripe)</button>
+      </article>
+    `).join('');
+  };
+
+  window.selectPlan = async function(planId) {
+    try {
+      await fetch(`${API_BASE}/api/auth/select-plan`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({email: activeEmail, plan: planId, device_token: deviceToken})
+      });
+      enterDashboard(3);
+    } catch(e) {
+      alert('Error selecting plan.');
+    }
+  };
+
+  function enterDashboard(trials) {
+    document.body.classList.remove('wide-view');
+    document.getElementById('pg-auth').classList.remove('active');
+    document.getElementById('pg-dash').classList.add('active');
+    document.getElementById('viewAccountsBtn').style.display = 'inline-flex';
+    document.getElementById('logoutBtn').style.display = 'inline-flex';
+    document.getElementById('headerTrialBadge').hidden = false;
+    document.getElementById('trialCount').textContent = trials;
+    toast('Welcome to LeadClaw');
   }
-  document.getElementById('adminModal').hidden = false;
-  try {
-    const res = await fetch(`${API_BASE}/api/admin/analytics`);
-    const data = await res.json();
-    const myUser = data.users.filter(u => u.email === activeEmail);
-    const myDisputes = data.disputes.filter(d => d.email === activeEmail);
 
-    let html = '<h3>Account Profile</h3><table><tr><th>Email</th><th>Username</th><th>Business</th><th>Plan</th></tr>';
-    myUser.forEach(u => {
-      html += `<tr><td>${u.email}</td><td>${u.username}</td><td>${u.workspace}</td><td>${u.plan}</td></tr>`;
-    });
-    html += '</table><h3 style="margin-top:18px">Your Disputes</h3><table><tr><th>ID</th><th>Platform</th><th>Amount</th><th>Valid</th></tr>';
-    myDisputes.forEach(d => {
-      html += `<tr><td>${d.id}</td><td>${d.platform}</td><td>$${d.amount}</td><td>${d.valid}</td></tr>`;
-    });
-    html += '</table>';
-    document.getElementById('adminTableWrap').innerHTML = html;
-  } catch(e) {
-    document.getElementById('adminTableWrap').textContent = 'Could not load your data.';
+  // Sign out / Home return
+  document.getElementById('logoutBtn').onclick = () => {
+    activeEmail = '';
+    document.getElementById('pg-dash').classList.remove('active');
+    document.getElementById('pg-auth').classList.add('active');
+    document.getElementById('viewAccountsBtn').style.display = 'none';
+    document.getElementById('logoutBtn').style.display = 'none';
+    document.getElementById('headerTrialBadge').hidden = true;
+    document.getElementById('v-details').hidden = false;
+    document.getElementById('v-terms').hidden = true;
+    document.getElementById('v-plans').hidden = true;
+    document.body.classList.remove('wide-view');
+    document.getElementById('st1').className = 'st on';
+    document.getElementById('st2').className = 'st';
+    document.getElementById('st3').className = 'st';
+    toast('Signed out successfully');
+  };
+
+  window.setPlat = function(p) {
+    currentPlatform = p;
+    const buttons = document.querySelectorAll('#platforms button');
+    buttons.forEach(b => b.setAttribute('aria-checked', b.textContent === p ? 'true' : 'false'));
+  };
+
+  function triggerLoadingProgress(callback) {
+    const wrap = document.getElementById('progressWrap');
+    const fill = document.getElementById('progressBarFill');
+    const status = document.getElementById('progressStatus');
+    const percent = document.getElementById('progressPercent');
+    
+    wrap.style.display = 'block';
+    fill.style.width = '0%';
+    
+    const steps = [
+      { p: 25, msg: 'Auditing marketplace refund policy...' },
+      { p: 55, msg: 'Evaluating contractor call notes...' },
+      { p: 85, msg: 'Structuring formal claim statement...' },
+      { p: 100, msg: 'Claim generated successfully!' }
+    ];
+
+    let stepIdx = 0;
+    const interval = setInterval(() => {
+      if (stepIdx < steps.length) {
+        fill.style.width = steps[stepIdx].p + '%';
+        percent.textContent = steps[stepIdx].p + '%';
+        status.textContent = steps[stepIdx].msg;
+        stepIdx++;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => {
+          wrap.style.display = 'none';
+          if(callback) callback();
+        }, 400);
+      }
+    }, 450);
   }
-};
-document.getElementById('closeAdmin').onclick = () => { document.getElementById('adminModal').hidden = true; };
+
+  // Dispute submission
+  document.getElementById('goBtn').onclick = async () => {
+    const notes = document.getElementById('notes').value;
+    const cost = document.getElementById('cost').value;
+
+    const fd = new FormData();
+    fd.append('platform', currentPlatform);
+    fd.append('notes', notes);
+    fd.append('cost', cost);
+    fd.append('email', activeEmail);
+    fd.append('device_token', deviceToken);
+
+    document.getElementById('claimActions').hidden = true;
+    document.getElementById('resultContent').textContent = 'Initializing AI engine...';
+    
+    triggerLoadingProgress(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/dispute`, {method: 'POST', body: fd});
+        const data = await res.json();
+        
+        if(res.status === 402) {
+          document.getElementById('pg-dash').classList.remove('active');
+          document.getElementById('pg-auth').classList.add('active');
+          document.body.classList.add('wide-view');
+          document.getElementById('v-details').hidden = true;
+          document.getElementById('v-terms').hidden = true;
+          document.getElementById('v-plans').hidden = false;
+          loadPlans();
+          toast('Free trial completed. Please select a plan.');
+          return;
+        }
+
+        if(!res.ok) throw new Error(data.detail || 'Error processing request');
+        
+        if(typeof data.trials_left === 'number') {
+          document.getElementById('trialCount').textContent = data.trials_left;
+        }
+
+        generatedClaimText = data.claim || data.reason || '';
+
+        document.getElementById('resultContent').innerHTML = `
+          <b style="color:${data.valid ? 'var(--ok)' : 'var(--err)'};font-size:16px">${data.valid ? 'Eligible for Credit' : 'Not Eligible'}</b>
+          <p style="margin:6px 0 12px;color:var(--mu)">${data.reason || 'AI evaluation complete.'}</p>
+        `;
+
+        if(data.valid && generatedClaimText) {
+          document.getElementById('claimBoxText').textContent = generatedClaimText;
+          document.getElementById('claimActions').hidden = false;
+        }
+      } catch(e) {
+        document.getElementById('resultContent').textContent = 'Error: ' + e.message;
+      }
+    });
+  };
+
+  document.getElementById('copyClaimBtn').onclick = () => {
+    if(!generatedClaimText) return;
+    navigator.clipboard.writeText(generatedClaimText);
+    toast('Claim copied to clipboard!');
+  };
+
+  document.getElementById('openGmailBtn').onclick = () => {
+    if(!generatedClaimText) return;
+    const subject = encodeURIComponent(`[Dispute Request] ${currentPlatform} Lead Credit Request`);
+    const body = encodeURIComponent(generatedClaimText);
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&su=${subject}&body=${body}`;
+    window.open(gmailUrl, '_blank');
+  };
+
+  document.getElementById('viewAccountsBtn').onclick = async () => {
+    if(!activeEmail) {
+      toast('Please sign in first.');
+      return;
+    }
+    document.getElementById('adminModal').hidden = false;
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/analytics`);
+      const data = await res.json();
+      const myUser = data.users.filter(u => u.email === activeEmail);
+      const myDisputes = data.disputes.filter(d => d.email === activeEmail);
+
+      let html = '<h3>Account Profile</h3><table><tr><th>Email</th><th>Username</th><th>Business</th><th>Plan</th></tr>';
+      myUser.forEach(u => {
+        html += `<tr><td>${u.email}</td><td>${u.username}</td><td>${u.workspace}</td><td>${u.plan}</td></tr>`;
+      });
+      html += '</table><h3 style="margin-top:18px">Your Disputes</h3><table><tr><th>ID</th><th>Platform</th><th>Amount</th><th>Valid</th></tr>';
+      myDisputes.forEach(d => {
+        html += `<tr><td>${d.id}</td><td>${d.platform}</td><td>$${d.amount}</td><td>${d.valid}</td></tr>`;
+      });
+      html += '</table>';
+      document.getElementById('adminTableWrap').innerHTML = html;
+    } catch(e) {
+      document.getElementById('adminTableWrap').textContent = 'Could not load your data.';
+    }
+  };
+
+  document.getElementById('closeAdmin').onclick = () => {
+    document.getElementById('adminModal').hidden = true;
+  };
+});
 </script>
 </body>
 </html>
