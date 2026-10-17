@@ -7,17 +7,18 @@ import random
 from typing import List, Optional
 
 import httpx
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Body, Request
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile, Body
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import google.generativeai as genai
+from groq import Groq
 
 # ── Logging ────────────────────────────────────────────────────────────────
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("leadclaw")
 
 # ── App ────────────────────────────────────────────────────────────────────
-app = FastAPI(title="LeadClaw API", version="4.0.0")
+app = FastAPI(title="LeadClaw API", version="5.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,14 +28,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Environment variables (set all of these in Render) ────────────────────
+# ── Environment variables ──────────────────────────────────────────────────
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")   # gemini-1.5-flash is the public name for 3.5 Flash
+GEMINI_MODEL   = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
 GROQ_API_KEY   = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL     = os.environ.get("GROQ_MODEL", "qwen-qwq-32b")         # Groq's hosted Qwen3 model
+GROQ_MODEL     = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
+
+groq_client = Groq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 
 # ── SQLite database ────────────────────────────────────────────────────────
 DB_FILE = "leadclaw.db"
@@ -44,16 +47,14 @@ def init_db():
     c = conn.cursor()
     c.execute("""CREATE TABLE IF NOT EXISTS users (
         email         TEXT PRIMARY KEY,
+        username      TEXT,
+        password      TEXT,
+        age           INTEGER,
         workspace     TEXT,
         plan          TEXT DEFAULT 'solo',
         trials_left   INTEGER DEFAULT 3,
-        gmail_token   TEXT,
-        device_token  TEXT
-    )""")
-    c.execute("""CREATE TABLE IF NOT EXISTS verifications (
-        email TEXT PRIMARY KEY,
-        code  TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        device_token  TEXT,
+        created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )""")
     c.execute("""CREATE TABLE IF NOT EXISTS disputes (
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,16 +81,15 @@ def init_db():
 init_db()
 
 # ── Pydantic models ────────────────────────────────────────────────────────
-class EmailRequest(BaseModel):
+class RegisterRequest(BaseModel):
     email: str
+    username: str
+    password: str
+    age: int
+    business: str
 
-class CodeVerifyRequest(BaseModel):
+class PlanSelectRequest(BaseModel):
     email: str
-    code: str
-
-class WorkspaceSetupRequest(BaseModel):
-    email: str
-    workspace: str
     plan: str
     device_token: str
 
@@ -100,26 +100,16 @@ class FeedbackRequest(BaseModel):
     message: str
     priority: Optional[str] = "medium"
 
-class GmailTokenRequest(BaseModel):
-    email: str
-    gmail_token: str
-
 class RecoverRequest(BaseModel):
     dispute_id: int
     email: str
 
-# ── Policy constants ───────────────────────────────────────────────────────
+# ── Policy constants & AI Prompts ──────────────────────────────────────────
 PLATFORM_POLICY = {
     "Angi":      "Angi Lead Credit Policy",
     "Thumbtack": "Thumbtack Lead Price Credit Terms",
     "Porch":     "Porch Pro Lead Guarantee",
     "Networx":   "Networx Lead Dispute Terms",
-}
-PLATFORM_SUPPORT_EMAIL = {
-    "Angi":      "leadcredits@angi.com",
-    "Thumbtack": "support@thumbtack.com",
-    "Porch":     "prosupport@porch.com",
-    "Networx":   "support@networx.com",
 }
 NOT_ELIGIBLE_REASON = (
     "Pricing objections, competitor hiring, project postponements, and customer "
@@ -158,27 +148,28 @@ HARD RULE: If the notes or transcript mention a competitor being hired or a pric
 rejection, valid MUST be false — even if other eligible reasons are present.
 
 If valid is true: write a detailed, persuasive, professional dispute letter tailored to the
-exact facts provided. Start with a Subject line, formal greeting, clear issue breakdown
-(specific numbers, dates, error messages), policy citation, and a firm credit request.
-Never use placeholder text like "See attached evidence."
+exact facts provided. Start with a Subject line, formal greeting, clear issue breakdown,
+policy citation, and a firm credit request.
 
 If valid is false: one or two plain sentences for "reason" and "claim" must be empty string.
 
-Respond ONLY in valid JSON with no markdown fences:
+Respond ONLY in valid JSON format with these exact keys:
 {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
 
-
-# ── AI helpers ─────────────────────────────────────────────────────────────
 def extract_json(text: str) -> dict:
-    """Pull the first {...} block out of a string."""
+    text = text.strip()
+    if text.startswith("```json"):
+        text = text[7:]
+    if text.endswith("```"):
+        text = text[:-3]
     s, e = text.find("{"), text.rfind("}")
     if s == -1 or e == -1:
         raise ValueError(f"No JSON found in: {text[:300]}")
     return json.loads(text[s:e + 1])
 
-
 async def call_gemini(prompt_text: str, file_parts: list = None) -> dict:
-    """Call Gemini (1.5 Flash / gemini-3.5-flash equivalent)."""
+    if not GEMINI_API_KEY:
+        raise ValueError("GEMINI_API_KEY is not set.")
     model = genai.GenerativeModel(
         model_name=GEMINI_MODEL,
         system_instruction=SYSTEM_PROMPT,
@@ -190,34 +181,20 @@ async def call_gemini(prompt_text: str, file_parts: list = None) -> dict:
     response = model.generate_content(contents)
     return extract_json(response.text or "")
 
-
 async def call_groq(prompt_text: str) -> dict:
-    """Call Groq API with Qwen3 4B (qwen-qwq-32b on Groq's hosted inference)."""
-    if not GROQ_API_KEY:
-        raise ValueError("GROQ_API_KEY is not set. Add it in Render environment variables.")
-    async with httpx.AsyncClient(timeout=90) as client:
-        resp = await client.post(
-            "https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json",
-            },
-            json={
-                "model": GROQ_MODEL,
-                "messages": [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user",   "content": prompt_text},
-                ],
-                "temperature": 0.1,
-                "max_tokens": 2048,
-                "response_format": {"type": "json_object"},
-            },
-        )
-        resp.raise_for_status()
-        data = resp.json()
-    content = data["choices"][0]["message"]["content"]
+    if not groq_client:
+        raise ValueError("GROQ_API_KEY is not set.")
+    completion = groq_client.chat.completions.create(
+        model=GROQ_MODEL,
+        messages=[
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user",   "content": prompt_text},
+        ],
+        temperature=0.1,
+        response_format={"type": "json_object"}
+    )
+    content = completion.choices[0].message.content
     return extract_json(content)
-
 
 def not_eligible(cost: float, confidence: float = 0.88, reason: str = NOT_ELIGIBLE_REASON) -> dict:
     return {
@@ -225,140 +202,69 @@ def not_eligible(cost: float, confidence: float = 0.88, reason: str = NOT_ELIGIB
         "reason": reason, "claim": "", "amount": cost,
     }
 
-
-# ── DB helpers ─────────────────────────────────────────────────────────────
 def get_user(email: str = None, device_token: str = None) -> Optional[dict]:
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     if email:
-        c.execute("SELECT email,workspace,plan,trials_left,gmail_token FROM users WHERE email=?", (email,))
+        c.execute("SELECT email,username,age,workspace,plan,trials_left FROM users WHERE email=?", (email,))
     elif device_token:
-        c.execute("SELECT email,workspace,plan,trials_left,gmail_token FROM users WHERE device_token=?", (device_token,))
+        c.execute("SELECT email,username,age,workspace,plan,trials_left FROM users WHERE device_token=?", (device_token,))
     else:
         conn.close(); return None
     row = c.fetchone(); conn.close()
     if not row: return None
-    return {"email": row[0], "workspace": row[1], "plan": row[2], "trials_left": row[3], "gmail_token": row[4]}
-
-
-def deduct_trial(email: str, device_token: str):
-    conn = sqlite3.connect(DB_FILE); c = conn.cursor()
-    c.execute(
-        "UPDATE users SET trials_left = MAX(0, trials_left - 1) WHERE email=? OR device_token=?",
-        (email, device_token),
-    )
-    conn.commit()
-    c.execute("SELECT trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
-    row = c.fetchone(); conn.close()
-    return row[0] if row else 0
-
+    return {"email": row[0], "username": row[1], "age": row[2], "workspace": row[3], "plan": row[4], "trials_left": row[5]}
 
 def plan_tier(plan: str) -> int:
     return {"solo": 1, "growth": 2, "crew": 3}.get(plan, 1)
 
-
-# ── Routes: health ─────────────────────────────────────────────────────────
+# ── Routes ─────────────────────────────────────────────────────────────────
 @app.get("/")
 def health():
-    return {
-        "ok": True, "service": "LeadClaw API", "version": "4.0.0",
-        "gemini_model": GEMINI_MODEL, "groq_model": GROQ_MODEL,
-        "gemini_configured": bool(GEMINI_API_KEY),
-        "groq_configured":   bool(GROQ_API_KEY),
-    }
+    return {"ok": True, "service": "LeadClaw API", "version": "5.0.0"}
 
+@app.post("/api/auth/register")
+async def register_user(req: RegisterRequest):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    try:
+        c.execute(
+            """INSERT INTO users (email, username, password, age, workspace, plan, trials_left)
+               VALUES (?, ?, ?, ?, ?, 'solo', 3)
+               ON CONFLICT(email) DO UPDATE SET
+                 username=excluded.username, password=excluded.password, age=excluded.age, workspace=excluded.workspace""",
+            (req.email, req.username, req.password, req.age, req.business)
+        )
+        conn.commit()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    finally:
+        conn.close()
+    return {"status": "success", "message": "Account created successfully."}
 
-@app.get("/api/ai-check")
-async def ai_check():
-    """Debug route — remove or protect before production."""
-    results = {}
-    if GEMINI_API_KEY:
-        try:
-            m = genai.GenerativeModel(GEMINI_MODEL)
-            r = m.generate_content("Reply with the single word: OK")
-            results["gemini"] = {"ok": True, "reply": (r.text or "").strip()}
-        except Exception as e:
-            results["gemini"] = {"ok": False, "error": str(e)}
-    else:
-        results["gemini"] = {"ok": False, "error": "GEMINI_API_KEY not set"}
-    if GROQ_API_KEY:
-        try:
-            async with httpx.AsyncClient(timeout=30) as client:
-                resp = await client.post(
-                    "https://api.groq.com/openai/v1/chat/completions",
-                    headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
-                    json={"model": GROQ_MODEL, "messages": [{"role":"user","content":"Reply: OK"}], "max_tokens": 5},
-                )
-                results["groq"] = {"ok": True, "reply": resp.json()["choices"][0]["message"]["content"].strip()}
-        except Exception as e:
-            results["groq"] = {"ok": False, "error": str(e)}
-    else:
-        results["groq"] = {"ok": False, "error": "GROQ_API_KEY not set"}
-    return results
+@app.post("/api/auth/select-plan")
+async def select_plan(req: PlanSelectRequest):
+    conn = sqlite3.connect(DB_FILE)
+    c = conn.cursor()
+    c.execute("UPDATE users SET plan=?, device_token=? WHERE email=?", (req.plan, req.device_token, req.email))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "plan": req.plan}
 
+@app.get("/api/admin/accounts")
+async def get_all_accounts():
+    """Admin endpoint to view all accounts data and system records."""
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute("SELECT email, username, age, workspace, plan, trials_left, created_at FROM users")
+    users = [dict(row) for row in c.fetchall()]
+    c.execute("SELECT * FROM disputes")
+    disputes = [dict(row) for row in c.fetchall()]
+    conn.close()
+    return {"users": users, "disputes": disputes}
 
-# ── Routes: authentication ─────────────────────────────────────────────────
-@app.post("/api/auth/send-code")
-async def send_code(req: EmailRequest):
-    code = f"{random.randint(100000, 999999)}"
-    conn = sqlite3.connect(DB_FILE); c = conn.cursor()
-    c.execute("INSERT OR REPLACE INTO verifications (email, code) VALUES (?,?)", (req.email, code))
-    conn.commit(); conn.close()
-    logger.info("Verification code for %s: %s", req.email, code)
-    # TODO: replace logger.info with a real email send (SendGrid / Resend / SES)
-    # Example with Resend:
-    # async with httpx.AsyncClient() as client:
-    #     await client.post("https://api.resend.com/emails",
-    #         headers={"Authorization": f"Bearer {RESEND_API_KEY}"},
-    #         json={"from":"noreply@leadclaw.com","to":req.email,
-    #               "subject":"Your LeadClaw code","text":f"Your code: {code}"})
-    return {"status": "success", "message": "Verification code sent.", "debug_code": code}
-
-
-@app.post("/api/auth/verify-code")
-async def verify_code(req: CodeVerifyRequest):
-    conn = sqlite3.connect(DB_FILE); c = conn.cursor()
-    c.execute("SELECT code FROM verifications WHERE email=?", (req.email,))
-    row = c.fetchone(); conn.close()
-    if not row or row[0] != req.code:
-        raise HTTPException(status_code=400, detail="Invalid or expired verification code.")
-    return {"status": "success", "message": "Email verified."}
-
-
-@app.post("/api/auth/setup-workspace")
-async def setup_workspace(req: WorkspaceSetupRequest):
-    conn = sqlite3.connect(DB_FILE); c = conn.cursor()
-    c.execute(
-        """INSERT INTO users (email, workspace, plan, trials_left, device_token)
-           VALUES (?,?,?, COALESCE((SELECT trials_left FROM users WHERE email=?), 3), ?)
-           ON CONFLICT(email) DO UPDATE SET
-             workspace=excluded.workspace, plan=excluded.plan, device_token=excluded.device_token""",
-        (req.email, req.workspace, req.plan, req.email, req.device_token),
-    )
-    conn.commit(); conn.close()
-    return {"status": "success", "workspace": req.workspace, "plan": req.plan}
-
-
-@app.post("/api/auth/save-gmail-token")
-async def save_gmail_token(req: GmailTokenRequest):
-    """Store the Gmail OAuth access token for a user (Growth Pro and above)."""
-    conn = sqlite3.connect(DB_FILE); c = conn.cursor()
-    c.execute("UPDATE users SET gmail_token=? WHERE email=?", (req.gmail_token, req.email))
-    conn.commit(); conn.close()
-    return {"status": "success"}
-
-
-@app.get("/api/user")
-async def get_user_info(email: str = None, device_token: str = None):
-    user = get_user(email=email, device_token=device_token)
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return user
-
-
-# ── Routes: dispute ────────────────────────────────────────────────────────
 @app.post("/api/dispute")
-@app.post("/api/dispute/")
 async def analyze_dispute(
     platform:     str   = Form(...),
     notes:        str   = Form(""),
@@ -372,7 +278,6 @@ async def analyze_dispute(
     text_check = f"{notes} {transcript}"
     policy     = PLATFORM_POLICY.get(platform, f"{platform} lead policy")
 
-    # Trial / plan check
     user          = get_user(email=email, device_token=device_token)
     trials_left   = user["trials_left"] if user else 3
     user_plan     = user["plan"] if user else "solo"
@@ -398,7 +303,6 @@ async def analyze_dispute(
             for f in files:
                 raw = await f.read()
                 if raw:
-                    # Gemini SDK inline file data
                     n = (f.filename or "").lower()
                     mime = "audio/mpeg" if n.endswith(".mp3") else "audio/wav" if n.endswith(".wav") else "application/pdf"
                     file_parts.append({"mime_type": mime, "data": raw})
@@ -406,9 +310,7 @@ async def analyze_dispute(
 
         valid = bool(data.get("valid"))
 
-        # Safety net
         if valid and INVALID_SAFETY_RE.search(text_check):
-            logger.info("Safety net overrode valid=True for: %.120s", text_check)
             result = not_eligible(cost)
         elif not valid:
             result = not_eligible(
@@ -428,9 +330,13 @@ async def analyze_dispute(
                 "amount":     cost,
             }
 
-        # Deduct trial and persist dispute
         if not is_unlimited:
-            trials_left = deduct_trial(email, device_token)
+            conn = sqlite3.connect(DB_FILE); c = conn.cursor()
+            c.execute("UPDATE users SET trials_left = MAX(0, trials_left - 1) WHERE email=? OR device_token=?", (email, device_token))
+            c.execute("SELECT trials_left FROM users WHERE email=? OR device_token=?", (email, device_token))
+            row = c.fetchone(); conn.close()
+            trials_left = row[0] if row else 0
+
         result["trials_left"] = trials_left
 
         if email:
@@ -447,14 +353,8 @@ async def analyze_dispute(
     except HTTPException:
         raise
     except Exception as e:
-        logger.exception("Dispute review failed (model=%s): %s", model, e)
-        if NON_REFUNDABLE_RE.search(text_check):
-            return not_eligible(cost)
-        raise HTTPException(
-            status_code=502,
-            detail=f"AI review failed ({type(e).__name__}). Check GEMINI_API_KEY / GROQ_API_KEY in Render.",
-        )
-
+        logger.exception("Dispute review failed: %s", e)
+        raise HTTPException(status_code=502, detail=f"AI review failed: {str(e)}")
 
 @app.post("/api/dispute/recover")
 async def mark_recovered(req: RecoverRequest):
@@ -465,26 +365,7 @@ async def mark_recovered(req: RecoverRequest):
     row = c.fetchone(); conn.close()
     return {"status": "success", "total_recovered": row[0] or 0.0}
 
-
-@app.post("/api/dispute/estimate")
-@app.post("/api/dispute/estimate/")
-async def estimate_lead_cost(data: dict = Body(...)):
-    platform = data.get("platform", "Angi")
-    text     = data.get("text", "").lower()
-    base, basis = 50, "general home services"
-    if any(w in text for w in ["roof", "shingle", "gutter"]):   base, basis = 90, "roofing"
-    elif any(w in text for w in ["plumb","leak","drain","heater"]): base, basis = 60, "plumbing"
-    elif any(w in text for w in ["electric","wiring","panel"]):  base, basis = 55, "electrical"
-    elif re.search(r"hvac|furnace|\bac\b|air condition|heating", text): base, basis = 70, "HVAC"
-    elif any(w in text for w in ["lawn","landscap","tree","fence"]): base, basis = 40, "landscaping"
-    mult   = {"Angi":1.1,"Thumbtack":0.9,"Porch":0.85,"Networx":1.0}.get(platform, 1.0)
-    amount = round(base * mult, 2)
-    return {"amount": amount, "low": round(amount*.75,2), "high": round(amount*1.25,2), "basis": f"{basis} on {platform}"}
-
-
-# ── Routes: feedback ───────────────────────────────────────────────────────
 @app.post("/api/feedback")
-@app.post("/api/feedback/")
 async def submit_feedback(req: FeedbackRequest):
     conn = sqlite3.connect(DB_FILE); c = conn.cursor()
     c.execute(
@@ -492,9 +373,7 @@ async def submit_feedback(req: FeedbackRequest):
         (req.email, req.workspace, req.type, req.message, req.priority),
     )
     conn.commit(); conn.close()
-    logger.info("Feedback [%s/%s] from %s: %.200s", req.type, req.priority, req.email or "anon", req.message)
     return {"status": "success"}
-
 
 if __name__ == "__main__":
     import uvicorn
