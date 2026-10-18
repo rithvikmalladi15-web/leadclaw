@@ -1,5 +1,4 @@
-import asyncio, hashlib, hmac, json, logging, os, re, secrets, smtplib, time
-from email.mime.text import MIMEText
+import asyncio, hashlib, hmac, json, logging, os, re, secrets, time
 from contextlib import contextmanager
 from datetime import datetime, date
 from typing import List, Optional
@@ -47,8 +46,11 @@ ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICES = {p: os.environ.get("STRIPE_PRICE_" + p.upper(), "") for p in ("basic", "standard", "pro")}
-SMTP_SENDER = os.environ.get("SMTP_SENDER", "")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+
+# Resend API configuration (bypasses blocked SMTP ports like 587)
+RESEND_API_KEY = os.environ.get("RESEND_API_KEY", "")
+SMTP_SENDER = os.environ.get("SMTP_SENDER", "onboarding@resend.dev")
+
 TEST_MODE = os.environ.get("TEST_MODE", "") == "1"  # activates plans without Stripe (testing only)
 CREDITS = {"basic": 7, "standard": 15, "pro": -1}  # monthly AI dispute credits; -1 = unlimited
 
@@ -59,18 +61,30 @@ def credits_left(plan, used):
 
 
 def send_mail(to, subject, body):
-    if not SMTP_SENDER or not SMTP_PASSWORD:
+    if not RESEND_API_KEY:
         raise HTTPException(503, "Email service is not configured yet.")
     try:
-        msg = MIMEText(body)
-        msg["From"], msg["To"], msg["Subject"] = SMTP_SENDER, to, subject
-        with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as s:
-            s.starttls(); s.login(SMTP_SENDER, SMTP_PASSWORD); s.sendmail(SMTP_SENDER, to, msg.as_string())
+        headers = {
+            "Authorization": f"Bearer {RESEND_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "from": SMTP_SENDER,
+            "to": [to],
+            "subject": subject,
+            "text": body
+        }
+        with httpx.Client(timeout=20) as client:
+            r = client.post("https://api.resend.com/emails", json=payload, headers=headers)
+            if r.status_code >= 400:
+                log.error("Resend API error: %s", r.text)
+                raise HTTPException(502, "Could not send the verification email.")
     except HTTPException:
         raise
     except Exception as e:
         log.error("mail failed: %s", e)
         raise HTTPException(502, "Could not send the verification email. Please try again.")
+
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 SESSION_TTL = 60 * 60 * 24 * 30
 SOLO_MONTHLY_LIMIT = 25
@@ -140,7 +154,7 @@ def init_db():
 
 try:
     init_db()
-except Exception as e:  # keep the server up so /health shows the problem; retried on the next request
+except Exception as e:
     log.error("Database init failed: %s", e)
 
 # ---------- security helpers ----------
@@ -154,7 +168,7 @@ def check_pw(pw: str, stored: str) -> bool:
     if stored and stored.startswith("pbkdf2$"):
         _, salt, h = stored.split("$")
         return hmac.compare_digest(hashlib.pbkdf2_hmac("sha256", pw.encode(), salt.encode(), 200_000).hex(), h)
-    return bool(stored) and hmac.compare_digest(stored, pw)  # legacy plaintext; upgraded on login
+    return bool(stored) and hmac.compare_digest(stored, pw)
 
 
 def validate_password(pw: str):
@@ -185,7 +199,6 @@ def current_user(authorization: str = "") -> dict:
     if not row:
         raise HTTPException(401, "Session expired. Please sign in again.")
     return dict(row)
-
 
 
 # ---------- models ----------
@@ -282,7 +295,7 @@ async def run_ai(prompt, parts, prefer):
         try:
             if fn is _gemini:
                 return await asyncio.to_thread(_gemini, prompt, parts)
-            if parts:  # groq cannot read audio/pdf
+            if parts:
                 continue
             return await asyncio.to_thread(_groq, prompt)
         except Exception as e:
@@ -574,7 +587,7 @@ _admin_lock = {"until": 0.0}
 @app.get("/api/admin/analytics")
 async def analytics(x_admin_key: str = Header("")):
     now = time.time()
-    if _admin_lock["until"] > now:  # one wrong key locks the admin area for 5 minutes, even for the right key
+    if _admin_lock["until"] > now:
         raise HTTPException(429, detail={"message": "Admin is locked after a wrong key.", "retry_after": int(_admin_lock["until"] - now) + 1})
     if not ADMIN_KEY or not hmac.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode()):
         _admin_lock["until"] = now + ADMIN_LOCK_SECONDS
