@@ -552,28 +552,36 @@ $('navHelp').onclick=()=>{location.href='mailto:'+SUPPORT_EMAIL+'?subject='+enco
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   const admData = document.getElementById('admData');
-  if (admData && !document.getElementById('testEmail')) {
-    const testDiv = document.createElement('div');
-    testDiv.style.cssText = 'background:var(--tn);padding:14px;border-radius:8px;margin-bottom:16px;text-align:left;';
-    testDiv.innerHTML = `
-      <h3 style="margin:0 0 8px;font:700 14px var(--d);">Quick Plan Testing Tool</h3>
+  if (admData && !document.getElementById('adminPlanDashboard')) {
+    const dashDiv = document.createElement('div');
+    dashDiv.id = 'adminPlanDashboard';
+    dashDiv.style.cssText = 'background:var(--tn);padding:18px;border-radius:12px;margin-bottom:20px;text-align:left;border:1px solid var(--bd);';
+    dashDiv.innerHTML = `
+      <h3 style="margin:0 0 6px;font:700 16px var(--d);color:var(--ac);">Admin Plan Control Dashboard</h3>
+      <p style="margin:0 0 14px;font-size:13.5px;color:var(--mu);">Select a user email below, choose their target plan, and instantly update their account status without needing Stripe checkout.</p>
       <div class="two f">
-        <input class="inp" id="testEmail" placeholder="User email to modify">
-        <select class="inp" id="testPlanSelect">
-          <option value="none">No plan</option>
-          <option value="basic">Basic Plan</option>
-          <option value="standard">Standard Plan</option>
-          <option value="pro">Pro Plan (Unlimited + Evidence)</option>
-        </select>
+        <div>
+          <label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block;">User Email</label>
+          <input class="inp" id="dashEmail" placeholder="contractor@gmail.com">
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:600;margin-bottom:4px;display:block;">Choose Plan</label>
+          <select class="inp" id="dashPlan">
+            <option value="none">No plan (Free trial ended / Cancelled)</option>
+            <option value="basic">Basic Plan (7 credits)</option>
+            <option value="standard">Standard Plan (15 credits)</option>
+            <option value="pro">Pro Plan (Unlimited + Evidence)</option>
+          </select>
+        </div>
       </div>
-      <button class="btn sm" id="testPlanGo">Force Update User Plan</button>
+      <button class="btn sm" id="dashApplyBtn" style="margin-top:6px;">Apply Plan to User</button>
     `;
-    admData.insertBefore(testDiv, admData.firstChild);
+    admData.insertBefore(dashDiv, admData.firstChild);
 
-    document.getElementById('testPlanGo').onclick = async () => {
-      const email = document.getElementById('testEmail').value.trim();
-      const plan = document.getElementById('testPlanSelect').value;
-      if (!email) return toast('Enter a user email.');
+    document.getElementById('dashApplyBtn').onclick = async () => {
+      const email = document.getElementById('dashEmail').value.trim();
+      const plan = document.getElementById('dashPlan').value;
+      if (!email) return toast('Please enter a user email.');
       try {
         const res = await fetch(API + '/api/admin/set-plan', {
           method: 'POST',
@@ -584,9 +592,9 @@ window.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ email, plan })
         });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.detail || 'Failed to update plan.');
-        toast('User plan updated successfully!');
-        loadAdmin();
+        if (!res.ok) throw new Error(data.detail || 'Failed to update user plan.');
+        toast(`Success! ${email} is now on the ${plan.toUpperCase()} plan.`);
+        loadAdmin(); // Refresh analytics tables
       } catch (e) {
         toast(e.message);
       }
