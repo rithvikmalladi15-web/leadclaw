@@ -3,616 +3,420 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LeadClaw – Refund disputes for bad Angi, Thumbtack, Porch &amp; Networx leads</title>
-<meta name="description" content="LeadClaw helps home-service contractors get refunds on bad leads from Angi, Thumbtack, Porch and Networx. Check eligibility and send a ready-made dispute email in minutes.">
+<title>LeadClaw | Lead refund disputes for home-service contractors</title>
+<meta name="description" content="LeadClaw helps contractors dispute bad leads from Angi, Thumbtack, Porch and Networx with AI-generated dispute letters.">
 <link rel="canonical" href="https://leadclaw.pages.dev/">
-<meta property="og:url" content="https://leadclaw.pages.dev/">
-<meta property="og:title" content="LeadClaw – Get your wasted lead money back">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='9' stroke-linecap='round' fill='none'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
-<style>
-:root{--sans:'Inter',system-ui,sans-serif;--disp:'Manrope','Inter',sans-serif;--blue:#2563eb;--blue-h:#1d4ed8}
-html[data-theme=light]{color-scheme:light;--bg:#fff;--bg2:#f6f8fb;--surf:#fff;--surf2:#f1f5f9;--bdr:#e3e8ef;--tx:#0b1220;--mu:#556178;--acc:#2563eb;--tint:#eff6ff;--ok:#15803d;--err:#dc2626;--sh:0 1px 2px rgba(15,23,42,.04),0 6px 20px rgba(15,23,42,.05)}
-html[data-theme=dark]{color-scheme:dark;--bg:#04060b;--bg2:#070a12;--surf:#0a0e18;--surf2:#10162a;--bdr:#18213a;--tx:#eef2fa;--mu:#8b97b3;--acc:#4f8bff;--tint:rgba(79,139,255,.1);--ok:#4ade80;--err:#f87171;--sh:none}
-*{box-sizing:border-box}[hidden]{display:none!important}
-html{scroll-behavior:smooth}
-body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background .25s,color .25s}
-button,input,select,textarea{font:inherit;color:inherit}
-a{color:inherit;text-decoration:none}
-:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
-@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
-.rv{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}.rv.in{opacity:1;transform:none}
-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:6px;padding:12px max(20px,calc((100vw - 1140px)/2));padding-top:calc(12px + env(safe-area-inset-top,0px));background:var(--bg);border-bottom:1px solid var(--bdr)}
-.logo{display:flex;align-items:center;gap:9px;font:800 20px var(--disp);letter-spacing:-.03em;cursor:pointer}
-.lm{width:30px;height:30px;border-radius:7px;background:var(--blue);display:grid;place-items:center}.lm svg{width:18px}
-.sp{flex:1}
-.lnk{padding:8px 12px;border-radius:7px;color:var(--mu);font-weight:500;cursor:pointer;background:none;border:0;transition:color .15s,background .15s}.lnk:hover{color:var(--tx);background:var(--surf2)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 22px;border:1px solid var(--blue);border-radius:8px;background:var(--blue);color:#fff;font-weight:600;cursor:pointer;transition:background .15s,transform .15s,border-color .15s}
-.btn:hover{background:var(--blue-h);border-color:var(--blue-h)}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;pointer-events:none}
-.btn.sec{background:transparent;color:var(--tx);border-color:var(--bdr)}.btn.sec:hover{border-color:var(--acc);color:var(--acc);background:var(--tint)}
-.btn.sm{height:36px;padding:0 14px;font-size:13.5px}.btn.full{width:100%}
-.pill{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;background:var(--tint);border:1px solid var(--bdr);font-size:12.5px;font-weight:600;color:var(--acc)}
-.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
-.hero{text-align:center;padding:80px 0 30px}
-.hero h1{font:800 clamp(34px,5.4vw,56px)/1.08 var(--disp);letter-spacing:-.035em;margin:20px auto 16px;max-width:800px;animation:up .6s both .05s}
-.hl{color:var(--acc)}
-.hero p{color:var(--mu);font-size:17.5px;max-width:560px;margin:0 auto 28px;animation:up .6s both .15s}
-.hero .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:up .6s both .25s}
-.hero .pill{animation:up .6s both}
-.facts{display:flex;justify-content:center;gap:10px 30px;flex-wrap:wrap;margin-top:40px;color:var(--mu);font-size:14px;font-weight:500;animation:up .6s both .35s}.facts span::before{content:"✓";color:var(--acc);font-weight:700;margin-right:8px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);max-width:720px;margin:56px auto 0;border:1px solid var(--bdr);border-radius:12px;background:var(--surf);box-shadow:var(--sh)}
-.stat{padding:20px;border-right:1px solid var(--bdr)}.stat:last-child{border:0}
-.stat b{display:block;font:800 28px var(--disp)}.stat span{color:var(--mu);font-size:13px}
-.demo{max-width:600px;margin:36px auto 0;text-align:left;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:20px;box-shadow:var(--sh);animation:up .7s both .4s}
-.demo .row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--bdr);font-size:14px}
-.ok{color:var(--ok);font-weight:700}.err{color:var(--err);font-weight:700}
-.demo pre{margin:0;white-space:pre-wrap;font:13px/1.65 var(--sans);color:var(--mu)}
-section.s{padding:72px 0}section.alt{background:var(--bg2);border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr)}
-.h2{font:800 clamp(26px,3.4vw,34px)/1.2 var(--disp);letter-spacing:-.025em;text-align:center;margin:0 0 8px}
-.lead{text-align:center;color:var(--mu);max-width:540px;margin:0 auto 40px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.fc{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:24px;transition:border-color .2s,transform .2s,box-shadow .2s}
-.fc:hover{border-color:var(--acc);transform:translateY(-3px);box-shadow:var(--sh)}
-.fc i{font:600 12px var(--sans);font-style:normal;color:var(--acc);display:block;margin-bottom:12px;letter-spacing:.08em}.fc h3{margin:0 0 6px;font:700 16.5px var(--disp)}.fc p{margin:0;color:var(--mu);font-size:14px}
-.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:stretch;max-width:1000px;margin:0 auto}
-.plan{position:relative;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:28px 24px;display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
-.plan:hover{transform:translateY(-3px);box-shadow:var(--sh)}
-.plan.pop{border:2px solid var(--blue)}
-.tag{position:absolute;top:-12px;left:24px;background:var(--blue);color:#fff;font:700 11.5px var(--sans);padding:3px 11px;border-radius:999px}
-.plan h3{margin:0;font:700 17px var(--disp)}.price{font:800 40px/1.1 var(--disp);margin:8px 0}.price small{font:500 14px var(--sans);color:var(--mu)}
-.plan ul{list-style:none;margin:12px 0 22px;padding:0;display:grid;gap:9px;flex:1;font-size:14px}
-.plan li::before{content:"✓";color:var(--acc);font-weight:700;margin-right:9px}.plan li.no{color:var(--mu);opacity:.65;text-decoration:line-through}.plan li.no::before{content:"–";color:var(--mu)}
-footer{border-top:1px solid var(--bdr);padding:28px 0;text-align:center;color:var(--mu);font-size:13px}
-@media(max-width:860px){.grid3,.plans{grid-template-columns:1fr}.stat b{font-size:21px}.stat{padding:14px 8px}}
-.app{max-width:1180px;margin:0 auto;padding:28px 20px 70px;animation:up .4s both}
-.top{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
-.kpi{background:var(--surf);border:1px solid var(--bdr);border-radius:10px;padding:16px 18px}.kpi span{font-size:12.5px;color:var(--mu);font-weight:600}.kpi b{display:block;font:800 24px var(--disp);margin-top:2px}
-.meter{height:4px;background:var(--surf2);border-radius:9px;margin-top:8px;overflow:hidden}.meter i{display:block;height:100%;width:0;background:var(--blue);transition:width 1s cubic-bezier(.2,.8,.2,1)}
-.tabs{display:inline-flex;border-bottom:1px solid var(--bdr);margin-bottom:18px;gap:4px;width:100%}
-.tab{border:0;background:none;padding:10px 16px;font-weight:600;color:var(--mu);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:.15s}.tab:hover{color:var(--tx)}.tab.on{color:var(--acc);border-color:var(--blue)}
-.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;align-items:start}
-.panel{background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:26px;box-shadow:var(--sh)}
-.panel h2{margin:0 0 4px;font:800 20px var(--disp);letter-spacing:-.02em}.sub{color:var(--mu);margin:0 0 18px;font-size:14px}
-label,.lbl{display:block;font-weight:600;font-size:13px;margin:0 0 6px;color:var(--tx)}
-.f{margin-bottom:14px}
-.inp,textarea,select{width:100%;height:44px;padding:0 13px;background:var(--bg);border:1.5px solid var(--bdr);border-radius:8px;transition:border-color .15s,box-shadow .15s}
-textarea{height:auto;min-height:104px;padding:11px 13px;resize:vertical}
-.inp:focus,textarea:focus,select:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px var(--tint)}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--surf2);border:1px solid var(--bdr);border-radius:9px;padding:3px}
-.seg button{border:0;background:none;padding:8px 4px;border-radius:6px;font-weight:600;color:var(--mu);cursor:pointer;transition:.15s}.seg button.on{background:var(--blue);color:#fff}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
-.chip{padding:5px 11px;background:var(--bg);border:1px solid var(--bdr);border-radius:999px;font-size:12.5px;font-weight:500;color:var(--mu);cursor:pointer;transition:.15s}.chip:hover{border-color:var(--blue);color:var(--acc);background:var(--tint)}
-.lock{position:relative}.lock>*{opacity:.5;pointer-events:none}
-.prog{display:none;margin-top:16px}.prog .t{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px}
-.prog .bar{height:6px;background:var(--surf2);border-radius:9px;overflow:hidden}.prog .bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .4s}
-.empty{color:var(--mu);text-align:center;padding:36px 10px}
-.res{animation:pop .35s both}
-.verdict{font:800 20px var(--disp)}
-.claim{background:var(--bg2);border:1px solid var(--bdr);border-radius:8px;padding:16px;margin:14px 0;font-size:13.5px;white-space:pre-wrap;max-height:340px;overflow:auto}
-.acts{display:flex;gap:10px;flex-wrap:wrap}
-.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--bdr);white-space:nowrap}th{color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
-tr.hr{animation:up .35s both}
-.bad{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}.bad.y{background:rgba(34,197,94,.12);color:var(--ok)}.bad.n{background:rgba(239,68,68,.12);color:var(--err)}
-@media(max-width:900px){.cols{grid-template-columns:1fr}.top{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
-.ov{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(3,6,14,.6);backdrop-filter:blur(4px);animation:pop .2s both}
-.modal{width:100%;max-width:440px;max-height:92vh;overflow:auto;background:var(--surf);border:1px solid var(--bdr);border-radius:14px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:up .3s both}
-.modal.wide{max-width:620px}.modal h2{margin:0 0 4px;font:800 22px var(--disp);letter-spacing:-.02em}
-.msg{font-size:13px;min-height:20px;margin:4px 0 10px;color:var(--err)}.msg.good{color:var(--ok)}
-.chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--mu);margin:4px 0 6px;cursor:pointer}.chk input{margin-top:3px;width:16px;height:16px;accent-color:var(--blue)}
-.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);background:#0b1220;color:#fff;padding:11px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;font-size:14px;z-index:200;max-width:90vw;border:1px solid #1e293b}.toast.show{opacity:1;transform:translate(-50%,0)}
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
-.note{font-size:12.5px;color:var(--mu);background:var(--tint);border:1px solid var(--bdr);border-radius:8px;padding:9px 12px;margin:8px 0 0}
-nav.sc{box-shadow:0 2px 14px rgba(2,6,23,.07)}
-.kpi{animation:up .5s both}.kpi:nth-child(2){animation-delay:.07s}.kpi:nth-child(3){animation-delay:.14s}.kpi:nth-child(4){animation-delay:.21s}
-#tNew,#tHist{animation:up .35s both}
-@keyframes spin{to{transform:rotate(360deg)}}@keyframes draw{to{stroke-dashoffset:0}}
-.btn.busy::after{content:"";width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
-.verdict{display:flex;align-items:center;gap:10px}.vi{width:28px;height:28px;flex:none}
-.vi circle{fill:none;stroke:currentColor;stroke-width:2;stroke-dasharray:63;stroke-dashoffset:63;animation:draw .6s forwards}
-.vi path{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24;animation:draw .4s .45s forwards}
-.hint{font-size:12.5px;color:var(--mu);margin:0 0 12px}
-.wake{margin:12px 0 0;font-size:13px;color:var(--mu);font-weight:600;animation:up .3s both}
-.wake .bar{height:6px;background:var(--surf2);border-radius:9px;overflow:hidden;margin-top:6px}
-.wake .bar i{display:block;height:100%;width:0;background:var(--blue);border-radius:9px;transition:width .4s}
-html[data-theme=light]{--yl:rgba(254,243,199,.92);--ylb:#f59e0b;--ylt:#92400e}
-html[data-theme=dark]{--yl:rgba(250,204,21,.12);--ylb:#a16207;--ylt:#fcd34d}
-.lock::after{content:"Growth Pro feature · Click to upgrade";position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:0 10px;font-size:13px;font-weight:700;color:var(--ylt);cursor:pointer;background:var(--yl);border:1.5px solid var(--ylb);border-radius:8px;transition:transform .15s}
-.lock:hover::after{transform:scale(1.01)}
-.seg button.locked{background:var(--yl);color:var(--ylt);box-shadow:inset 0 0 0 1.5px var(--ylb)}
-.seg button.locked:hover{filter:brightness(.97)}
-@keyframes flash{50%{box-shadow:0 0 0 5px var(--tint),0 0 0 7px var(--blue)}}.plan.flash{animation:flash 1.1s 2}
-.plancard{display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:var(--surf);border:1px solid var(--bdr);border-radius:12px;padding:18px 22px;margin-bottom:14px;box-shadow:var(--sh);animation:up .5s both}
-.pc-l{display:block;font-size:12px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.05em}
-.plancard>div:first-child b{font:800 22px var(--disp)}
-.pc-m{flex:1;min-width:220px}.pc-n{display:flex;align-items:baseline;gap:8px}.pc-n b{font:800 28px var(--disp)}.pc-n span{color:var(--mu);font-size:14px}
-.wl{font:800 24px var(--disp);letter-spacing:-.02em;margin:0 0 16px}
-.tg{font:500 12px var(--sans);color:var(--mu);letter-spacing:0;margin-left:4px;padding-left:10px;border-left:1px solid var(--bdr)}
-.top{grid-template-columns:repeat(3,1fr)}
-@media(max-width:700px){.hm,.tg{display:none}.top{grid-template-columns:1fr}.hero{padding-top:56px}nav{padding-left:14px;padding-right:14px}}
-.agrid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
-@media(max-width:1000px){.agrid{grid-template-columns:repeat(3,1fr)}}@media(max-width:600px){.agrid{grid-template-columns:1fr 1fr}}
-.pl{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--tint);color:var(--acc);text-transform:capitalize}
-.ib{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0}
-.kpi small{display:block;color:var(--mu);font-size:12px;margin-top:2px;font-weight:400}
-.pcf{display:block;color:var(--mu);font-size:12.5px;margin-top:2px;max-width:260px}
-.plancard .btn{text-decoration:none}
-.inp.invalid{border-color:var(--err);animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
-.top{grid-template-columns:repeat(3,1fr)}
-@media(max-width:560px){.top{grid-template-columns:1fr}}
-.step{display:flex;align-items:center;gap:10px;font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:24px 0 14px;padding-top:20px;border-top:1px solid var(--bdr)}
-.step.first{margin-top:8px;padding-top:0;border:0}
-.step span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--tint);color:var(--acc);font-size:12px;letter-spacing:0}
-.prolock{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;padding:13px 15px;margin:0 0 10px;background:var(--yl);border:1.5px solid var(--ylb);border-radius:10px;color:var(--ylt);cursor:pointer;transition:transform .15s,filter .15s}
-.prolock:hover{transform:translateY(-1px);filter:brightness(.97)}
-.prolock b{display:block;font-size:14px}.prolock small{display:block;font-size:12.5px;opacity:.85;margin-top:1px}
-.prolock em{font-style:normal;font:700 11.5px var(--sans);padding:4px 10px;border-radius:999px;background:var(--ylb);color:#fff;white-space:nowrap}
-footer{background:var(--bg2);text-align:left;padding:48px 0 26px}
-.fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:30px}
-.fgrid h4{margin:0 0 12px;font:700 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--tx)}
-.fgrid a,.fgrid span{display:block;margin-bottom:8px;color:var(--mu);font-size:14px;cursor:pointer}.fgrid a:hover{color:var(--acc)}
-.fgrid p{color:var(--mu);font-size:14px;margin:12px 0 0;max-width:260px}
-.fine{margin-top:30px;padding-top:20px;border-top:1px solid var(--bdr);color:var(--mu);font-size:12.5px;line-height:1.6}
-@media(max-width:700px){.fgrid{grid-template-columns:1fr 1fr}}
-</style>
 <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('lc_theme')||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}</script>
+<style>
+:root{--f:'Inter',system-ui,sans-serif;--d:'Manrope','Inter',sans-serif;--b:#2563eb;--bh:#1d4ed8}
+html[data-theme=light]{color-scheme:light;--bg:#fff;--bg2:#f6f8fb;--sf:#fff;--s2:#f1f5f9;--bd:#e3e8ef;--tx:#0b1220;--mu:#556178;--ac:#2563eb;--tn:#eff6ff;--ok:#15803d;--er:#dc2626;--sh:0 1px 2px rgba(15,23,42,.05),0 8px 24px rgba(15,23,42,.06)}
+html[data-theme=dark]{color-scheme:dark;--bg:#04060b;--bg2:#070a12;--sf:#0a0e18;--s2:#10162a;--bd:#18213a;--tx:#eef2fa;--mu:#8b97b3;--ac:#4f8bff;--tn:rgba(79,139,255,.1);--ok:#4ade80;--er:#f87171;--sh:none}
+*{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.6 var(--f);-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
+button,input,select,textarea{font:inherit;color:inherit}a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}@keyframes pop{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}@keyframes spin{to{transform:rotate(360deg)}}
+.rv{opacity:0;transform:translateY(16px);transition:opacity .6s,transform .6s}.rv.in{opacity:1;transform:none}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:6px;padding:12px max(20px,calc((100vw - 1140px)/2));background:var(--bg);border-bottom:1px solid var(--bd)}
+.logo{display:flex;align-items:center;gap:9px;font:800 20px var(--d);letter-spacing:-.03em;cursor:pointer}
+.lm{width:30px;height:30px;border-radius:7px;background:var(--b);display:grid;place-items:center}.lm svg{width:18px}
+.sp{flex:1}
+.lnk{padding:8px 12px;border-radius:7px;color:var(--mu);font-weight:500;cursor:pointer;background:none;border:0;transition:.15s}.lnk:hover{color:var(--tx);background:var(--s2)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 22px;border:1px solid var(--b);border-radius:8px;background:var(--b);color:#fff;font-weight:600;cursor:pointer;transition:background .15s,transform .15s}
+.btn:hover{background:var(--bh)}.btn:active{transform:scale(.98)}.btn:disabled{opacity:.55;pointer-events:none}
+.btn.sec{background:transparent;color:var(--tx);border-color:var(--bd)}.btn.sec:hover{border-color:var(--ac);color:var(--ac);background:var(--tn)}
+.btn.sm{height:36px;padding:0 14px;font-size:13.5px}.btn.full{width:100%}
+.btn.busy::after{content:"";width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.pill{display:inline-flex;align-items:center;padding:5px 12px;border-radius:999px;background:var(--tn);border:1px solid var(--bd);font-size:12.5px;font-weight:600;color:var(--ac)}
+.hero{text-align:center;padding:84px 0 56px}
+.hero h1{font:800 clamp(34px,5.4vw,56px)/1.08 var(--d);letter-spacing:-.035em;margin:20px auto 16px;max-width:800px;animation:up .6s both}
+.hl{color:var(--ac)}.hero p{color:var(--mu);font-size:17.5px;max-width:580px;margin:0 auto 28px;animation:up .6s .1s both}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:up .6s .2s both}
+section.s{padding:72px 0}.alt{background:var(--bg2);border-block:1px solid var(--bd)}
+.h2{font:800 clamp(26px,3.4vw,34px)/1.2 var(--d);letter-spacing:-.025em;text-align:center;margin:0 0 8px}.lead{text-align:center;color:var(--mu);max-width:540px;margin:0 auto 40px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.fc{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:24px;transition:.2s}.fc:hover{border-color:var(--ac);transform:translateY(-3px);box-shadow:var(--sh)}
+.fc i{font:600 12px var(--f);font-style:normal;color:var(--ac);display:block;margin-bottom:12px;letter-spacing:.08em}.fc h3{margin:0 0 6px;font:700 16.5px var(--d)}.fc p{margin:0;color:var(--mu);font-size:14px}
+.plans{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:1000px;margin:0 auto}
+.plan{position:relative;background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:28px 24px;display:flex;flex-direction:column;transition:.2s}.plan:hover{transform:translateY(-3px);box-shadow:var(--sh)}
+.plan.rec{border:2px solid var(--b)}.tag{position:absolute;top:-12px;left:24px;background:var(--b);color:#fff;font:700 11px var(--f);letter-spacing:.06em;padding:3px 11px;border-radius:999px}
+.plan h3{margin:0;font:700 17px var(--d)}.price{font:800 40px/1.1 var(--d);margin:8px 0 2px}.price small{font:500 14px var(--f);color:var(--mu)}.cred{color:var(--ac);font-weight:600;font-size:13.5px;margin-bottom:6px}
+.plan ul{list-style:none;margin:12px 0 22px;padding:0;display:grid;gap:9px;flex:1;font-size:14px}
+.plan li{padding-left:22px;position:relative}.plan li::before{content:"";position:absolute;left:3px;top:6px;width:5px;height:9px;border:solid var(--ac);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.plan li.no{color:var(--mu);opacity:.6;text-decoration:line-through}.plan li.no::before{border-color:var(--mu)}
+footer{background:var(--bg2);border-top:1px solid var(--bd);padding:40px 0 24px}.fgrid{display:grid;grid-template-columns:1.6fr 1fr 1fr;gap:30px}
+.fgrid h4{margin:0 0 12px;font:700 12px var(--f);letter-spacing:.08em;text-transform:uppercase}.fgrid a,.fgrid span{display:block;margin-bottom:8px;color:var(--mu);font-size:14px;cursor:pointer}.fgrid a:hover{color:var(--ac)}
+.fine{margin-top:26px;padding-top:18px;border-top:1px solid var(--bd);color:var(--mu);font-size:12.5px}
+@media(max-width:860px){.g3,.plans{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.hm{display:none}}
+label,.lbl{display:block;font-weight:600;font-size:13px;margin:0 0 6px}.f{margin-bottom:14px}
+.inp,textarea,select{width:100%;height:44px;padding:0 13px;background:var(--bg);border:1.5px solid var(--bd);border-radius:8px;transition:.15s}
+textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
+.inp:focus,textarea:focus,select:focus{outline:0;border-color:var(--b);box-shadow:0 0 0 3px var(--tn)}
+.inp.invalid{border-color:var(--er);animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;padding:8px 4px;border-radius:6px;font-weight:600;color:var(--mu);cursor:pointer;transition:.15s}.seg button.on{background:var(--b);color:#fff}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.chip{padding:5px 11px;background:var(--bg);border:1px solid var(--bd);border-radius:999px;font-size:12.5px;color:var(--mu);cursor:pointer;transition:.15s}.chip:hover{border-color:var(--b);color:var(--ac);background:var(--tn)}
+.note{font-size:12.5px;color:var(--mu);background:var(--tn);border:1px solid var(--bd);border-radius:8px;padding:9px 12px}
+.msg{font-size:13px;min-height:20px;margin:4px 0 10px;color:var(--er)}.msg.good{color:var(--ok)}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--mu);margin:6px 0;cursor:pointer}.chk input{margin-top:3px;width:16px;height:16px;accent-color:var(--b)}
+.ov{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:16px;background:rgba(3,6,14,.6);backdrop-filter:blur(4px);animation:pop .2s both}
+.modal{width:100%;max-width:440px;max-height:92vh;overflow:auto;background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.3);animation:up .3s both}.modal.w{max-width:860px}.modal.m{max-width:620px}
+.modal h2{margin:0 0 4px;font:800 22px var(--d);letter-spacing:-.02em}.sub{color:var(--mu);margin:0 0 18px;font-size:14px}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.dots{display:flex;gap:6px;margin-bottom:16px}.dots i{height:4px;flex:1;border-radius:9px;background:var(--bd);transition:.3s}.dots i.on{background:var(--b)}
+.terms{max-height:60vh;overflow:auto;font-size:13.5px;color:var(--mu)}.terms h3{color:var(--tx);font:700 14px var(--d);margin:16px 0 4px}.terms p{margin:0 0 6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,16px);background:#0b1220;color:#fff;padding:11px 18px;border-radius:8px;opacity:0;pointer-events:none;transition:.25s;font-size:14px;z-index:200;max-width:90vw;border:1px solid #1e293b}.toast.show{opacity:1;transform:translate(-50%,0)}
+.shell{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.side{position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:18px 14px;background:var(--bg2);border-right:1px solid var(--bd)}
+.side .logo{padding:4px 8px 18px}.nv{display:block;width:100%;text-align:left;padding:10px 12px;margin-bottom:2px;border:0;border-radius:8px;background:none;color:var(--mu);font-weight:600;cursor:pointer;transition:.15s}.nv:hover{background:var(--s2);color:var(--tx)}.nv.on{background:var(--tn);color:var(--ac)}
+.sideplan{margin-top:auto;background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px}.sideplan b{display:block;font:700 14px var(--d)}.sideplan span{display:block;color:var(--mu);font-size:13px;margin:2px 0 8px}
+.meter{height:5px;background:var(--s2);border-radius:9px;overflow:hidden;margin-bottom:10px}.meter i{display:block;height:100%;width:0;background:var(--b);transition:width .8s}
+.main{min-width:0}.top{display:flex;align-items:center;gap:10px;padding:14px 28px;border-bottom:1px solid var(--bd)}.top h1{margin:0;font:800 20px var(--d);letter-spacing:-.02em;flex:1}
+.body{padding:24px 28px 60px;max-width:1180px;animation:up .4s both}
+.tut{background:var(--tn);border:1px solid var(--bd);border-radius:12px;padding:16px 18px;margin-bottom:18px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}.tut p{margin:0;font-size:14px}.tut b{font:700 13px var(--d);color:var(--ac);display:block;letter-spacing:.04em;text-transform:uppercase}
+.hs{outline:3px solid var(--b);outline-offset:3px;border-radius:9px}
+.cols{display:grid;grid-template-columns:1.05fr 1fr;gap:18px;align-items:start}
+.panel{background:var(--sf);border:1px solid var(--bd);border-radius:12px;padding:24px;box-shadow:var(--sh);margin-bottom:18px}.panel h2{margin:0 0 4px;font:800 19px var(--d)}
+.step{display:flex;align-items:center;gap:10px;font:700 12px var(--f);letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin:22px 0 14px;padding-top:18px;border-top:1px solid var(--bd)}.step.first{margin-top:8px;padding-top:0;border:0}
+.step span{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--tn);color:var(--ac);font-size:12px}
+.prog{display:none;margin-top:14px}.prog .t{display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:7px}.prog .bar{height:6px;background:var(--s2);border-radius:9px;overflow:hidden}.prog .bar i{display:block;height:100%;width:0;background:var(--b);transition:width .4s}
+.empty{color:var(--mu);text-align:center;padding:30px 10px}.res{animation:pop .35s both}
+.verdict{font:800 20px var(--d)}.ok{color:var(--ok)}.er{color:var(--er)}
+.claim{background:var(--bg2);border:1px solid var(--bd);border-radius:8px;padding:16px;margin:14px 0;font-size:13.5px;white-space:pre-wrap;max-height:360px;overflow:auto}.acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.pro{position:relative;border:1px solid var(--bd);border-radius:10px;overflow:hidden;cursor:pointer;background:var(--sf);margin-bottom:12px;transition:.2s}.pro:hover{border-color:var(--ac)}
+.pro .in{display:block;filter:blur(4px);opacity:.65;padding:14px 16px;pointer-events:none;user-select:none}.pro .in b{display:block}.pro .in small{color:var(--mu)}
+.pro .bg{position:absolute;top:50%;right:14px;transform:translateY(-50%);font:700 10.5px var(--f);letter-spacing:.1em;background:var(--b);color:#fff;padding:5px 11px;border-radius:999px;box-shadow:0 2px 10px rgba(37,99,235,.4)}
+.pro.inl{display:inline-block;margin:0;min-width:160px}.pro.inl .in{padding:9px 14px;font-weight:600}.pro.inl .bg{right:8px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13.5px}th,td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--bd);white-space:nowrap}th{color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.bad{padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}.bad.y{background:rgba(34,197,94,.12);color:var(--ok)}.bad.n{background:rgba(239,68,68,.12);color:var(--er)}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.kp div{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:12px 14px}.kp span{font-size:12px;color:var(--mu)}.kp b{display:block;font:800 22px var(--d)}
+@media(max-width:860px){.shell{grid-template-columns:1fr}.side{position:static;height:auto}.cols,.two,.kp{grid-template-columns:1fr}.body,.top{padding-left:16px;padding-right:16px}.sideplan{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+.ib{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0}
+.navl{display:flex;gap:2px}.sun{display:none}html[data-theme=dark] .sun{display:block}html[data-theme=dark] .moon{display:none}
+@media(max-width:700px){nav{flex-wrap:wrap;row-gap:2px}.navl{order:9;width:100%;justify-content:center;border-top:1px solid var(--bd);padding-top:4px}}
+</style>
 </head>
 <body>
-<nav>
-  <div class="logo" onclick="go('landing')" title="LeadClaw"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw<small class="tg">Lead refund tool</small></div>
-  <span class="sp"></span>
-  <span id="navPub"><button class="lnk hm" onclick="scrollToId('how')">How it works</button><button class="lnk hm" onclick="scrollToId('features')">Features</button><button class="lnk hm" onclick="scrollToId('pricing')">Pricing</button><button class="lnk" onclick="openAuth('login')">Log in</button> <button class="btn sm" onclick="openAuth('signup')">Start free trial</button></span>
-  <span id="navPriv" hidden style="display:flex;gap:8px;align-items:center"><span class="pill" id="planPill"></span><button class="lnk" onclick="go('app')">Dashboard</button><button class="lnk" onclick="openAccount()">Account</button><button class="btn sm sec" onclick="signout()">Sign out</button></span>
-  <button class="lnk ib" id="themeBtn" aria-label="Toggle theme" title="Switch theme"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
-<button class="lnk ib" id="adminBtn" type="button" aria-label="Admin area" title="Admin"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></button>
-</nav>
-
 <div id="landing">
+<nav>
+  <div class="logo" onclick="scrollTo({top:0,behavior:'smooth'})"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
+  <span class="sp"></span>
+  <span class="navl"><button class="lnk" onclick="jump('how')">How it works</button><button class="lnk" onclick="jump('features')">Features</button><button class="lnk" onclick="jump('pricing')">Pricing</button></span>
+  <button class="lnk" onclick="openAuth('login')">Log in</button><button class="btn sm" onclick="openAuth('signup')">Get started</button>
+  <button class="lnk ib tgl" aria-label="Toggle theme" title="Switch theme"><svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+  <button class="lnk ib" id="admL" aria-label="Admin area" title="Admin"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></button>
+</nav>
 <div class="wrap hero">
-  <span class="pill">Lead refund tool for home-service contractors</span>
+  <span class="pill">Lead refund disputes for home-service contractors</span>
   <h1>Get refunds on <span class="hl">bad leads</span> from Angi, Thumbtack, Porch &amp; Networx</h1>
-  <p>Paid for a lead with a disconnected number, the wrong trade, or a duplicate? Enter the lead details and LeadClaw checks if it qualifies for a credit, then writes the dispute email for you, ready to send in Gmail.</p>
-  <div class="cta"><button class="btn" onclick="openAuth('signup')">Start your free trial</button><button class="btn sec" onclick="scrollToId('pricing')">See pricing</button></div>
-  <div class="facts"><span>3-dispute free trial</span><span>No credit card required</span><span>Cancel anytime</span></div>
-  <div class="demo">
-    <div class="row"><b>Angi · (555) 019-2834</b><span class="ok">Eligible for credit</span></div>
-    <pre>Subject: Lead Credit Request – Disconnected Number
-
-Dear Angi Support, the phone number on this lead is permanently disconnected. Per the Angi Lead Credit Policy, I'm requesting a $75.00 credit…</pre>
-  </div>
+  <p>Enter the lead details and LeadClaw checks it against marketplace credit guidelines, then writes a formatted dispute letter you can send to support.</p>
+  <div class="cta"><button class="btn" onclick="openAuth('signup')">Create your account</button><button class="btn sec" onclick="jump('pricing')">View pricing</button></div>
 </div>
-<section class="s" id="how"><div class="wrap">
-  <h2 class="h2 rv">How LeadClaw works</h2><p class="lead rv">Lead marketplaces refund bad leads, but only if you ask the right way. LeadClaw does that part for you.</p>
-  <div class="grid3">
-    <div class="fc rv"><i>STEP 1</i><h3>Enter the lead</h3><p>Add the lead's phone number, ID and a quick note on what went wrong, like a disconnected number or the wrong trade.</p></div>
-    <div class="fc rv"><i>STEP 2</i><h3>Check eligibility</h3><p>LeadClaw tells you right away whether the lead qualifies for a credit under the platform's policy.</p></div>
-    <div class="fc rv"><i>STEP 3</i><h3>Send the dispute</h3><p>Get a formatted dispute email and open it in Gmail, already addressed to the platform's support team.</p></div>
-  </div>
-</div></section>
-<section class="s alt" id="features"><div class="wrap">
-  <h2 class="h2 rv">Everything you need to win credits</h2><p class="lead rv">Built for contractors who'd rather be on the job than on hold with support.</p>
-  <div class="grid3">
-    <div class="fc rv"><i>01</i><h3>AI policy audit</h3><p>Checks every lead against each marketplace's credit rules before you waste time filing.</p></div>
-    <div class="fc rv"><i>02</i><h3>Custom claim letters</h3><p>Persuasive, professional disputes using your lead details and account ID, ready to send.</p></div>
-    <div class="fc rv"><i>03</i><h3>Audio &amp; PDF evidence</h3><p>Upload call recordings or documents and the AI cites them in your claim (Growth Pro).</p></div>
-    <div class="fc rv"><i>04</i><h3>One-click Gmail</h3><p>Open the finished dispute in a Gmail draft and send it instantly.</p></div>
-    <div class="fc rv"><i>05</i><h3>Claim tracker</h3><p>See your eligible credits and mark each dispute as claimed once you've sent it.</p></div>
-    <div class="fc rv"><i>06</i><h3>Secure by design</h3><p>Hashed passwords, private dispute history, and Stripe-powered billing.</p></div>
-  </div>
-</div></section>
-<section class="s" id="pricing"><div class="wrap">
-  <h2 class="h2 rv">Pays for itself with one credit</h2><p class="lead rv">Start with a free trial of 3 disputes. No credit card required.</p>
-  <div class="plans" id="plans"></div>
-</div></section>
-<footer>
-  <div class="wrap fgrid">
-    <div><div class="logo" onclick="window.scrollTo({top:0,behavior:'smooth'})"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div><p>Lead refund disputes for home-service contractors.</p></div>
-    <div><h4>Product</h4><a href="#how" onclick="scrollToId('how');return false">How it works</a><a href="#features" onclick="scrollToId('features');return false">Features</a><a href="#pricing" onclick="scrollToId('pricing');return false">Pricing</a></div>
-    <div><h4>Marketplaces</h4><span>Angi</span><span>Thumbtack</span><span>Porch</span><span>Networx</span></div>
-    <div><h4>Support</h4><a id="fSup" hidden>Contact support</a><span id="fNoSup">Available to subscribers</span></div>
-  </div>
-  <div class="wrap fine">© <span id="yr"></span> LeadClaw. All rights reserved. LeadClaw is an independent service and is not affiliated with Angi, Thumbtack, Porch or Networx. Credits are subject to each marketplace's policy.</div>
-</footer>
+<section class="s alt" id="how"><div class="wrap"><h2 class="h2 rv">How LeadClaw works</h2><p class="lead rv">Marketplaces credit defective leads, but only when the dispute is submitted correctly.</p>
+  <div class="g3"><div class="fc rv"><i>STEP 1</i><h3>Enter the lead</h3><p>Add the lead's contact details, cost, ID and a short note on what went wrong.</p></div>
+  <div class="fc rv"><i>STEP 2</i><h3>Generate the dispute</h3><p>AI reviews the facts and writes a formal, policy-aligned dispute letter in seconds.</p></div>
+  <div class="fc rv"><i>STEP 3</i><h3>Submit and track</h3><p>Copy the letter to the marketplace and mark each claim as claimed in your history.</p></div></div></div></section>
+<section class="s" id="features"><div class="wrap"><h2 class="h2 rv">Everything you need to win credits</h2><p class="lead rv">Built for contractors who would rather be on the job than on hold with support.</p>
+  <div class="g3"><div class="fc rv"><i>01</i><h3>Eligibility check</h3><p>Reviews each lead against marketplace credit guidelines before you file.</p></div>
+  <div class="fc rv"><i>02</i><h3>AI dispute letters</h3><p>Formal, formatted letters built from your exact lead details and account ID.</p></div>
+  <div class="fc rv"><i>03</i><h3>Audio and PDF evidence</h3><p>Upload call recordings and documents for the AI to reference. Pro plan.</p></div>
+  <div class="fc rv"><i>04</i><h3>Gmail direct compose</h3><p>Open the finished dispute in Gmail, addressed to the marketplace. Pro plan.</p></div>
+  <div class="fc rv"><i>05</i><h3>Claim tracker</h3><p>Keep a history of every dispute and mark each one as claimed.</p></div>
+  <div class="fc rv"><i>06</i><h3>Secure accounts</h3><p>Email-verified signup and hashed passwords. See our Terms for data policies.</p></div></div></div></section>
+<section class="s alt" id="pricing"><div class="wrap"><h2 class="h2 rv">Simple, credit-based pricing</h2><p class="lead rv">Each AI dispute uses one credit. Credits reset every month. Cancel anytime.</p><div class="plans" id="lp"></div></div></section>
+<footer><div class="wrap fgrid">
+  <div><div class="logo"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div><p style="color:var(--mu);font-size:14px;max-width:260px">Dispute assistance for contractors.</p></div>
+  <div><h4>Product</h4><a onclick="jump('how')">How it works</a><a onclick="jump('features')">Features</a><a onclick="jump('pricing')">Pricing</a></div>
+  <div><h4>Legal</h4><a onclick="openTerms()">Terms &amp; Conditions</a><a id="fSup" hidden>Contact support</a></div>
+</div><div class="wrap fine">&copy; <span id="yr"></span> LeadClaw. LeadClaw is an independent service and is not affiliated with Angi, Thumbtack, Porch or Networx. It cannot guarantee any refund or credit.</div></footer>
 </div>
 
-<main id="app" class="app" hidden>
-  <h1 class="wl" id="welcome">Dashboard</h1>
-  <div class="plancard">
-    <div><span class="pc-l">Current plan</span><b id="pcName">Free trial</b><small class="pcf" id="pcFeat"></small></div>
-    <div class="pc-m"><div class="pc-n"><b id="pcLeft">3</b><span id="pcUnit">trial disputes left</span></div><div class="meter"><i id="kBar"></i></div></div>
-    <button class="btn sm" id="pcUp" type="button">Choose a plan</button><a class="btn sm sec" id="pcSup" hidden>Contact support</a>
-  </div>
-  <div class="top">
-    <div class="kpi"><span>Disputes filed</span><b id="kCount">0</b><small>Claims you've created</small></div>
-    <div class="kpi"><span>Eligible credits</span><b id="kElig">$0</b><small>Leads that qualify for a refund</small></div>
-    <div class="kpi"><span>Claimed</span><b id="kRec" style="color:var(--ok)">$0</b><small>Credits you've marked as claimed</small></div>
-  </div>
-  <div class="tabs"><button class="tab on" data-t="new">New claim</button><button class="tab" data-t="hist">History</button></div>
-  <div class="cols" id="tNew">
-    <section class="panel">
-      <h2>Lead credit request</h2><p class="sub">Complete the details below. Required fields are marked with *.</p>
-      <div class="step first"><span>1</span>Marketplace account</div>
-      <div class="f"><span class="lbl">Platform</span><div class="seg" id="plat"></div></div>
-      <div class="f"><label for="acct" id="acctL">Your Angi account (email or phone) *</label><input class="inp" id="acct" placeholder="pro@gmail.com or (555) 123-4567" autocomplete="off"><p class="hint" style="margin:6px 0 0">The email or phone number you sign in with. It is included in the dispute so support can locate your account.</p></div>
-      <div class="step"><span>2</span>Lead details</div>
-      <div class="two f"><div><label for="lp">Lead phone *</label><input class="inp" id="lp" placeholder="(555) 019-2834"></div><div><label for="le">Lead email *</label><input class="inp" id="le" type="email" placeholder="client@gmail.com"></div></div>
-      <div class="two f"><div><label for="lid">Lead ID / reference # *</label><input class="inp" id="lid" placeholder="e.g. 4821937"></div><div><label for="lrecv">Date &amp; time received</label><input class="inp" id="lrecv" type="datetime-local"></div></div>
-      <div class="f" style="max-width:50%"><label for="cost">Lead cost ($) *</label><input class="inp" id="cost" type="number" min="1" step="0.01" value="75"></div>
-      <div class="f"><label for="notes">Call notes &amp; issue</label>
-        <div class="chips" id="chips"></div><textarea id="notes" placeholder="Select a quick reason or describe what went wrong…"></textarea></div>
-      <div class="step"><span>3</span>Claim options</div>
-      <div class="f"><span class="lbl">Claim type</span>
-        <div class="seg" id="ctype" style="grid-template-columns:1fr 1fr"><button type="button" class="on" data-m="template">Standard template</button><button type="button" data-m="ai">AI-assisted claim</button></div>
-        <p class="note" id="aWarn" hidden>AI-assisted claims can take up to 30 seconds while the AI server starts. Use the standard template for an instant result.</p></div>
-      <div id="proCards">
-        <button type="button" class="prolock" data-up><span><b>AI model selection</b><small>Choose between Gemini 3.5 Flash and Groq Qwen3 4B</small></span><em>Growth Pro</em></button>
-        <button type="button" class="prolock" data-up><span><b>Audio &amp; PDF evidence</b><small>Attach call recordings and documents for the AI to cite</small></span><em>Growth Pro</em></button>
+<div id="app" class="shell" hidden>
+  <aside class="side">
+    <div class="logo"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
+    <button class="nv on" data-t="new">New dispute</button><button class="nv" data-t="hist">History</button>
+    <button class="nv" id="navAcc">Account</button><button class="nv" id="navTut">Quick-start guide</button><button class="nv" id="navAdm">Admin</button><button class="nv" id="navOut">Sign out</button>
+    <div class="sideplan"><b id="spName">No active plan</b><span id="spUse">Choose a plan to begin</span><div class="meter"><i id="spBar"></i></div><button class="btn sm full" id="spUp">Choose a plan</button></div>
+  </aside>
+  <div class="main">
+    <div class="top"><h1 id="ttl">New dispute</h1><span class="pill" id="leftPill">0 leads left</span><button class="lnk ib tgl" aria-label="Toggle theme" title="Switch theme"><svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button></div>
+    <div class="body">
+      <div id="tNew">
+        <div class="tut" id="tut" hidden><div style="flex:1;min-width:240px"><b id="tutH">Quick start</b><p id="tutP"></p></div><div class="acts"><button class="btn sm sec" id="tutB">Back</button><button class="btn sm" id="tutN">Next</button><button class="btn sm sec" id="tutX">Dismiss</button></div></div>
+        <div class="cols">
+          <section class="panel"><h2>Lead dispute details</h2><p class="sub" style="margin:0 0 6px">Required fields are marked with *. Each AI dispute uses one credit.</p>
+            <div class="step first"><span>1</span>Marketplace</div>
+            <div class="f" id="gPlat"><div class="seg" id="plat"></div></div>
+            <div class="f"><label for="acct" id="acctL">Your account (email or phone) *</label><input class="inp" id="acct" placeholder="pro@gmail.com or (555) 123-4567" autocomplete="off"></div>
+            <div class="step"><span>2</span>Lead details</div>
+            <div class="two f"><div><label for="lp2">Lead phone *</label><input class="inp" id="lp2" placeholder="(555) 019-2834"></div><div><label for="le">Lead email *</label><input class="inp" id="le" type="email" placeholder="client@gmail.com"></div></div>
+            <div class="two f"><div><label for="lid">Lead ID / reference # *</label><input class="inp" id="lid" placeholder="e.g. 4821937"></div><div id="gCost"><label for="cost">Lead cost (USD) *</label><input class="inp" id="cost" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="75.00"></div></div>
+            <div class="f" id="gNotes"><label for="notes">Call notes &amp; issue *</label><div class="chips" id="chips"></div><textarea id="notes" placeholder="Select a quick reason or describe what went wrong."></textarea></div>
+            <div class="step"><span>3</span>Evidence</div>
+            <div id="evBox"></div>
+            <button class="btn full" id="go">Generate dispute letter</button>
+            <div class="prog" id="prog"><div class="t"><span id="pStat"></span><span id="pPct">0%</span></div><div class="bar"><i id="pBar"></i></div></div>
+          </section>
+          <div>
+            <section class="panel"><h2>Dispute letter</h2><div id="out" class="empty">Your eligibility result and dispute letter will appear here.</div></section>
+            <div id="teamBox"></div>
+          </div>
+        </div>
       </div>
-      <div class="f" id="aiOpts" hidden><div id="modelBox"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div></div>
-      <div class="f" id="fileBox" hidden><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>
-      <button class="btn full" id="go">Check &amp; build claim</button>
-      <div class="prog" id="prog"><div class="t"><span id="pStat"></span><span id="pPct">0%</span></div><div class="bar"><i id="pBar"></i></div></div>
-    </section>
-    <section class="panel"><h2>Claim result</h2>
-      <div id="out" class="empty">Your eligibility verdict and dispute letter will appear here.</div></section>
+      <section class="panel" id="tHist" hidden><h2>Dispute history</h2><p class="sub">Mark each dispute as claimed once you have submitted it to the marketplace.</p>
+        <div class="kp"><div><span>Disputes</span><b id="kN">0</b></div><div><span>Eligible value</span><b id="kE">$0</b></div><div><span>Claimed</span><b id="kC">$0</b></div></div>
+        <div class="tw"><table><thead><tr><th>Date</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Result</th><th>Claimed</th><th></th></tr></thead><tbody id="hb"></tbody></table></div><div class="empty" id="hE">No disputes yet.</div></section>
+    </div>
   </div>
-  <section class="panel" id="tHist" hidden>
-    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:8px"><div style="flex:1;min-width:200px"><h2>Dispute history</h2><p class="sub" style="margin:0">Track every claim and mark credits as recovered.</p></div>
-      <select id="hPlat" style="width:auto;height:38px"><option value="">All platforms</option><option>Angi</option><option>Thumbtack</option><option>Porch</option><option>Networx</option></select>
-      <select id="hStat" style="width:auto;height:38px"><option value="">All results</option><option value="y">Eligible</option><option value="n">Rejected</option><option value="r">Claimed</option><option value="p">Not claimed yet</option></select>
-      <button class="btn sm sec" id="hCsv" type="button">Export CSV</button></div>
-    <div class="tw"><table><thead><tr><th>Date</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Claimed</th><th></th></tr></thead><tbody id="hb"></tbody></table></div>
-    <div class="empty" id="hEmpty">No disputes yet.</div>
-  </section>
-</main>
+</div>
 
-<main id="admin" class="app" hidden>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-    <h1 class="wl" style="margin:0;flex:1">Admin dashboard</h1>
-    <button class="btn sm sec" id="admRefresh" type="button">Refresh</button><button class="btn sm" id="admExit" type="button">Exit admin</button>
-  </div>
-  <div class="agrid" id="aK"></div>
-  <div id="aPl" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"></div>
-  <section class="panel" style="margin-top:18px"><div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:6px"><h2 style="margin:0;flex:1">Users</h2><input class="inp" id="aFilter" placeholder="Search email or business" style="max-width:260px;height:38px"></div>
-    <div class="tw"><table><thead><tr><th>Email</th><th>Business</th><th>Plan</th><th>Trials left</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div></section>
-  <section class="panel" style="margin-top:18px"><h2>Latest disputes</h2>
-    <div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Verdict</th><th>Claimed</th></tr></thead><tbody id="aD"></tbody></table></div></section>
-</main>
-
-<div class="ov" id="adminOv" hidden><div class="modal">
-  <div style="display:flex;justify-content:space-between"><h2>Admin access</h2><button class="lnk" onclick="closeOv('adminOv')" aria-label="Close">✕</button></div>
-  <p class="sub">Enter the admin key to open the dashboard.</p>
-  <div class="f"><label for="admK">Admin key</label><input class="inp" id="admK" type="password" autocomplete="off"></div>
-  <p class="msg" id="admM"></p><button class="btn full" id="admGo">Open dashboard</button>
+<div class="ov" id="authOv" hidden><div class="modal" id="authM">
+  <div class="mh"><div><h2 id="aT">Create your account</h2><p class="sub" id="aS"></p></div><button class="lnk" onclick="closeOv('authOv')" aria-label="Close">Close</button></div>
+  <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
+  <div id="s1"><div class="f"><label for="rN">Full name *</label><input class="inp" id="rN" autocomplete="name"></div>
+    <div class="f"><label for="rE">Gmail address *</label><input class="inp" id="rE" type="email" placeholder="you@gmail.com" autocomplete="email"></div>
+    <div class="two f"><div><label for="rP">Password *</label><input class="inp" id="rP" type="password" autocomplete="new-password"></div><div><label for="rP2">Confirm password *</label><input class="inp" id="rP2" type="password" autocomplete="new-password"></div></div>
+    <p class="note" style="margin-bottom:10px">7+ characters with 1 special character. For safety, passwords cannot be recovered. Please remember yours.</p>
+    <label class="chk"><input type="checkbox" id="rT"><span>I have read and agree to the <a href="#" onclick="openTerms();return false" style="color:var(--ac);font-weight:600">Terms &amp; Conditions</a>.</span></label>
+    <p class="msg" id="m1"></p><button class="btn full" id="b1">Send verification code</button></div>
+  <div id="s2" hidden><div class="f"><label for="rC">6-digit verification code</label><input class="inp" id="rC" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.4em;font-size:20px;text-align:center"></div>
+    <p class="msg" id="m2"></p><button class="btn full" id="b2">Verify email</button><p style="text-align:center;font-size:13.5px;color:var(--mu);margin:12px 0 0">Did not get it? <a href="#" id="resend" style="color:var(--ac);font-weight:600">Resend code</a></p></div>
+  <div id="s3" hidden><div class="f"><label for="rB">Contractor business name *</label><input class="inp" id="rB" placeholder="Apex Roofing &amp; Plumbing"></div>
+    <p class="lbl" style="margin-top:6px">Marketplace credentials (optional)</p><p class="sub" style="margin:0 0 10px">Add your account handles to autofill claims. You can edit these later.</p>
+    <div class="two f"><input class="inp" id="hA" placeholder="Angi username or email"><input class="inp" id="hT" placeholder="Thumbtack username or email"></div>
+    <div class="two f"><input class="inp" id="hP" placeholder="Porch username or email"><input class="inp" id="hN" placeholder="Networx username or email"></div>
+    <p class="msg" id="m3"></p><button class="btn full" id="b3">Create workspace</button></div>
+  <div id="s4" hidden><div class="plans" id="rp"></div><p class="msg" id="m4"></p><p style="text-align:center;margin:8px 0 0"><a href="#" id="skip" style="color:var(--mu);font-size:13.5px">Skip for now</a></p></div>
+  <div id="sl" hidden><div class="f"><label for="lE">Gmail address</label><input class="inp" id="lE" type="email" autocomplete="email"></div><div class="f"><label for="lP">Password</label><input class="inp" id="lP" type="password" autocomplete="current-password"></div>
+    <p class="msg" id="ml"></p><button class="btn full" id="bl">Sign in</button><p style="text-align:center;font-size:13.5px;color:var(--mu);margin:14px 0 0">New to LeadClaw? <a href="#" onclick="openAuth('signup');return false" style="color:var(--ac);font-weight:600">Create an account</a></p></div>
 </div></div>
 
-<!-- auth modal -->
-<div class="ov" id="authOv" hidden><div class="modal">
-  <div style="display:flex;justify-content:space-between"><h2 id="aT">Create your account</h2><button class="lnk" onclick="closeOv('authOv')" aria-label="Close">✕</button></div>
-  <p class="sub" id="aS">Start your free trial: 3 AI disputes, no card needed.</p>
-  <div id="aMain">
-    <div class="f"><label for="rE">Gmail address</label><input class="inp" id="rE" type="email" placeholder="you@gmail.com" autocomplete="email"></div>
-    <div class="f"><label for="rP">Password (7+ chars, 1 special)</label><input class="inp" id="rP" type="password" autocomplete="current-password"></div>
-    <div id="suOnly"><div class="f"><label for="rP2">Confirm password</label><input class="inp" id="rP2" type="password" autocomplete="new-password"></div>
-    <p class="note" style="margin:-4px 0 14px"><b>No password recovery.</b> For safety reasons accounts cannot be recovered, so please remember your password.</p><div class="f"><label for="rB">Business name</label><input class="inp" id="rB" placeholder="Apex Roofing &amp; Plumbing"></div>
-    <div class="f"><label for="rD">Date of birth (18+)</label><input class="inp" id="rD" type="date"></div>
-    <label class="chk"><input type="checkbox" id="rT"><span>I agree to the Terms of Service, Privacy Policy and Refund Dispute Policies.</span></label></div>
-    <p class="msg" id="aM"></p>
-    <button class="btn full" id="aGo">Create account</button>
-    <p style="text-align:center;font-size:13.5px;color:var(--mu);margin:14px 0 0"><span id="aSw"></span></p>
-  </div>
-</div></div>
+<div class="ov" id="planOv" hidden><div class="modal w"><div class="mh"><div><h2>Choose your plan</h2><p class="sub">Upgrade to unlock more credits and Pro features.</p></div><button class="lnk" onclick="closeOv('planOv')">Close</button></div><div class="plans" id="mp"></div><p class="msg" id="mpM"></p></div></div>
 
-<!-- account modal -->
-<div class="ov" id="accOv" hidden><div class="modal wide">
-  <div style="display:flex;justify-content:space-between"><h2>Account &amp; marketplace handles</h2><button class="lnk" onclick="closeOv('accOv')" aria-label="Close">✕</button></div>
-  <p class="sub">Your account IDs are included in the claims we write.</p>
-  <div class="note" id="accPlan" style="margin:0 0 16px"></div>
-  <div class="two f"><div><label>Full name</label><input class="inp" id="aN"></div><div><label>Business phone</label><input class="inp" id="aP"></div></div>
-  <div class="two f"><div><label>Angi handle</label><input class="inp" id="hA"></div><div><label>Thumbtack handle</label><input class="inp" id="hT"></div>
-  <div><label>Porch handle</label><input class="inp" id="hP"></div><div><label>Networx handle</label><input class="inp" id="hN"></div></div>
-  <div class="f"><label>New password (optional, cannot be recovered if forgotten)</label><input class="inp" id="aW" type="password" autocomplete="new-password"></div>
-  <div class="acts"><button class="btn" id="saveAcc">Save changes</button><button class="btn sec" id="billBtn" hidden>Manage subscription</button></div>
-</div></div>
+<div class="ov" id="termsOv" hidden><div class="modal m"><div class="mh"><h2>Terms &amp; Conditions</h2><button class="lnk" onclick="closeOv('termsOv')">Close</button></div>
+<div class="terms">
+<p>Last updated: <span id="tDate"></span>. By creating an account or using LeadClaw you agree to these Terms.</p>
+<h3>1. The service</h3><p>LeadClaw is a dispute assistance and text generation tool. It helps contractors draft dispute letters about leads purchased from third-party marketplaces. LeadClaw is not a law firm, does not provide legal advice, and is not affiliated with Angi, Thumbtack, Porch, Networx or any other marketplace.</p>
+<h3>2. No guarantee of refunds or credits</h3><p>LeadClaw cannot and does not guarantee any refund, credit or other outcome from any third-party platform. Decisions are made solely by each marketplace under its own policies. Eligibility results and generated letters are informational only, and you are responsible for reviewing every letter for accuracy before sending it.</p>
+<h3>3. Platform guidelines</h3><p>You agree to operate under each marketplace's credit and refund guarantee guidelines. You will only submit disputes that are truthful and supported by the facts, and you will not use LeadClaw to submit fraudulent, misleading or abusive claims. You are solely responsible for the content you submit.</p>
+<h3>4. Data safety and retention</h3><p>We use reasonable measures to protect your information, but we cannot guarantee absolute data safety or the permanent storage or availability of any data, including your account, dispute history and generated letters. You should keep your own copies of anything important. We may delete data at any time, including after account closure or inactivity.</p>
+<h3>5. Accounts and passwords</h3><p>You must be at least 18 and provide accurate information. You are responsible for your account and for keeping your password confidential. For security reasons, passwords cannot be recovered.</p>
+<h3>6. Plans, credits and billing</h3><p>Paid plans include a fixed number of AI dispute credits per month, or unlimited credits on the Pro plan, as shown at purchase. Unused credits do not roll over. Subscriptions renew monthly until cancelled, and you may cancel at any time to stop future charges. Fees already paid are non-refundable except where required by law.</p>
+<h3>7. AI-generated content</h3><p>Letters are generated by artificial intelligence and may contain errors. Evidence files you upload are processed by third-party AI providers to produce your letter.</p>
+<h3>8. Disclaimer and limitation of liability</h3><p>The service is provided "as is" and "as available" without warranties of any kind. To the fullest extent permitted by law, LeadClaw and its operators are not liable for any indirect, incidental or consequential damages, lost profits, lost leads or lost data, and total liability is limited to the fees you paid in the three months before the claim.</p>
+<h3>9. Changes and termination</h3><p>We may modify the service or these Terms, and may suspend or terminate accounts that violate these Terms. Continued use after changes means you accept them.</p>
+</div></div></div>
 
+<div class="ov" id="accOv" hidden><div class="modal m"><div class="mh"><div><h2>Account</h2><p class="sub" id="accP"></p></div><button class="lnk" onclick="closeOv('accOv')">Close</button></div>
+  <div class="two f"><div><label>Full name</label><input class="inp" id="aN"></div><div><label>Business phone</label><input class="inp" id="aPh"></div></div>
+  <div class="two f"><div><label>Angi</label><input class="inp" id="aA"></div><div><label>Thumbtack</label><input class="inp" id="aT2"></div><div><label>Porch</label><input class="inp" id="aPo"></div><div><label>Networx</label><input class="inp" id="aNx"></div></div>
+  <div class="f"><label>New password (optional, cannot be recovered)</label><input class="inp" id="aW" type="password" autocomplete="new-password"></div>
+  <div class="acts"><button class="btn" id="saveAcc">Save changes</button><button class="btn sec" id="billBtn" hidden>Manage subscription</button></div></div></div>
+
+<div class="ov" id="admOv" hidden><div class="modal w"><div class="mh"><h2>Admin</h2><button class="lnk" onclick="closeOv('admOv')">Close</button></div>
+  <div id="admLogin"><p class="sub">Enter the admin key. A wrong key locks access for 5 minutes.</p><div class="f"><input class="inp" id="admK" type="password" autocomplete="off" placeholder="Admin key"></div><p class="msg" id="admM"></p><button class="btn full" id="admGo">Open dashboard</button></div>
+  <div id="admData" hidden><div class="kp" id="aK"></div><div class="tw"><table><thead><tr><th>Email</th><th>Business</th><th>Plan</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div>
+  <h3 style="font:700 15px var(--d);margin:20px 0 4px">Latest disputes</h3><div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Amount</th><th>Result</th><th>Claimed</th></tr></thead><tbody id="aD"></tbody></table></div></div></div></div>
 <div class="toast" id="toast" role="status"></div>
+
 <script>
 const API='https://leadclaw-api.onrender.com';
-const SUPPORT_EMAIL=''; // set to your support address, e.g. 'support@yourdomain.com'. Support perks are hidden while this is empty.
+const SUPPORT_EMAIL=''; // set your support address, e.g. 'support@yourdomain.com'
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){return null}};
-let token=ls('lc_token'),me=null,plat='Angi',mode='signup',pendingPlan=null,ctype='template',tokenReady=null,claim='',shownPlat='Angi';
-try{me=JSON.parse(ls('lc_me')||'null')}catch(e){}
-if(!token)me=null;
-const saveMe=()=>ls('lc_me',JSON.stringify(me));
-fetch(API+'/').catch(()=>{}); // wake the server in the background
-const PLANS=[
- {id:'free',name:'Free Trial',price:0,f:['3 disputes, one time','Standard claim templates','Gmail one-click send','Dispute history'],x:['AI-assisted claims','Audio & PDF evidence']},
- {id:'solo',name:'Solo Contractor',price:29,f:['25 disputes / month','Standard claim templates','Gmail one-click send','Claim tracker & CSV export','Email support'],x:['AI-assisted claims','Audio & PDF evidence']},
- {id:'growth',name:'Growth Pro',price:59,pop:1,f:['Unlimited disputes','AI-assisted claims','Audio & PDF evidence upload','Gemini 3.5 Flash or Groq Qwen3 4B','Gmail one-click send','Claim tracker & CSV export','Priority support']}];
-if(!SUPPORT_EMAIL)PLANS.forEach(p=>p.f=p.f.filter(x=>!/support/i.test(x)));
-const FEAT={free:['Standard templates','Gmail send'],solo:['Standard templates','Gmail send','Claim tracker'],growth:['AI-assisted claims','Audio & PDF evidence','Gemini & Groq models']};
-const CHIPS={'Disconnected Phone':'Permanently disconnected phone number. Called twice with no answer.','Out of Service Area':'Customer is strictly outside our service area/zip code.','Duplicate Lead':'Duplicate lead submission received within the same billing window.','Spam / Bot':'Spam / bot submission with fake contact information.','Wrong Trade':'Wrong trade category submitted by customer (services do not match our trade).','Unresponsive':'Homeowner completely unresponsive after multiple contact attempts.'};
-const PL={Angi:'Angi Lead Credit Policy',Thumbtack:'Thumbtack Lead Price Credit Terms',Porch:'Porch Pro Lead Guarantee',Networx:'Networx Lead Dispute Terms'};
-const NOT='Pricing objections, competitor hiring, project postponements and other customer choices are not refundable under marketplace policy.';
-const BAD=/hired (another|a|an|someone|a different)|went (with|to) (a |another |the )?(competitor|contractor)|project went to|chose (another|a different) (contractor|company)|competitor|too expensive|over (our|my) budget|on hold|postponed/i;
+const LIM={basic:7,standard:15,pro:-1},NAME={basic:'Basic',standard:'Standard',pro:'Pro',none:'No plan'};
 const EM={Angi:'prosupport@angi.com',Thumbtack:'support@thumbtack.com',Porch:'support@porch.com',Networx:'service@networx.com'};
-const RULES={
- phone:{re:/disconnect|not in service|wrong number|invalid (phone|number)|number (is )?(invalid|wrong|not working)|fake number|third party/i,title:'Invalid Contact Details',why:'The provided phone number is disconnected, out of service, or belongs to a third party who has no knowledge of this project.'},
- mistake:{re:/by mistake|accident|did ?n.?t (mean|request|submit)|did not (mean|request|submit)|never (requested|asked)|no (such )?request/i,title:'Explicit Customer Mistake',why:'The homeowner stated they clicked on the request by mistake and did not intend to request this service or project from the platform.'},
- area:{re:/outside.*(service area|zip|area)|service area|out of (the )?(area|zip)/i,title:'Outside Service Area',why:"The customer's address is outside the service area and zip codes selected on my account, so this lead should not have been matched to my business."},
- dup:{re:/duplicate|same (customer|lead) twice|charged twice/i,title:'Duplicate Lead',why:'This lead is a duplicate of another lead delivered to my account within the same billing window, and I was charged more than once for a single customer request.'},
- spam:{re:/spam|\bbot\b|fake (contact|info|submission|name|email)/i,title:'Spam or Fake Submission',why:'The contact information on this lead appears to be fake or automatically generated, which indicates a spam or bot submission rather than a genuine customer request.'},
- trade:{re:/wrong (trade|category|service)|(do not|don.?t|doesn.?t) match (our|my) trade|not (our|my) trade/i,title:'Wrong Trade Category',why:'The service requested falls outside the trade category my business is listed under, so this lead does not match the services I provide.'}};
-function analyze(n){
-  n=(n||'').trim();
-  if(!n)return{valid:false,reason:'Add call notes or tap a quick reason so we can check eligibility.'};
-  if(BAD.test(n))return{valid:false,reason:NOT};
-  for(const k in RULES)if(RULES[k].re.test(n))return{valid:true,rule:k,reason:'Qualifies as a defective lead: '+RULES[k].title.toLowerCase()+'.'};
-  if(/unresponsive|no response|did ?n.?t answer|did not answer/i.test(n))return{valid:false,reason:'Unresponsive homeowners after real contact attempts are generally not refundable. If the phone number itself was dead or fake, say so in the notes.'};
-  return{valid:false,reason:"We couldn't match a qualifying lead defect (invalid phone, outside service area, duplicate, spam/bot or wrong trade). Tap a quick reason, add more detail, or upgrade to Growth Pro for AI-assisted claims."}}
-function letter(rule,p,phone,email,cost,notes,lid,recv,acct){
-  const R=RULES[rule],amt='$'+cost.toFixed(2);
-  const when=recv?new Date(recv).toLocaleString('en-US',{dateStyle:'medium',timeStyle:'short'}):'Not provided';
-  return `Subject: Urgent: Lead Credit Request - Account # ${acct||'[Your Pro ID]'} - Lead ID ${lid}
+const PLANS=[
+ {id:'basic',name:'Basic',price:19,cred:'7 AI dispute credits per month',f:['AI-generated dispute letters','Eligibility check against platform guidelines','Dispute history and claim tracker','Copy-ready claim text'],x:['Audio & PDF evidence upload','Gmail direct compose']},
+ {id:'standard',name:'Standard',price:39,rec:1,cred:'15 AI dispute credits per month',f:['AI-generated dispute letters','Eligibility check against platform guidelines','Dispute history and claim tracker','Copy-ready claim text'],x:['Audio & PDF evidence upload','Gmail direct compose']},
+ {id:'pro',name:'Pro',price:79,cred:'Unlimited AI dispute credits',f:['AI-generated dispute letters','Audio & PDF evidence upload','Gmail direct compose','Choice of Gemini 3.5 Flash or Groq Qwen3 4B','Dispute history and claim tracker']}];
+const CHIPS={'Disconnected phone':'Permanently disconnected phone number. Called twice with no answer.','Outside service area':'Customer is outside our service area and zip codes.','Duplicate lead':'Duplicate lead received within the same billing window.','Spam or bot':'Spam or bot submission with fake contact information.','Wrong trade':'Wrong trade category. The requested service does not match our trade.','Customer mistake':'Homeowner stated they clicked by mistake and did not request this service.'};
+const NOT='Pricing objections, competitor hiring, project postponements and other customer choices are not eligible for credit under marketplace guidelines.';
+const BAD=/hired (another|a|an|someone|a different)|went (with|to) (a |another |the )?(competitor|contractor)|project went to|chose (another|a different)|competitor|too expensive|over (our|my) budget|on hold|postponed/i;
+let token=ls('lc_token'),me=null,plat='Angi',reg={},claim='',curId=0,tut=0;
+try{me=JSON.parse(ls('lc_me')||'null')}catch(e){}if(!token)me=null;
+const saveMe=()=>ls('lc_me',JSON.stringify(me));
+fetch(API+'/').catch(()=>{});
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
+async function rfetch(url,o,tries=8){for(let i=0;i<tries;i++){try{const r=await fetch(url,o),ct=r.headers.get('content-type')||'';if(!(r.status>=502&&r.status<=504&&!ct.includes('json'))||i===tries-1)return r}catch(e){if(i===tries-1)throw e}await new Promise(x=>setTimeout(x,4000))}}
+async function api(path,o={}){
+  const auth=path.startsWith('/api/auth');
+  if(!auth&&!token){openAuth('login');throw new Error('Please log in to continue.')}
+  const h=o.headers||{};if(token)h.Authorization='Bearer '+token;
+  if(o.json){h['Content-Type']='application/json';o.body=JSON.stringify(o.json)}
+  let r;try{r=await rfetch(API+path,{...o,headers:h})}catch(e){throw new Error('Cannot reach the server. It may still be starting up. Please try again in a minute.')}
+  const d=await r.json().catch(()=>({}));
+  if(r.status===401&&token&&!auth){signout(true);openAuth('login');throw new Error('Session expired. Please log in again.')}
+  if(!r.ok){const e=new Error(typeof d.detail==='string'?d.detail:'Something went wrong. Please try again.');e.status=r.status;throw e}
+  return d}
+function wake(after){const w=document.createElement('div');w.className='prog';w.style.display='block';w.innerHTML='<div class="t"><span>Connecting to the server. This can take up to 30 seconds.</span></div><div class="bar"><i></i></div>';after.insertAdjacentElement('afterend',w);const i=w.querySelector('i');let p=0;const iv=setInterval(()=>{p=Math.min(94,p+(p<50?4:1.5));i.style.width=p+'%'},400);return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),300)}}
+async function withWake(el,fn){let stop=null;const t=setTimeout(()=>{stop=wake(el)},1200);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
+function closeOv(id){$(id).hidden=true}
+function jump(id){$(id).scrollIntoView({behavior:'smooth'})}
+document.querySelectorAll('.tgl').forEach(b=>b.onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;ls('lc_theme',n)});
+let io;function observe(){io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.rv').forEach(el=>io.observe(el))}
+function openTerms(){$('tDate').textContent=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});$('termsOv').hidden=false}
+function planHtml(p,cur,label){return `<article class="plan rv${p.rec?' rec':''}">${p.rec?'<span class="tag">RECOMMENDED</span>':''}<h3>${p.name}</h3><div class="price">$${p.price}<small>/mo</small></div><div class="cred">${p.cred}</div>
+ <ul>${p.f.map(x=>`<li>${x}</li>`).join('')}${(p.x||[]).map(x=>`<li class="no">${x}</li>`).join('')}</ul><button class="btn full${p.rec?'':' sec'}" ${cur?'disabled':''} data-plan="${p.id}">${cur?'Current plan':label}</button></article>`}
+function bindPlans(box,fn){box.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>fn(b.dataset.plan,b))}
+async function pick(id,btn,msgEl){
+  if(!me){openAuth('signup');return}
+  msgEl.textContent='';
+  try{const d=await withWake(btn,()=>api('/api/billing/checkout',{method:'POST',json:{plan:id}}));
+    if(d.activated){await refreshMe();closeOv('authOv');closeOv('planOv');enterApp();toast('Plan activated')}else if(d.url)location.href=d.url}
+  catch(e){msgEl.textContent=e.message}}
+function renderLandingPlans(){$('lp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,'Get '+p.name)).join('');bindPlans($('lp'),()=>me?openPlans():openAuth('signup'));observe()}
+function openPlans(){$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Choose '+p.name)).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
+function showStep(n){['s1','s2','s3','s4','sl'].forEach(x=>$(x).hidden=true);$(n==='l'?'sl':'s'+n).hidden=false;$('dots').hidden=n==='l';[...$('dots').children].forEach((d,i)=>d.classList.toggle('on',i<n));
+  $('authM').classList.toggle('w',n===4);
+  const T={1:['Create your account','Step 1 of 4: your details'],2:['Verify your email','Step 2 of 4: we sent a 6-digit code to '+(reg.email||'your inbox')],3:['Set up your workspace','Step 3 of 4: business and marketplace accounts'],4:['Choose your plan','Step 4 of 4: pick the plan that fits your volume'],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
+function openAuth(m){showStep(m==='login'?'l':1);['m1','m2','m3','m4','ml'].forEach(i=>$(i).textContent='');$('authOv').hidden=false}
+const pwOk=p=>p.length>=7&&/[!@#$%^&*(),.?":{}|<>]/.test(p);
+function busy(b,on){b.disabled=on;b.classList.toggle('busy',on)}
+$('b1').onclick=async()=>{const m=$('m1'),b=$('b1'),n=$('rN').value.trim(),e=$('rE').value.trim().toLowerCase(),p=$('rP').value;m.textContent='';
+  if(!n)return m.textContent='Enter your full name.';
+  if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(e))return m.textContent='A valid @gmail.com address is required.';
+  if(!pwOk(p))return m.textContent='Password needs 7+ characters and 1 special character.';
+  if(p!==$('rP2').value)return m.textContent='Passwords do not match.';
+  if(!$('rT').checked)return m.textContent='Please accept the Terms & Conditions.';
+  busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}));reg={name:n,email:e,password:p};showStep(2);$('rC').value='';$('rC').focus()}
+  catch(x){m.textContent=x.message}finally{busy(b,false)}};
+$('resend').onclick=async ev=>{ev.preventDefault();const m=$('m2');try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}};
+$('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6}$/.test(c))return m.textContent='Enter the 6-digit code.';
+  busy(b,true);try{await api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}});showStep(3);$('rB').focus()}catch(x){m.textContent=x.message}finally{busy(b,false)}};
+$('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
+$('b3').onclick=async()=>{const m=$('m3'),b=$('b3'),biz=$('rB').value.trim();m.textContent='';if(!biz)return m.textContent='Enter your business name.';
+  busy(b,true);try{const d=await api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}});
+    token=d.token;ls('lc_token',token);reg.password='';await refreshMe();showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Choose '+p.name)).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
+  catch(x){m.textContent=x.message}finally{busy(b,false)}};
+$('skip').onclick=e=>{e.preventDefault();closeOv('authOv');enterApp()};
+$('bl').onclick=async()=>{const m=$('ml'),b=$('bl'),email=$('lE').value.trim().toLowerCase(),password=$('lP').value;m.textContent='';if(!email||!password)return m.textContent='Enter your email and password.';
+  busy(b,true);try{await withWake(b,async()=>{const d=await api('/api/auth/login',{method:'POST',json:{email,password}});token=d.token;ls('lc_token',token);await refreshMe()});closeOv('authOv');enterApp()}
+  catch(x){m.textContent=x.message}finally{busy(b,false)}};
+$('lP').addEventListener('keydown',e=>{if(e.key==='Enter')$('bl').click()});
+function signout(silent){if(token&&!silent)fetch(API+'/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{});token=null;me=null;ls('lc_token',null);ls('lc_me',null);$('app').hidden=true;$('landing').hidden=false;renderLandingPlans();!silent&&toast('Signed out')}
+$('navOut').onclick=()=>signout();
+async function refreshMe(){me=await api('/api/me');saveMe();render()}
+function enterApp(){$('landing').hidden=true;$('app').hidden=false;scrollTo(0,0);render();renderPlat();if(!ls('lc_tut_done'))startTut()}
+function render(){
+  if(!me)return;const p=me.plan,lim=LIM[p],isPro=p==='pro',left=me.credits_left;
+  $('spName').textContent=lim===undefined?'No active plan':NAME[p]+' Plan';
+  $('spUse').textContent=lim===undefined?'Choose a plan to begin':isPro?'Unlimited credits':`${left}/${lim} credits left`;
+  $('spBar').style.width=lim===undefined?'0%':isPro?'100%':(left/lim*100)+'%';$('spUp').textContent=isPro?'Manage plan':lim===undefined?'Choose a plan':'Upgrade plan';
+  $('leftPill').textContent=lim===undefined?'No active plan':isPro?'Unlimited leads':`${left} lead${left===1?'':'s'} left`;
+  $('evBox').innerHTML=isPro?`<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div><div class="f"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
+   :`<div class="pro" data-up><span class="in"><b>Audio &amp; PDF evidence upload</b><small>Attach call recordings and documents for the AI to cite</small></span><span class="bg">PRO ONLY</span></div>`;
+  $('teamBox').innerHTML=isPro?`<div class="panel"><h2>Team seats</h2><p class="sub" style="margin:0">Priority multi-user seats are included in your plan. Contact the LeadClaw team to add teammates.</p></div>`
+   :`<div class="pro" data-up><span class="in"><b>Priority team seats</b><small>Invite teammates to share one workspace and dispute history</small></span><span class="bg">PRO ONLY</span></div>`;
+  document.querySelectorAll('#evBox [data-up],#teamBox [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
+  if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
+  renderHist()}
+$('spUp').onclick=()=>openPlans();
+function renderHist(){const ds=me.disputes;$('hE').hidden=ds.length>0;$('kN').textContent=ds.length;$('kE').textContent='$'+ds.filter(d=>d.valid).reduce((a,d)=>a+d.amount,0).toFixed(0);$('kC').textContent='$'+ds.filter(d=>d.recovered).reduce((a,d)=>a+d.amount,0).toFixed(0);
+  $('hb').innerHTML=ds.map(d=>`<tr><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td><td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Not eligible'}</span></td>
+  <td>${d.valid?`<button class="btn sm${d.recovered?'':' sec'}" onclick="mark(${d.id},${!d.recovered})">${d.recovered?'Claimed':'Mark claimed'}</button>`:'-'}</td><td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="view(${d.id})">View</button>`:''}</td></tr>`).join('')}
+async function mark(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as claimed':'Unmarked')}catch(e){toast(e.message)}}
+function view(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},d.platform,id);tab('new')}
+function tab(t){document.querySelectorAll('.nv[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('tNew').hidden=t!=='new';$('tHist').hidden=t!=='hist';$('ttl').textContent=t==='new'?'New dispute':'Dispute history'}
+document.querySelectorAll('.nv[data-t]').forEach(b=>b.onclick=()=>tab(b.dataset.t));
+function renderPlat(){$('plat').innerHTML=['Angi','Thumbtack','Porch','Networx'].map(p=>`<button type="button" class="${p===plat?'on':''}">${p}</button>`).join('');$('acctL').textContent=`Your ${plat} account (email or phone) *`;$('acct').value=(me&&me['acc_'+plat.toLowerCase()])||'';
+  [...$('plat').children].forEach(b=>b.onclick=()=>{plat=b.textContent;renderPlat()})}
+$('chips').innerHTML=Object.keys(CHIPS).map(k=>`<button type="button" class="chip">${k}</button>`).join('');[...$('chips').children].forEach((c,i)=>c.onclick=()=>{$('notes').value=Object.values(CHIPS)[i]});
+const isEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),isPhone=v=>/^[\d\s().+-]+$/.test(v)&&v.replace(/\D/g,'').length>=10&&v.replace(/\D/g,'').length<=15;
+function saveAcct(a){const k='acc_'+plat.toLowerCase();if(me[k]===a)return;me[k]=a;saveMe();api('/api/user/profile',{method:'POST',json:{password:'',full_name:me.full_name||'',phone:me.phone||'',acc_angi:me.acc_angi||'',acc_thumbtack:me.acc_thumbtack||'',acc_porch:me.acc_porch||'',acc_networx:me.acc_networx||''}}).catch(()=>{})}
+function fallback(f){const amt='$'+f.cost.toFixed(2);if(BAD.test(f.notes))return{valid:false,reason:NOT,claim:''};
+ return{valid:true,reason:'The AI service was unavailable, so a standard template was used. No credit was deducted.',claim:`Subject: Urgent: Lead Credit Request - Account # ${f.account} - Lead ID ${f.lid}
 
 Dear Partner Support Team,
 
 I am writing to formally request a credit/refund for an invalid lead charged to my account. Below are the required identification details for this transaction:
 
 LEAD IDENTIFICATION DATA
-• Business Name: ${me.workspace}
-• Platform Account ID: ${acct||'[Your Pro ID]'}
-• Lead ID Number: ${lid}
-• Date & Time Received: ${when}
-• Lead Cost: ${amt}
-• Customer Phone: ${phone}
-• Customer Email: ${email}
+- Business Name: ${me.workspace}
+- Platform Account ID: ${f.account}
+- Lead ID Number: ${f.lid}
+- Lead Cost: ${amt}
+- Customer Phone: ${f.phone}
+- Customer Email: ${f.email}
 
-REASON FOR DISPUTE (POLICY VIOLATION)
-This lead qualifies for an immediate credit under your platform's user policy (${PL[p]}) due to the following specific reason:
-
-• ${R.title}: ${R.why}
-
-Contractor notes: "${notes.trim()}"
+REASON FOR DISPUTE
+This lead qualifies for a credit under your platform's credit guarantee guidelines for the following reason:
+${f.notes}
 
 REQUEST
-Please review this lead and issue a credit of ${amt} to my account. If you need any additional information to process this request, reply to this email and I will provide it right away.
-
-Thank you for your prompt attention to this matter.
+Please review this lead and issue a credit of ${amt} to my account. I am happy to provide any additional information.
 
 Sincerely,
-${me.full_name||'[Your Name]'}
-${me.workspace}${me.phone?'\n'+me.phone:''}
-${me.email}`}
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
-async function api(path,o={}){
-  const auth=path.startsWith('/api/auth');
-  if(!auth&&!token&&tokenReady)await tokenReady;
-  if(!auth&&!token){openAuth('login');throw new Error('Please log in to continue.')}
-  const h=o.headers||{};if(token)h.Authorization='Bearer '+token;
-  if(o.json){h['Content-Type']='application/json';o.body=JSON.stringify(o.json)}
-  let r;try{r=await fetch(API+path,{...o,headers:h})}catch(e){throw new Error('Cannot reach the server. Please try again in a moment.')}
-  const d=await r.json().catch(()=>({}));
-  if(r.status===401&&token&&!auth){signout(true);openAuth('login');throw new Error('Session expired. Please log in again.')}
-  if(!r.ok){const e=new Error(typeof d.detail==='string'?d.detail:'Something went wrong. Please try again.');e.status=r.status;throw e}
-  return d}
-function wakeBar(after,msg){
-  const w=document.createElement('div');w.className='wake';w.innerHTML=`<span>${msg||'Waking up the server. This can take up to 30 seconds…'}</span><div class="bar"><i></i></div>`;
-  after.insertAdjacentElement('afterend',w);const i=w.querySelector('i');let p=0;
-  const iv=setInterval(()=>{p=Math.min(94,p+(p<50?4:p<80?1.5:.4));i.style.width=p+'%'},400);
-  return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),350)}}
-async function withWake(el,fn,msg){let stop=null;const t=setTimeout(()=>{if(el)stop=wakeBar(el,msg)},1200);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
-function scrollToId(id){go('landing');setTimeout(()=>$(id).scrollIntoView({behavior:'smooth'}),30)}
-function go(v){$('landing').hidden=v!=='landing';$('app').hidden=v!=='app';$('admin').hidden=v!=='admin';window.scrollTo(0,0);if(v==='landing')observe()}
-function closeOv(id){$(id).hidden=true}
-function openUpgrade(){go('landing');setTimeout(()=>{$('pricing').scrollIntoView({behavior:'smooth'});const g=document.querySelector('.plan.pop');if(g){g.classList.add('flash');setTimeout(()=>g.classList.remove('flash'),2500)}},60)}
-$('themeBtn').onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;ls('lc_theme',n)};
-let io;function observe(){io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.rv').forEach(el=>io.observe(el))}
-function renderPlans(){
-  $('plans').innerHTML=PLANS.map(p=>{const cur=me&&me.plan===p.id;
-    const label=cur?'Current plan':p.id==='free'?(me?'Free trial':'Start free trial'):me?'Upgrade to '+p.name:'Get '+p.name;
-    return `<article class="plan rv${p.pop?' pop':''}">${p.pop?'<span class="tag">Most popular</span>':''}<h3>${p.name}</h3><div class="price">${p.price?`$${p.price}<small>/mo</small>`:`Free<small> · 3 disputes</small>`}</div>
-    <ul>${p.f.map(x=>`<li>${x}</li>`).join('')}${(p.x||[]).map(x=>`<li class="no">${x}</li>`).join('')}</ul>
-    <button class="btn full${p.pop?'':' sec'}" ${cur||(me&&p.id==='free')?'disabled':''} onclick="choose('${p.id}',this)">${label}</button></article>`}).join('');observe()}
-async function choose(id,btn){
-  if(!me){pendingPlan=id==='free'?null:id;return openAuth('signup')}
-  if(id==='free')return;
-  try{toast('Opening secure checkout…');const d=await withWake(btn||document.querySelector('.plan.pop .btn'),()=>api('/api/billing/checkout',{method:'POST',json:{plan:id}}),'Connecting to secure checkout. This can take up to 30 seconds…');location.href=d.url}catch(e){toast(e.message)}}
-// ---- auth: instant on the front end, server sync happens in the background
-function openAuth(m){mode=m;const s=m==='signup';$('aT').textContent=s?'Start your free trial':'Welcome back';$('aS').textContent=s?'3 disputes, no card needed.':'Sign in to your dashboard.';
-  $('suOnly').hidden=!s;$('aGo').textContent=s?'Create account':'Sign in';$('aM').textContent='';$('aMain').hidden=false;
-  $('aSw').innerHTML=s?'Have an account? <a href="#" style="color:var(--acc);font-weight:600" id="sw">Log in</a>':'New here? <a href="#" style="color:var(--acc);font-weight:600" id="sw">Start free trial</a>';
-  $('sw').onclick=e=>{e.preventDefault();openAuth(s?'login':'signup')};$('authOv').hidden=false;setTimeout(()=>$('rE').focus(),50)}
-const pwOk=p=>p.length>=7&&/[!@#$%^&*(),.?":{}|<>]/.test(p);
-function afterAuth(){closeOv('authOv');render();go('app');toast('Welcome to LeadClaw');if(pendingPlan){const p=pendingPlan;pendingPlan=null;choose(p)}}
-function backgroundRegister(body){
-  tokenReady=(async()=>{
-    for(let i=0;i<12;i++){
-      try{const d=await api('/api/auth/register',{method:'POST',json:body});token=d.token;ls('lc_token',token);return}
-      catch(e){
-        if(e.status===409){signout(true);openAuth('login');toast('That email already has an account. Please log in.');return}
-        if(e.status&&e.status!==429&&e.status<500){signout(true);toast(e.message);return}
-        await new Promise(r=>setTimeout(r,4000))}}})()}
-$('aGo').onclick=async()=>{
-  const email=$('rE').value.trim().toLowerCase(),password=$('rP').value,m=$('aM');m.className='msg';
-  if(!email||!password)return m.textContent='Enter your email and password.';
-  if(mode==='login'){
-    const b=$('aGo');b.disabled=true;b.classList.add('busy');const t=setTimeout(()=>b.textContent='Almost there…',4000);
-    try{await withWake(b,async()=>{const d=await api('/api/auth/login',{method:'POST',json:{email,password}});token=d.token;ls('lc_token',token);me=await api('/api/me');saveMe()});afterAuth()}
-    catch(e){m.textContent=e.message}finally{clearTimeout(t);b.disabled=false;b.classList.remove('busy');b.textContent='Sign in'}
-    return}
-  const dob=$('rD').value,business=$('rB').value.trim();
-  if(!business||!dob)return m.textContent='Please fill out every field.';
-  if(!email.endsWith('@gmail.com'))return m.textContent='A @gmail.com address is required.';
-  if(!pwOk(password))return m.textContent='Password needs 7+ characters and 1 special character.';
-  if(password!==$('rP2').value)return m.textContent='Passwords do not match.';
-  const d0=new Date(dob),t0=new Date();let age=t0.getFullYear()-d0.getFullYear();if(t0.getMonth()<d0.getMonth()||(t0.getMonth()===d0.getMonth()&&t0.getDate()<d0.getDate()))age--;
-  if(isNaN(age)||age<18)return m.textContent='You must be at least 18 years old.';
-  if(!$('rT').checked)return m.textContent='Please accept the Terms & Policies.';
-  me={email,plan:'free',trials_left:3,workspace:business,full_name:'',phone:'',acc_angi:'',acc_thumbtack:'',acc_porch:'',acc_networx:'',month_used:0,solo_limit:25,billing:false,disputes:[],eligible_total:0,recovered_total:0};
-  token=null;ls('lc_token',null);saveMe();
-  backgroundRegister({email,password,dob,business,accept_terms:true});
-  afterAuth()};
-function signout(silent){if(token&&!silent)fetch(API+'/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{});
-  token=null;me=null;tokenReady=null;ls('lc_token',null);ls('lc_me',null);render();go('landing');if(!silent)toast('Signed out')}
-// ---- render
-function render(){
-  $('navPub').hidden=!!me;$('navPriv').hidden=!me;
-  if(!me){renderPlans();return}
-  const g0=me.plan==='growth',l0=me.plan==='free'?me.trials_left:Math.max(0,me.solo_limit-me.month_used);
-  $('planPill').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]+(g0?'':' · '+l0+' left');
-  const g=me.plan==='growth';
-  $('proCards').hidden=g;$('fileBox').hidden=!g;
-  const lim=me.plan==='solo'?me.solo_limit:3,left=g?0:Math.max(0,me.plan==='free'?me.trials_left:me.solo_limit-me.month_used);
-  $('pcName').textContent=({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[me.plan]||me.plan;
-  $('pcLeft').textContent=g?'Unlimited':left;$('pcUnit').textContent=g?'disputes':me.plan==='free'?'trial disputes left':'disputes left this month';
-  $('kBar').style.width=(g?100:left/lim*100)+'%';
-  $('pcUp').hidden=g;$('pcUp').textContent=me.plan==='free'?'Choose a plan':'Upgrade to Growth Pro';
-  $('welcome').textContent='Welcome back, '+me.workspace;
-  document.querySelector('#ctype [data-m=ai]').classList.toggle('locked',!g);
-  document.querySelector('#ctype [data-m=ai]').textContent=g?'AI-assisted claim':'AI-assisted claim · Pro';
-  $('pcFeat').textContent=FEAT[me.plan].concat(SUPPORT_EMAIL?[me.plan==='growth'?'Priority support':me.plan==='solo'?'Email support':'']:[]).filter(Boolean).join(' · ');
-  $('pcSup').hidden=!SUPPORT_EMAIL;if(SUPPORT_EMAIL)$('pcSup').href='mailto:'+SUPPORT_EMAIL+'?subject='+encodeURIComponent((me.plan==='growth'?'[Priority] ':'')+'LeadClaw support ('+me.plan+') - '+me.email);
-  if(!g&&ctype==='ai')document.querySelector('#ctype [data-m=template]').click();
-  if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
-  $('kCount').textContent=me.disputes.length;$('kElig').textContent='$'+me.eligible_total.toFixed(0);$('kRec').textContent='$'+me.recovered_total.toFixed(0);
-  renderHist();renderPlans()}
-async function refreshMe(){try{me=await api('/api/me');saveMe();render()}catch(e){}}
-function histRows(){const p=$('hPlat').value,st=$('hStat').value;return me.disputes.filter(d=>(!p||d.platform===p)&&(!st||(st==='y'&&d.valid)||(st==='n'&&!d.valid)||(st==='r'&&d.recovered)||(st==='p'&&d.valid&&!d.recovered)))}
-function renderHist(){
-  const rows=histRows();$('hEmpty').hidden=rows.length>0;$('hEmpty').textContent=me.disputes.length?'No disputes match these filters.':'No disputes yet. Your filed claims will show up here.';
-  $('hb').innerHTML=rows.map((d,i)=>`<tr class="hr" style="animation-delay:${Math.min(i,10)*40}ms"><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td>
-  <td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Rejected'}</span></td>
-  <td>${d.valid&&d.id?`<button class="btn sm${d.recovered?'':' sec'}" onclick="rec(${d.id},${!d.recovered})">${d.recovered?'Claimed ✓':'Mark claimed'}</button>`:'–'}</td>
-  <td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="showClaim(${d.id})">View</button>`:''}</td></tr>`).join('')}
-$('hPlat').onchange=$('hStat').onchange=renderHist;
-$('hCsv').onclick=()=>{const rows=histRows();if(!rows.length)return toast('Nothing to export yet.');
-  const q=v=>{v=String(v??'');if(/^[=+\-@]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"'};
-  const csv=[['Date','Platform','Lead phone','Lead email','Amount','Verdict','Claimed']].concat(rows.map(d=>[(d.created_at||'').slice(0,10),d.platform,d.lead_phone,d.lead_email||'',(+d.amount).toFixed(2),d.valid?'Eligible':'Rejected',d.valid?(d.recovered?'Yes':'No'):''])).map(r=>r.map(q).join(',')).join('\n');
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='leadclaw-disputes.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast('CSV downloaded')};
-async function rec(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as claimed':'Unmarked')}catch(e){toast(e.message)}}
-function showClaim(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},false,d.platform,id);document.querySelector('[data-t=new]').click()}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));$('tNew').hidden=b.dataset.t!=='new';$('tHist').hidden=b.dataset.t!=='hist'});
-// ---- form
-function syncAcct(){$('acctL').textContent=`Your ${plat} account (email or phone) *`;$('acct').value=(me&&me['acc_'+plat.toLowerCase()])||''}
-const isEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),isPhone=v=>/^[\d\s().+-]+$/.test(v)&&v.replace(/\D/g,'').length>=10&&v.replace(/\D/g,'').length<=15;
-function saveAcct(a){const k='acc_'+plat.toLowerCase();if(me[k]===a)return;me[k]=a;saveMe();api('/api/user/profile',{method:'POST',json:{password:'',full_name:me.full_name||'',phone:me.phone||'',acc_angi:me.acc_angi||'',acc_thumbtack:me.acc_thumbtack||'',acc_porch:me.acc_porch||'',acc_networx:me.acc_networx||''}}).catch(()=>{})}
-function renderPlat(){$('plat').innerHTML=['Angi','Thumbtack','Porch','Networx'].map(p=>`<button type="button" class="${p===plat?'on':''}">${p}</button>`).join('');
-  [...$('plat').children].forEach(b=>b.onclick=()=>{plat=b.textContent;renderPlat()});syncAcct()}
-renderPlat();
-$('chips').innerHTML=Object.keys(CHIPS).map(k=>`<button type="button" class="chip">${k}</button>`).join('');
-[...$('chips').children].forEach((c,i)=>c.onclick=()=>{$('notes').value=Object.values(CHIPS)[i]});
-document.querySelectorAll('#ctype button').forEach(b=>b.onclick=()=>{
-  if(b.dataset.m==='ai'&&me&&me.plan!=='growth'){toast('AI-assisted claims are a Growth Pro feature.');return openUpgrade()}
-  ctype=b.dataset.m;document.querySelectorAll('#ctype button').forEach(x=>x.classList.toggle('on',x===b));
-  $('aWarn').hidden=ctype!=='ai';$('aiOpts').hidden=ctype!=='ai';if(ctype==='ai')fetch(API+'/').catch(()=>{})});
-let curId=0,recP=null;
-function bindClaimed(id){
-  const b=$('cm');curId=id||0;
-  const done=()=>{b.textContent='Claimed ✓';b.disabled=true};
-  if(id&&(me.disputes.find(x=>x.id===id)||{}).recovered)return done();
-  b.onclick=async()=>{b.disabled=true;
-    try{if(!curId&&recP)await recP;if(!curId)throw new Error('Still saving. Try again in a moment.');
-      await api(`/api/disputes/${curId}/recovered`,{method:'POST',json:{recovered:true}});done();await refreshMe();toast('Marked as claimed')}
-    catch(e){toast(e.message);b.disabled=false}}}
-function showResult(d,type=false,p=plat,id=0){
-  claim=d.claim||'';shownPlat=p;const to=ls('lc_to_'+p)||EM[p]||'';
-  $('out').className='res';
-  $('out').innerHTML=`<div class="verdict ${d.valid?'ok':'err'}"><svg class="vi" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="${d.valid?'M7 12.5l3.2 3.2L17 9':'M8.5 8.5l7 7M15.5 8.5l-7 7'}"/></svg>${d.valid?'Eligible for credit':'Not eligible'}</div><p style="color:var(--mu);margin:8px 0 0">${esc(d.reason)}</p>`+
-  (d.valid&&claim?`${/\[Your Pro ID\]/.test(claim)?`<p class="hint" style="margin-top:12px">Tip: add your ${esc(p)} account ID under Account and it will fill in automatically.</p>`:''}<div class="claim" id="cl"></div><div class="f"><label for="toEm">Send to (${esc(p)} support email)</label><input class="inp" id="toEm" type="email" value="${esc(to)}" placeholder="Support address from ${esc(p)}'s help center"></div>
-  <div class="acts"><button class="btn sec sm" id="cp">Copy claim</button><button class="btn sm" id="gm">Open in Gmail</button><button class="btn sec sm" id="cm" type="button">Mark as claimed</button></div>`:'');
-  if(d.valid&&claim){const el=$('cl');if(type){let i=0;(function t(){i+=9;el.textContent=claim.slice(0,i);if(i<claim.length)setTimeout(t,12)})()}else el.textContent=claim;
-    bindClaimed(id);
-    $('cp').onclick=async()=>{try{await navigator.clipboard.writeText(claim);toast('Claim copied')}catch(e){toast('Copy failed. Select the text manually.')}};
-    $('gm').onclick=()=>{const mm=claim.match(/^Subject:\s*(.+?)\r?\n+/),su=mm?mm[1]:`Lead Credit Request - ${shownPlat}`,body=mm?claim.slice(mm[0].length):claim,to=$('toEm').value.trim();
-      ls('lc_to_'+shownPlat,to);
-      const w=window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`,'_blank');
-      if(w)w.opener=null;else toast('Popup blocked. Allow popups for this site, or use Copy claim.')}}}
-function need(ids){let bad=null;for(const id of ids){const el=$(id),v=el.value.trim(),ok=id==='cost'?parseFloat(v)>0:!!v;el.classList.toggle('invalid',!ok);if(!ok&&!bad)bad=el}if(bad){bad.focus();toast('Please fill in the highlighted fields.');return false}return true}
-function limitHit(){return(me.plan==='free'&&me.trials_left<=0)||(me.plan==='solo'&&me.month_used>=me.solo_limit)}
+${me.full_name||me.workspace}
+${me.workspace}
+${me.email}`}}
+function showResult(d,p=plat,id=0){claim=d.claim||'';curId=id;const isPro=me.plan==='pro';
+  $('out').className='res';$('out').innerHTML=`<div class="verdict ${d.valid?'ok':'er'}">${d.valid?'Eligible for credit':'Not eligible'}</div><p style="color:var(--mu);margin:8px 0 0">${esc(d.reason)}</p>`+(d.valid&&claim?`<div class="claim" id="cl"></div><div class="acts"><button class="btn sec sm" id="cp">Copy letter</button>${isPro?'<button class="btn sm" id="gm">Open in Gmail</button>':'<span class="pro inl" data-up><span class="in">Open in Gmail</span><span class="bg">PRO ONLY</span></span>'}${id?'<button class="btn sec sm" id="cm">Mark as claimed</button>':''}</div>`:'');
+  if(d.valid&&claim){$('cl').textContent=claim;$('cp').onclick=async()=>{try{await navigator.clipboard.writeText(claim);toast('Letter copied')}catch(e){toast('Copy failed. Select the text manually.')}};
+    if(isPro)$('gm').onclick=()=>{const mm=claim.match(/^Subject:\s*(.+?)\r?\n+/),su=mm?mm[1]:'Lead Credit Request',body=mm?claim.slice(mm[0].length):claim;const w=window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(EM[p]||'')}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`,'_blank');if(w)w.opener=null;else toast('Popup blocked. Allow popups or copy the letter.')};
+    if(id)$('cm').onclick=()=>mark(id,true)}
+  document.querySelectorAll('#out [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()})}
+function need(ids){let bad=null;for(const id of ids){const el=$(id),v=el.value.trim(),ok=id==='cost'?(Number.isFinite(parseFloat(v))&&parseFloat(v)>0):!!v;el.classList.toggle('invalid',!ok);if(!ok&&!bad)bad=el}if(bad){bad.focus();toast('Please complete the highlighted fields.');return false}return true}
+document.querySelectorAll('.inp,textarea').forEach(i=>i.addEventListener('input',()=>i.classList.remove('invalid')));
 $('go').onclick=async()=>{
-  const lp=$('lp').value.trim(),le=$('le').value.trim(),cost=parseFloat($('cost').value),notes=$('notes').value,lid=$('lid').value.trim(),recv=$('lrecv').value;
-  if(!need(['acct','lp','le','lid','cost']))return;
-  const acct=$('acct').value.trim();
-  if(!(isEmail(acct)||isPhone(acct))){$('acct').classList.add('invalid');$('acct').focus();return toast('Enter the email or phone number of your '+plat+' account.')}
-  if(limitHit()){toast(me.plan==='free'?'Your free trial is used up. Pick a plan to continue.':'Monthly limit reached. Upgrade for unlimited disputes.');return openUpgrade()}
-  saveAcct(acct);
-  if(ctype==='template'){ // instant, no server wait
-    const r=analyze(notes),d={valid:r.valid,reason:r.reason,claim:r.valid?letter(r.rule,plat,lp,le,cost,notes,lid,recv,acct):''};
-    showResult(d,false,plat);
-    me.disputes.unshift({id:0,platform:plat,lead_phone:lp,lead_email:le,amount:cost,valid:d.valid?1:0,recovered:0,claim:d.claim,reason:d.reason,created_at:new Date().toISOString()});
-    if(me.plan==='free')me.trials_left--;else me.month_used++;
-    if(d.valid)me.eligible_total+=cost;render();
-    recP=api('/api/dispute/record',{method:'POST',json:{platform:plat,lead_phone:lp,lead_email:le,cost,valid:d.valid,reason:d.reason,claim:d.claim}}).then(r=>{curId=r.dispute_id;refreshMe();return r});
-    recP.catch(e=>{toast(e.message);if(e.status===402)openUpgrade()});
-    return}
-  const fd=new FormData();fd.append('platform',plat);fd.append('notes',notes);fd.append('cost',cost);fd.append('lead_phone',lp);fd.append('lead_email',le);fd.append('lead_id',lid);fd.append('account',acct);fd.append('received',recv);
-  if(me.plan==='growth'){fd.append('model',$('model').value);[...$('files').files].forEach(f=>fd.append('files',f))}
-  const btn=$('go'),pw=$('prog'),bar=$('pBar');btn.disabled=true;btn.classList.add('busy');pw.style.display='block';$('out').className='empty';$('out').textContent='Analyzing with AI. This can take up to 30 seconds…';
-  const msgs=['Auditing marketplace refund policy…','Evaluating your call notes…','Writing your custom claim…'];let p=0,secs=0;
-  const iv=setInterval(()=>{secs+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'%';$('pStat').textContent=secs>10?'Still working. The AI server is waking up…':msgs[Math.min(2,Math.floor(p/32))]},350);
-  try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100%';$('pStat').textContent='Done';
-    showResult(d,true,plat,d.dispute_id);await refreshMe()}
-  catch(e){clearInterval(iv);$('out').className='empty';$('out').textContent=e.message;if(e.status===402||e.status===403){toast(e.message);openUpgrade()}}
-  finally{btn.disabled=false;btn.classList.remove('busy');setTimeout(()=>{pw.style.display='none';bar.style.width='0'},900)}};
-// ---- account
-function openAccount(){const m=me;$('aN').value=m.full_name||'';$('aP').value=m.phone||'';$('hA').value=m.acc_angi||'';$('hT').value=m.acc_thumbtack||'';$('hP').value=m.acc_porch||'';$('hN').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;$('accPlan').textContent='Current plan: '+({free:'Free trial',solo:'Solo',growth:'Growth Pro'})[m.plan]+(m.plan==='growth'?' (unlimited disputes)':m.plan==='solo'?` · ${Math.max(0,m.solo_limit-m.month_used)} disputes left this month`:` · ${m.trials_left} trial disputes left`);$('accOv').hidden=false}
+  if(!need(['acct','lp2','le','lid','cost','notes']))return;
+  const f={account:$('acct').value.trim(),phone:$('lp2').value.trim(),email:$('le').value.trim(),lid:$('lid').value.trim(),cost:parseFloat($('cost').value),notes:$('notes').value.trim()};
+  if(!(isEmail(f.account)||isPhone(f.account))){$('acct').classList.add('invalid');$('acct').focus();return toast('Enter the email or phone number of your '+plat+' account.')}
+  if(!(me.plan in LIM)){toast('Choose a plan to generate dispute letters.');return openPlans()}
+  if(me.credits_left===0){toast('You have used all credits this month.');return openPlans()}
+  saveAcct(f.account);
+  const fd=new FormData();fd.append('platform',plat);fd.append('notes',f.notes);fd.append('cost',f.cost.toFixed(2));fd.append('lead_phone',f.phone);fd.append('lead_email',f.email);fd.append('lead_id',f.lid);fd.append('account',f.account);
+  if(me.plan==='pro'){fd.append('model',$('model').value);[...$('files').files].forEach(x=>fd.append('files',x))}
+  const btn=$('go'),bar=$('pBar');busy(btn,true);$('prog').style.display='block';$('out').className='empty';$('out').textContent='Analyzing your lead. This can take up to 30 seconds.';
+  const msgs=['Reviewing marketplace credit guidelines','Evaluating your lead details','Writing your dispute letter'];let p=0,s=0;
+  const iv=setInterval(()=>{s+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'%';$('pStat').textContent=s>12?'Still working. The server is starting up.':msgs[Math.min(2,Math.floor(p/32))]},350);
+  try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100%';$('pStat').textContent='Complete';showResult(d,plat,d.dispute_id);await refreshMe()}
+  catch(e){clearInterval(iv);
+    if(e.status===402||e.status===403){$('out').textContent=e.message;toast(e.message);openPlans()}
+    else if(e.status===400){$('out').textContent=e.message}
+    else{showResult(fallback(f),plat,0);toast('AI is unavailable. A standard template was generated instead.')}}
+  finally{busy(btn,false);setTimeout(()=>{$('prog').style.display='none';bar.style.width='0'},900)}};
+const TUT=[['Select a platform','Choose the marketplace that sold you the lead, then enter the email or phone number of your account on that platform.','gPlat'],['Enter real numbers','Type the exact lead cost as a number, for example 75.00, along with the lead phone, email and reference ID from the marketplace.','gCost'],['Add your notes','Describe what went wrong, or tap a quick reason. The more specific the facts, the stronger the letter.','gNotes'],['Generate the letter','Click Generate. A progress bar shows the AI working, and your formatted dispute letter appears on the right.','go']];
+function startTut(){tut=0;$('tut').hidden=false;tutShow()}
+function tutShow(){document.querySelectorAll('.hs').forEach(e=>e.classList.remove('hs'));const t=TUT[tut];$('tutH').textContent=`Quick start ${tut+1} of ${TUT.length}: ${t[0]}`;$('tutP').textContent=t[1];$('tutB').hidden=tut===0;$('tutN').textContent=tut===TUT.length-1?'Finish':'Next';const el=$(t[2]);el.classList.add('hs');el.scrollIntoView({behavior:'smooth',block:'center'})}
+function endTut(){$('tut').hidden=true;document.querySelectorAll('.hs').forEach(e=>e.classList.remove('hs'));ls('lc_tut_done','1')}
+$('tutN').onclick=()=>tut===TUT.length-1?endTut():(tut++,tutShow());$('tutB').onclick=()=>{tut--;tutShow()};$('tutX').onclick=endTut;$('navTut').onclick=()=>{tab('new');startTut()};
+$('navAcc').onclick=()=>{const m=me;$('aN').value=m.full_name||'';$('aPh').value=m.phone||'';$('aA').value=m.acc_angi||'';$('aT2').value=m.acc_thumbtack||'';$('aPo').value=m.acc_porch||'';$('aNx').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;
+  $('accP').textContent=`${m.email} | ${LIM[m.plan]===undefined?'No active plan':NAME[m.plan]+' plan'}`;$('accOv').hidden=false};
 $('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7+ characters and 1 special character.');
-  const f={full_name:$('aN').value,phone:$('aP').value,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value};
-  Object.assign(me,f);saveMe();closeOv('accOv');toast('Saved');
-  api('/api/user/profile',{method:'POST',json:{password:pw,...f}}).catch(e=>toast(e.message))};
+  const f={full_name:$('aN').value,phone:$('aPh').value,acc_angi:$('aA').value,acc_thumbtack:$('aT2').value,acc_porch:$('aPo').value,acc_networx:$('aNx').value};
+  try{await api('/api/user/profile',{method:'POST',json:{password:pw,...f}});Object.assign(me,f);saveMe();closeOv('accOv');renderPlat();toast('Saved')}catch(e){toast(e.message)}};
 $('billBtn').onclick=async()=>{try{const d=await withWake($('billBtn'),()=>api('/api/billing/portal',{method:'POST'}));location.href=d.url}catch(e){toast(e.message)}};
-document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','accOv','adminOv'].forEach(closeOv)});
-document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.hidden=true}));
-addEventListener('scroll',()=>document.querySelector('nav').classList.toggle('sc',scrollY>8),{passive:true});
-$('pcUp').onclick=openUpgrade;
-$('files').onchange=()=>{if($('files').files.length&&ctype!=='ai')document.querySelector('#ctype [data-m=ai]').click()};
-// ---- admin area (key kept in memory only; a wrong key locks it for 5 minutes)
-let adminKey='',adminData=null,lockUntil=+(ls('lc_adm_lock')||0),lockWhy='Admin is locked.',lockTimer=null;
-function lockTick(){const left=Math.ceil((lockUntil-Date.now())/1000),b=$('admGo');
-  if(left<=0){clearInterval(lockTimer);lockTimer=null;ls('lc_adm_lock',null);b.disabled=false;$('admM').textContent='';return}
-  b.disabled=true;$('admM').textContent=`${lockWhy} Try again in ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}.`}
-function startLock(sec,why){lockUntil=Date.now()+sec*1000;lockWhy=why;ls('lc_adm_lock',lockUntil);clearInterval(lockTimer);lockTick();lockTimer=setInterval(lockTick,1000)}
-async function loadAdmin(){
-  let r;try{r=await fetch(API+'/api/admin/analytics',{headers:{'X-Admin-Key':adminKey}})}catch(e){throw new Error('Cannot reach the server. Please try again.')}
+let adminKey='',lockUntil=+(ls('lc_adm_lock')||0),lockTimer=null;
+function lockTick(){const l=Math.ceil((lockUntil-Date.now())/1000),b=$('admGo');if(l<=0){clearInterval(lockTimer);lockTimer=null;ls('lc_adm_lock',null);b.disabled=false;$('admM').textContent='';return}b.disabled=true;$('admM').textContent=`Locked. Try again in ${Math.floor(l/60)}:${String(l%60).padStart(2,'0')}.`}
+function startLock(s){lockUntil=Date.now()+s*1000;ls('lc_adm_lock',lockUntil);clearInterval(lockTimer);lockTick();lockTimer=setInterval(lockTick,1000)}
+async function loadAdmin(){let r;try{r=await rfetch(API+'/api/admin/analytics',{headers:{'X-Admin-Key':adminKey}})}catch(e){throw new Error('Cannot reach the server. Please try again in a minute.')}
   const d=await r.json().catch(()=>({})),det=d.detail&&typeof d.detail==='object'?d.detail:{};
-  if(r.status===403||r.status===429){if(det.retry_after)startLock(det.retry_after,r.status===403?'Incorrect admin key.':'Admin is locked.');throw new Error(det.message||'Access denied.')}
-  if(!r.ok)throw new Error('Could not load admin data.');
-  adminData=d;renderAdmin()}
-function renderAdmin(){
-  const d=adminData,s=d.summary,usd=n=>'$'+Math.round(n).toLocaleString();
-  $('aK').innerHTML=[['Total users',s.users],['Paid users',s.paid],['New (7 days)',s.new_7d],['Disputes',s.disputes],['Eligible credits',usd(s.eligible_total)],['Claimed',usd(s.recovered_total)]].map(([l,v])=>`<div class="kpi"><span>${l}</span><b>${v}</b></div>`).join('');
-  $('aPl').innerHTML=d.plan_distribution.map(p=>`<span class="pl">${esc(p.plan)}: ${p.count}</span>`).join('');
-  const q=$('aFilter').value.trim().toLowerCase();
-  $('aU').innerHTML=d.users.filter(u=>!q||(u.email+' '+u.workspace).toLowerCase().includes(q)).map(u=>`<tr><td>${esc(u.email)}</td><td>${esc(u.workspace)}</td><td><span class="pl">${esc(u.plan)}</span></td><td>${u.plan==='free'?u.trials_left:'–'}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="6" class="empty">No users found.</td></tr>';
-  $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>${esc(x.lead_phone)}</td><td>$${(+x.amount).toFixed(2)}</td><td><span class="bad ${x.valid?'y':'n'}">${x.valid?'Eligible':'Rejected'}</span></td><td>${x.valid?(x.recovered?'Yes':'No'):'–'}</td></tr>`).join('')||'<tr><td colspan="7" class="empty">No disputes yet.</td></tr>'}
-$('adminBtn').onclick=()=>{if(adminKey&&adminData){go('admin');return}$('admK').value='';$('admM').textContent='';$('adminOv').hidden=false;
-  if(Date.now()<lockUntil){if(!lockTimer)lockTimer=setInterval(lockTick,1000);lockTick()}else $('admGo').disabled=false;setTimeout(()=>$('admK').focus(),50)};
-$('admGo').onclick=async()=>{
-  if(Date.now()<lockUntil)return lockTick();
-  const k=$('admK').value.trim();if(!k)return $('admM').textContent='Enter the admin key.';
-  const b=$('admGo');adminKey=k;b.disabled=true;b.classList.add('busy');$('admM').textContent='';
-  try{await withWake(b,loadAdmin);closeOv('adminOv');go('admin')}
-  catch(e){adminKey='';if(Date.now()>=lockUntil)$('admM').textContent=e.message}
-  finally{b.classList.remove('busy');b.disabled=Date.now()<lockUntil}};
+  if(r.status===403||r.status===429){if(det.retry_after)startLock(det.retry_after);throw new Error(det.message||'Access denied.')}
+  if(!r.ok)throw new Error(typeof d.detail==='string'?d.detail:'Could not load admin data.');
+  const s=d.summary;$('aK').innerHTML=[['Users',s.users],['Paid users',s.paid],['Disputes',s.disputes]].map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('');
+  $('aU').innerHTML=d.users.map(u=>`<tr><td>${esc(u.email)}</td><td>${esc(u.workspace)}</td><td>${esc(u.plan)}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('');
+  $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>$${(+x.amount).toFixed(2)}</td><td>${x.valid?'Eligible':'Not eligible'}</td><td>${x.recovered?'Yes':'No'}</td></tr>`).join('');
+  $('admLogin').hidden=true;$('admData').hidden=false}
+function openAdmin(){$('admOv').hidden=false;if(Date.now()<lockUntil){if(!lockTimer)lockTimer=setInterval(lockTick,1000);lockTick()}}
+$('navAdm').onclick=openAdmin;$('admL').onclick=openAdmin;
+$('admGo').onclick=async()=>{if(Date.now()<lockUntil)return lockTick();const k=$('admK').value.trim();if(!k)return $('admM').textContent='Enter the admin key.';const b=$('admGo');adminKey=k;busy(b,true);$('admM').textContent='';
+  try{await withWake(b,loadAdmin)}catch(e){adminKey='';if(Date.now()>=lockUntil)$('admM').textContent=e.message}finally{busy(b,false);b.disabled=Date.now()<lockUntil}};
 $('admK').addEventListener('keydown',e=>{if(e.key==='Enter')$('admGo').click()});
-$('admRefresh').onclick=async()=>{try{await loadAdmin();toast('Refreshed')}catch(e){toast(e.message)}};
-$('admExit').onclick=()=>{adminKey='';adminData=null;go(me?'app':'landing')};
-$('aFilter').oninput=()=>adminData&&renderAdmin();
-document.querySelectorAll('.inp').forEach(i=>i.addEventListener('input',()=>i.classList.remove('invalid')));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe()});
-if(SUPPORT_EMAIL){$('fSup').hidden=false;$('fSup').href='mailto:'+SUPPORT_EMAIL;$('fNoSup').hidden=true}
-document.querySelectorAll('[data-up]').forEach(b=>b.onclick=()=>{toast('This is a Growth Pro feature.');openUpgrade()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','planOv','termsOv','accOv','admOv'].forEach(closeOv)});
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.hidden=true}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe().catch(()=>{})});
+if(SUPPORT_EMAIL){$('fSup').hidden=false;$('fSup').href='mailto:'+SUPPORT_EMAIL}
 $('yr').textContent=new Date().getFullYear();
-renderPlans();observe();render();
-if(me)go('app');
-const q=new URLSearchParams(location.search).get('checkout');
-if(q){history.replaceState({},'',location.pathname);if(q==='success'){toast('Payment received. Activating your plan…');[3500,10000].forEach(t=>setTimeout(refreshMe,t))}}
-else if(token)refreshMe();
+renderLandingPlans();renderPlat();
+if(me){enterApp();refreshMe().catch(()=>{});const q=new URLSearchParams(location.search).get('checkout');if(q){history.replaceState({},'',location.pathname);if(q==='success'){toast('Payment received. Activating your plan.');[3500,10000].forEach(t=>setTimeout(()=>refreshMe().catch(()=>{}),t))}}}
 </script>
 </body>
 </html>
