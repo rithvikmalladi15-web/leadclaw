@@ -52,6 +52,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_S
 TEST_MODE = os.environ.get("TEST_MODE", "") == "1"
 TRIAL_DAYS = int(os.environ.get("TRIAL_DAYS", "7") or 0)
 TRIAL_DISPUTES = int(os.environ.get("TRIAL_DISPUTES", "3") or 3)
+STRIPE_TAX = os.environ.get("STRIPE_AUTOMATIC_TAX", "") == "1"  # turn on once Stripe Tax is set up
 CREDITS = {"basic": 7, "standard": 15, "pro": -1}
 
 
@@ -453,7 +454,7 @@ async def checkout(req: PlanReq, authorization: str = Header("")):
     s = await stripe_call("checkout/sessions", {
         "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
         "line_items[0][price]": STRIPE_PRICES[req.plan], "line_items[0][quantity]": "1",
-        "metadata[plan]": req.plan, **({"subscription_data[trial_period_days]": str(TRIAL_DAYS)} if TRIAL_DAYS > 0 else {}), "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
+        "metadata[plan]": req.plan, **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}), **({"subscription_data[trial_period_days]": str(TRIAL_DAYS)} if TRIAL_DAYS > 0 else {}), "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
     return {"url": s["url"]}
 
 
