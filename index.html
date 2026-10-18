@@ -100,6 +100,12 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 .ib{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0}
 .navl{display:flex;gap:2px}.sun{display:none}html[data-theme=dark] .sun{display:block}html[data-theme=dark] .moon{display:none}
 @media(max-width:700px){nav{flex-wrap:wrap;row-gap:2px}.navl{order:9;width:100%;justify-content:center;border-top:1px solid var(--bd);padding-top:4px}}
+#lbar{position:fixed;top:0;left:0;right:0;height:3px;z-index:300;overflow:hidden;opacity:0;transition:opacity .2s;pointer-events:none}
+#lbar.on{opacity:1}
+#lbar i{position:absolute;top:0;bottom:0;left:-35%;width:35%;background:var(--b);border-radius:3px;animation:lb 1.1s ease-in-out infinite}
+@keyframes lb{to{left:100%}}
+#lnote{position:fixed;top:14px;left:50%;transform:translate(-50%,-8px);z-index:300;background:var(--sf);color:var(--tx);border:1px solid var(--bd);box-shadow:0 8px 24px rgba(0,0,0,.18);padding:9px 16px;border-radius:999px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:.25s;max-width:92vw;text-align:center}
+#lnote.show{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -223,6 +229,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   <div id="admLogin"><p class="sub">Enter the admin key. A wrong key locks access for 5 minutes.</p><div class="f"><input class="inp" id="admK" type="password" autocomplete="off" placeholder="Admin key"></div><p class="msg" id="admM"></p><button class="btn full" id="admGo">Open dashboard</button></div>
   <div id="admData" hidden><div class="kp" id="aK"></div><div class="tw"><table><thead><tr><th>Email</th><th>Business</th><th>Plan</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div>
   <h3 style="font:700 15px var(--d);margin:20px 0 4px">Latest disputes</h3><div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Amount</th><th>Result</th><th>Claimed</th></tr></thead><tbody id="aD"></tbody></table></div></div></div></div>
+<div id="lbar"><i></i></div><div id="lnote" role="status">Connecting to the server. This can take up to 30 seconds.</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -246,12 +253,14 @@ const saveMe=()=>ls('lc_me',JSON.stringify(me));
 fetch(API+'/').catch(()=>{});
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
 async function rfetch(url,o,tries=8){for(let i=0;i<tries;i++){try{const r=await fetch(url,o),ct=r.headers.get('content-type')||'';if(!(r.status>=502&&r.status<=504&&!ct.includes('json'))||i===tries-1)return r}catch(e){if(i===tries-1)throw e}await new Promise(x=>setTimeout(x,4000))}}
+let nb=0,nt=null;
+function busyBar(d){nb=Math.max(0,nb+d);$('lbar').classList.toggle('on',nb>0);clearTimeout(nt);$('lnote').classList.remove('show');if(nb>0)nt=setTimeout(()=>$('lnote').classList.add('show'),2500)}
 async function api(path,o={}){
   const auth=path.startsWith('/api/auth');
   if(!auth&&!token){openAuth('login');throw new Error('Please log in to continue.')}
   const h=o.headers||{};if(token)h.Authorization='Bearer '+token;
   if(o.json){h['Content-Type']='application/json';o.body=JSON.stringify(o.json)}
-  let r;try{r=await rfetch(API+path,{...o,headers:h})}catch(e){throw new Error('Cannot reach the server. It may still be starting up. Please try again in a minute.')}
+  let r;busyBar(1);try{r=await rfetch(API+path,{...o,headers:h})}catch(e){throw new Error('Cannot reach the server. It may still be starting up. Please try again in a minute.')}finally{busyBar(-1)}
   const d=await r.json().catch(()=>({}));
   if(r.status===401&&token&&!auth){signout(true);openAuth('login');throw new Error('Session expired. Please log in again.')}
   if(!r.ok){const e=new Error(typeof d.detail==='string'?d.detail:'Something went wrong. Please try again.');e.status=r.status;throw e}
@@ -288,7 +297,7 @@ $('b1').onclick=async()=>{const m=$('m1'),b=$('b1'),n=$('rN').value.trim(),e=$('
   if(!$('rT').checked)return m.textContent='Please accept the Terms & Conditions.';
   busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}),'Sending your verification code. This can take up to 30 seconds if the server is starting up.',0);reg={name:n,email:e,password:p};showStep(2);$('rC').value='';$('rC').focus()}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
-$('resend').onclick=async ev=>{ev.preventDefault();const m=$('m2');try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}};
+$('resend').onclick=async ev=>{ev.preventDefault();const m=$('m2');m.className='msg good';m.textContent='Sending a new code. This can take a few seconds.';try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}};
 $('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6}$/.test(c))return m.textContent='Enter the 6-digit code.';
   busy(b,true);try{await api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}});showStep(3);$('rB').focus()}catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
