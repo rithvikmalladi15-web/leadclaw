@@ -401,30 +401,4 @@ function endTut(){$('tut').hidden=true;document.querySelectorAll('.hs').forEach(
   $('accP').textContent=`${m.email} | ${LIM[m.plan]===undefined?'No active plan':NAME[m.plan]+' plan'}`;$('accOv').hidden=false};
 $('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7+ characters and 1 special character.');
   const f={full_name:$('aN').value,phone:$('aPh').value,acc_angi:$('aA').value,acc_thumbtack:$('aT2').value,acc_porch:$('aPo').value,acc_networx:$('aNx').value};
-  try{await api('/api/user/profile',{method:'POST',json:{password:pw,...f}});Object.assign(me,f);saveMe();closeOv('accOv');renderPlat();toast('Saved')}catch(e){toast(e.message)}};
-$('billBtn').onclick=async()=>{try{const d=await withWake($('billBtn'),()=>api('/api/billing/portal',{method:'POST'}));location.href=d.url}catch(e){toast(e.message)}};
-let adminKey='',lockUntil=+(ls('lc_adm_lock')||0),lockTimer=null;
-function lockTick(){const l=Math.ceil((lockUntil-Date.now())/1000),b=$('admGo');if(l<=0){clearInterval(lockTimer);lockTimer=null;ls('lc_adm_lock',null);b.disabled=false;$('admM').textContent='';return}b.disabled=true;$('admM').textContent=`Locked. Try again in ${Math.floor(l/60)}:${String(l%60).padStart(2,'0')}.`}
-function startLock(s){lockUntil=Date.now()+s*1000;ls('lc_adm_lock',lockUntil);clearInterval(lockTimer);lockTick();lockTimer=setInterval(lockTick,1000)}
-async function loadAdmin(){let r;try{r=await rfetch(API+'/api/admin/analytics',{headers:{'X-Admin-Key':adminKey}})}catch(e){throw new Error('Cannot reach the server. Please try again in a minute.')}
-  const d=await r.json().catch(()=>({})),det=d.detail&&typeof d.detail==='object'?d.detail:{};
-  if(r.status===403||r.status===429){if(det.retry_after)startLock(det.retry_after);throw new Error(det.message||'Access denied.')}
-  if(!r.ok)throw new Error(typeof d.detail==='string'?d.detail:'Could not load admin data.');
-  const s=d.summary;$('aK').innerHTML=[['Users',s.users],['Paid users',s.paid],['Disputes',s.disputes]].map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('');
-  $('aU').innerHTML=d.users.map(u=>`<tr><td>${esc(u.email)}</td><td>${esc(u.workspace)}</td><td>${esc(u.plan)}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('');
-  $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>$${(+x.amount).toFixed(2)}</td><td>${x.valid?'Eligible':'Not eligible'}</td><td>${x.recovered?'Yes':'No'}</td></tr>`).join('');
-  $('admLogin').hidden=true;$('admData').hidden=false}
-function openAdmin(){$('admOv').hidden=false;if(Date.now()<lockUntil){if(!lockTimer)lockTimer=setInterval(lockTick,1000);lockTick()}}
-$('navAdm').onclick=openAdmin;$('admL').onclick=openAdmin;
-$('admGo').onclick=async()=>{if(Date.now()<lockUntil)return lockTick();const k=$('admK').value.trim();if(!k)return$('admM').textContent='Enter the admin key.';const b=$('admGo');adminKey=k;busy(b,true);$('admM').textContent='';
-  try{await withWake(b,loadAdmin)}catch(e){adminKey='';if(Date.now()>=lockUntil)$('admM').textContent=e.message}finally{busy(b,false);b.disabled=Date.now()<lockUntil}};
-$('admK').addEventListener('keydown',e=>{if(e.key==='Enter')$('admGo').click()});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','planOv','termsOv','accOv','admOv'].forEach(closeOv)});
-document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.hidden=true}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe().catch(()=>{})});
-if(SUPPORT_EMAIL){$('fSup').hidden=false;$('fSup').href='mailto:'+SUPPORT_EMAIL}$('yr').textContent=new Date().getFullYear();
-renderLandingPlans();renderPlat();
-if(me){enterApp();refreshMe().catch(()=>{});const q=new URLSearchParams(location.search).get('checkout');if(q){history.replaceState({},'',location.pathname);if(q==='success'){toast('Payment received. Activating your plan.');[3500,10000].forEach(t=>setTimeout(()=>refreshMe().catch(()=>{}),t))}}}
-</script>
-</body>
-</html>
+  try{await api('/api/user/profile',{method:'POST',json:{password:pw,...f}});Object.assign(me,
