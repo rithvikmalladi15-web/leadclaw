@@ -46,7 +46,7 @@ STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICES = {p: os.environ.get("STRIPE_PRICE_" + p.upper(), "") for p in ("basic", "standard", "pro")}
 
 # Supabase Auth configuration (handles automated emails for free)
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_URL = re.sub(r"/(rest|auth)/v1/?$", "", os.environ.get("SUPABASE_URL", "").strip().rstrip("/"))
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_SECRET_KEY", "")
 
 TEST_MODE = os.environ.get("TEST_MODE", "") == "1"
