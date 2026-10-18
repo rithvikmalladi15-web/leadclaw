@@ -551,6 +551,7 @@ $('navHelp').onclick=()=>{location.href='mailto:'+SUPPORT_EMAIL+'?subject='+enco
 </html>
 <script>
 window.addEventListener('DOMContentLoaded', () => {
+  // 1. Admin Plan Control Dashboard Injection
   const admData = document.getElementById('admData');
   if (admData && !document.getElementById('adminPlanDashboard')) {
     const dashDiv = document.createElement('div');
@@ -594,11 +595,22 @@ window.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Failed to update user plan.');
         toast(`Success! ${email} is now on the ${plan.toUpperCase()} plan.`);
-        loadAdmin(); // Refresh analytics tables
+        loadAdmin(); 
       } catch (e) {
         toast(e.message);
       }
     };
   }
+
+  // 2. Auto-dismiss Plan Modal when active
+  setInterval(() => {
+    if (typeof me !== 'undefined' && me && me.plan && me.plan !== 'none' && me.plan !== 'free') {
+      const planOv = document.getElementById('planOv');
+      if (planOv && !planOv.hidden && planOv.dataset.force !== '1') {
+        planOv.hidden = true;
+        if (typeof enterApp === 'function') enterApp();
+      }
+    }
+  }, 1000);
 });
 </script>
