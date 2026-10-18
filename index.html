@@ -114,6 +114,30 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 @keyframes ckd{to{stroke-dashoffset:0}}
 @keyframes ckp{0%{transform:scale(.9)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.ckc,.ckp{stroke-dashoffset:0}}
+/* password rules */
+.pwr{margin:0 0 12px}
+.pwm{height:4px;background:var(--s2);border-radius:9px;overflow:hidden;margin-bottom:9px}
+#pwb{display:block;height:100%;width:0;border-radius:9px;transition:width .3s,background .3s}
+#pwb[data-l="1"]{background:var(--er)}#pwb[data-l="2"]{background:#f59e0b}#pwb[data-l="3"]{background:var(--ok)}
+.pwr ul{list-style:none;margin:0;padding:0;display:grid;gap:6px;font-size:12.5px;color:var(--mu)}
+.pwr li{display:flex;align-items:center;gap:8px;transition:color .25s}
+.pwr li::before{content:"";flex:none;width:15px;height:15px;border-radius:50%;border:1.5px solid var(--bd);box-sizing:border-box;transition:all .25s}
+.pwr li.on{color:var(--ok);font-weight:600}
+.pwr li.on::before{border-color:var(--ok);background:var(--ok) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3.5 7.2l2.3 2.3 4.7-4.9' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/100% no-repeat;box-shadow:0 0 0 3px rgba(34,197,94,.18)}
+.inp.good{border-color:var(--ok);box-shadow:0 0 0 3px rgba(34,197,94,.15)}
+/* cleaner dashboard */
+.main{background:var(--bg2)}
+.top{background:var(--bg);padding:16px 32px}
+.body{padding:28px 32px 64px;max-width:1120px;margin:0 auto}
+.panel{border-radius:14px;padding:28px;box-shadow:none}
+.panel h2{font-size:18px}
+.step{text-transform:none;letter-spacing:0;font-size:13.5px;color:var(--tx)}
+.side{padding:22px 14px}.side .logo{padding:2px 10px 22px}
+.nv{font-weight:500;padding:9px 12px}.nv.on{font-weight:600}
+.nvsep{height:1px;background:var(--bd);margin:12px 6px}
+.sideplan{border-radius:12px;box-shadow:none}
+.tut{border-radius:12px}
+@media(max-width:860px){.top{padding:14px 16px}.body{padding:20px 16px 48px}}
 </style>
 </head>
 <body>
@@ -155,7 +179,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   <aside class="side">
     <div class="logo"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
     <button class="nv on" data-t="new">New dispute</button><button class="nv" data-t="hist">History</button>
-    <button class="nv" id="navAcc">Account</button><button class="nv" id="navTut">Quick-start guide</button><button class="nv" id="navAdm">Admin</button><button class="nv" id="navOut">Sign out</button>
+    <div class="nvsep"></div><button class="nv" id="navAcc">Account</button><button class="nv" id="navTut">Quick-start guide</button><button class="nv" id="navOut">Sign out</button>
     <div class="sideplan"><b id="spName">No active plan</b><span id="spUse">Choose a plan to begin</span><div class="meter"><i id="spBar"></i></div><button class="btn sm full" id="spUp">Choose a plan</button></div>
   </aside>
   <div class="main">
@@ -195,8 +219,9 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   <div class="dots" id="dots"><i></i><i></i><i></i><i></i></div>
   <div id="s1"><div class="f"><label for="rN">Full name *</label><input class="inp" id="rN" autocomplete="name"></div>
     <div class="f"><label for="rE">Gmail address *</label><input class="inp" id="rE" type="email" placeholder="you@gmail.com" autocomplete="email"></div>
-    <div class="two f"><div><label for="rP">Password *</label><input class="inp" id="rP" type="password" autocomplete="new-password"></div><div><label for="rP2">Confirm password *</label><input class="inp" id="rP2" type="password" autocomplete="new-password"></div></div>
-    <p class="note" style="margin-bottom:10px">7+ characters with 1 special character. For safety, passwords cannot be recovered. Please remember yours.</p>
+    <div class="two f"><div><label for="rP">Password *</label><input class="inp" id="rP" type="password" maxlength="20" autocomplete="new-password"></div><div><label for="rP2">Confirm password *</label><input class="inp" id="rP2" type="password" maxlength="20" autocomplete="new-password"></div></div>
+    <div class="pwr"><div class="pwm"><i id="pwb" data-l="0"></i></div><ul><li id="r1">7 to 20 characters</li><li id="r2">1 special character (! @ # $ % ...)</li><li id="r3">Both passwords match</li></ul></div>
+    <p class="note" style="margin-bottom:10px">For safety, passwords cannot be recovered. Please remember yours.</p>
     <label class="chk"><input type="checkbox" id="rT"><span>I have read and agree to the <a href="#" onclick="openTerms();return false" style="color:var(--ac);font-weight:600">Terms &amp; Conditions</a>.</span></label>
     <p class="msg" id="m1"></p><button class="btn full" id="b1">Send verification code</button></div>
   <div id="s2" hidden><div class="f"><label for="rC">Verification code</label><input class="inp" id="rC" inputmode="numeric" maxlength="10" autocomplete="one-time-code" style="letter-spacing:.4em;font-size:20px;text-align:center"></div>
@@ -206,13 +231,13 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     <div class="two f"><input class="inp" id="hA" placeholder="Angi username or email"><input class="inp" id="hT" placeholder="Thumbtack username or email"></div>
     <div class="two f"><input class="inp" id="hP" placeholder="Porch username or email"><input class="inp" id="hN" placeholder="Networx username or email"></div>
     <p class="msg" id="m3"></p><button class="btn full" id="b3">Create workspace</button></div>
-  <div id="s4" hidden><div class="plans" id="rp"></div><p class="msg" id="m4"></p><p style="text-align:center;margin:8px 0 0"><a href="#" id="skip" style="color:var(--mu);font-size:13.5px">Skip for now</a></p></div>
+  <div id="s4" hidden><div class="plans" id="rp"></div><p class="msg" id="m4"></p></div>
   <div id="sOk" hidden class="okv"><svg class="ckm" viewBox="0 0 52 52" aria-hidden="true"><circle class="ckc" cx="26" cy="26" r="24"/><path class="ckp" d="M14 27l8 8 16-17"/></svg><p>Email verified</p><span>Setting up your workspace...</span></div>
   <div id="sl" hidden><div class="f"><label for="lE">Gmail address</label><input class="inp" id="lE" type="email" autocomplete="email"></div><div class="f"><label for="lP">Password</label><input class="inp" id="lP" type="password" autocomplete="current-password"></div>
     <p class="msg" id="ml"></p><button class="btn full" id="bl">Sign in</button><p style="text-align:center;font-size:13.5px;color:var(--mu);margin:14px 0 0">New to LeadClaw? <a href="#" onclick="openAuth('signup');return false" style="color:var(--ac);font-weight:600">Create an account</a></p></div>
 </div></div>
 
-<div class="ov" id="planOv" hidden><div class="modal w"><div class="mh"><div><h2 id="pT">Choose your plan</h2><p class="sub" id="pS">Upgrade to unlock more credits and Pro features.</p></div><button class="lnk" onclick="closeOv('planOv')">Close</button></div><div class="plans" id="mp"></div><p class="msg" id="mpM"></p></div></div>
+<div class="ov" id="planOv" hidden><div class="modal w"><div class="mh"><div><h2 id="pT">Choose your plan</h2><p class="sub" id="pS">Upgrade to unlock more credits and Pro features.</p></div><button class="lnk" id="pC" onclick="closeOv('planOv')">Close</button></div><div class="plans" id="mp"></div><p class="msg" id="mpM"></p></div></div>
 
 <div class="ov" id="termsOv" hidden><div class="modal m"><div class="mh"><h2>Terms &amp; Conditions</h2><button class="lnk" onclick="closeOv('termsOv')">Close</button></div>
 <div class="terms">
@@ -231,18 +256,20 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 <div class="ov" id="accOv" hidden><div class="modal m"><div class="mh"><div><h2>Account</h2><p class="sub" id="accP"></p></div><button class="lnk" onclick="closeOv('accOv')">Close</button></div>
   <div class="two f"><div><label>Full name</label><input class="inp" id="aN"></div><div><label>Business phone</label><input class="inp" id="aPh"></div></div>
   <div class="two f"><div><label>Angi</label><input class="inp" id="aA"></div><div><label>Thumbtack</label><input class="inp" id="aT2"></div><div><label>Porch</label><input class="inp" id="aPo"></div><div><label>Networx</label><input class="inp" id="aNx"></div></div>
-  <div class="f"><label>New password (optional, cannot be recovered)</label><input class="inp" id="aW" type="password" autocomplete="new-password"></div>
+  <div class="f"><label>New password (optional, cannot be recovered)</label><input class="inp" id="aW" type="password" maxlength="20" autocomplete="new-password"></div>
   <div class="acts"><button class="btn" id="saveAcc">Save changes</button><button class="btn sec" id="billBtn" hidden>Manage subscription</button></div></div></div>
 
 <div class="ov" id="admOv" hidden><div class="modal w"><div class="mh"><h2>Admin</h2><button class="lnk" onclick="closeOv('admOv')">Close</button></div>
   <div id="admLogin"><p class="sub">Enter the admin key. A wrong key locks access for 5 minutes.</p><div class="f"><input class="inp" id="admK" type="password" autocomplete="off" placeholder="Admin key"></div><p class="msg" id="admM"></p><button class="btn full" id="admGo">Open dashboard</button></div>
   <div id="admData" hidden><div class="kp" id="aK"></div><div class="tw"><table><thead><tr><th>Email</th><th>Business</th><th>Plan</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div>
   <h3 style="font:700 15px var(--d);margin:20px 0 4px">Latest disputes</h3><div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Amount</th><th>Result</th><th>Claimed</th></tr></thead><tbody id="aD"></tbody></table></div></div></div></div>
+<div class="ov" id="trOv" hidden><div class="modal"><h2 id="trT">Your free trial has ended</h2><p class="sub" id="trS"></p><p class="msg" id="trM"></p><button class="btn full" id="trGo">Start my plan now</button><button class="btn sec full" id="trNo" style="margin-top:10px" hidden>Not yet</button><p style="text-align:center;font-size:13.5px;margin:14px 0 0"><a href="#" id="trMng" style="color:var(--mu)">Manage subscription</a> &nbsp;|&nbsp; <a href="#" id="trOut" style="color:var(--mu)">Sign out</a></p></div></div>
 <div id="lbar"><i></i></div><div id="lnote" role="status">Connecting to the server. This can take up to 30 seconds.</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 const API='https://leadclaw-api.onrender.com';
+const TRIAL_DISPUTES=3; // free disputes during the trial (keep in sync with the server)
 const TRIAL_DAYS=7; // keep in sync with TRIAL_DAYS on the server
 const SUPPORT_EMAIL=''; // set your support address, e.g. 'support@yourdomain.com'
 const $=id=>document.getElementById(id);
@@ -277,7 +304,7 @@ async function api(path,o={}){
   return d}
 function wake(after,msg){const w=document.createElement('div');w.className='prog';w.style.display='block';w.innerHTML='<div class="t"><span></span></div><div class="bar"><i></i></div>';w.querySelector('span').textContent=msg||'Connecting to the server. This can take up to 30 seconds.';after.insertAdjacentElement('afterend',w);const i=w.querySelector('i');let p=0;const iv=setInterval(()=>{p=Math.min(94,p+(p<50?4:1.5));i.style.width=p+'%'},400);return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),300)}}
 async function withWake(el,fn,msg,delay=1200){let stop=null;const t=setTimeout(()=>{stop=wake(el,msg)},delay);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
-function closeOv(id){$(id).hidden=true}
+function closeOv(id){const o=$(id);if(o.dataset.force==='1')return;o.hidden=true}
 function jump(id){$(id).scrollIntoView({behavior:'smooth'})}
 document.querySelectorAll('.tgl').forEach(b=>b.onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;ls('lc_theme',n)});
 let io;function observe(){io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.rv').forEach(el=>io.observe(el))}
@@ -289,20 +316,26 @@ async function pick(id,btn,msgEl){
   if(!me){openAuth('signup');return}
   msgEl.textContent='';
   try{const d=await withWake(btn,()=>api('/api/billing/checkout',{method:'POST',json:{plan:id}}));
-    if(d.activated){await refreshMe();closeOv('authOv');closeOv('planOv');enterApp();toast('Plan activated')}else if(d.url)location.href=d.url}
+    if(d.activated){await refreshMe();$('planOv').dataset.force='';closeOv('authOv');closeOv('planOv');enterApp();toast('Plan activated')}else if(d.url)location.href=d.url}
   catch(e){msgEl.textContent=e.message}}
 function renderLandingPlans(){$('lp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,'Get '+p.name)).join('');bindPlans($('lp'),()=>me?openPlans():openAuth('signup'));observe()}
-function openPlans(){const nt=!me||me.plan==='none';$('pT').textContent=nt?'Free trial: choose your plan':'Choose your plan';$('pS').textContent=nt?`Free for ${TRIAL_DAYS} days, cancel anytime. Unlock credits and Pro features.`:'Upgrade to unlock more credits and Pro features.';$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Start free trial')).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
+function openPlans(force){$('planOv').dataset.force=force===true?'1':'';$('pC').textContent=force===true?'Sign out':'Close';$('pC').onclick=force===true?()=>{$('planOv').dataset.force='';$('planOv').hidden=true;signout()}:()=>closeOv('planOv');const nt=!me||me.plan==='none';$('pT').textContent=nt?'Free trial: choose your plan':'Choose your plan';$('pS').textContent=nt?`Your first ${TRIAL_DISPUTES} disputes are free. Cancel anytime.`:'Upgrade to unlock more credits and Pro features.';$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Start free trial')).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
 function showStep(n){['s1','s2','s3','s4','sl','sOk'].forEach(x=>$(x).hidden=true);$(n==='l'?'sl':'s'+n).hidden=false;$('dots').hidden=n==='l';[...$('dots').children].forEach((d,i)=>d.classList.toggle('on',i<n));
   $('authM').classList.toggle('w',n===4);
-  const T={1:['Create your account','Step 1 of 4: your details'],2:['Verify your email','Step 2 of 4: we sent a verification code to '+(reg.email||'your inbox')],3:['Set up your workspace','Step 3 of 4: business and marketplace accounts'],4:['Free trial: choose your plan',`Step 4 of 4: free for ${TRIAL_DAYS} days, cancel anytime`],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
-function openAuth(m){showStep(m==='login'?'l':1);['m1','m2','m3','m4','ml'].forEach(i=>$(i).textContent='');$('authOv').hidden=false}
-const pwOk=p=>p.length>=7&&/[!@#$%^&*(),.?":{}|<>]/.test(p);
+  const T={1:['Create your account','Step 1 of 4: your details'],2:['Verify your email','Step 2 of 4: we sent a verification code to '+(reg.email||'your inbox')],3:['Set up your workspace','Step 3 of 4: business and marketplace accounts'],4:['Free trial: choose your plan',`Step 4 of 4: your first ${TRIAL_DISPUTES} disputes are free. Cancel anytime.`],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
+function openAuth(m){showStep(m==='login'?'l':1);['m1','m2','m3','m4','ml'].forEach(i=>$(i).textContent='');pwCheck();$('authOv').hidden=false}
+const SPEC=/[!@#$%^&*(),.?":{}|<>]/;
+const pwOk=p=>p.length>=7&&p.length<=20&&SPEC.test(p);
+function pwCheck(){const p=$('rP').value,q=$('rP2').value,a=p.length>=7&&p.length<=20,b=SPEC.test(p),c=!!p&&p===q;
+  [['r1',a],['r2',b],['r3',c]].forEach(([i,v])=>$(i).classList.toggle('on',v));
+  const n=(a?1:0)+(b?1:0)+(c?1:0);$('pwb').style.width=p?Math.max(8,Math.round(n*33.4))+'%':'0';$('pwb').dataset.l=p?n:0;
+  $('rP').classList.toggle('good',a&&b);$('rP2').classList.toggle('good',a&&b&&c)}
+$('rP').addEventListener('input',pwCheck);$('rP2').addEventListener('input',pwCheck);
 function busy(b,on){b.disabled=on;b.classList.toggle('busy',on)}
 $('b1').onclick=async()=>{const m=$('m1'),b=$('b1'),n=$('rN').value.trim(),e=$('rE').value.trim().toLowerCase(),p=$('rP').value;m.textContent='';
   if(!n)return m.textContent='Enter your full name.';
   if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(e))return m.textContent='A valid @gmail.com address is required.';
-  if(!pwOk(p))return m.textContent='Password needs 7+ characters and 1 special character.';
+  if(!pwOk(p))return m.textContent='Password needs 7 to 20 characters and 1 special character.';
   if(p!==$('rP2').value)return m.textContent='Passwords do not match.';
   if(!$('rT').checked)return m.textContent='Please accept the Terms & Conditions.';
   busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}),'Sending your verification code. This can take up to 30 seconds if the server is starting up.',0);reg={name:n,email:e,password:p};showStep(2);startResend();$('rC').value='';$('rC').focus()}
@@ -318,7 +351,7 @@ $('b3').onclick=async()=>{const m=$('m3'),b=$('b3'),biz=$('rB').value.trim();m.t
   busy(b,true);try{const d=await api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}});
     token=d.token;ls('lc_token',token);reg.password='';await refreshMe();showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Start free trial')).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
-$('skip').onclick=e=>{e.preventDefault();closeOv('authOv');enterApp()};
+
 $('bl').onclick=async()=>{const m=$('ml'),b=$('bl'),email=$('lE').value.trim().toLowerCase(),password=$('lP').value;m.textContent='';if(!email||!password)return m.textContent='Enter your email and password.';
   busy(b,true);try{await withWake(b,async()=>{const d=await api('/api/auth/login',{method:'POST',json:{email,password}});token=d.token;ls('lc_token',token);await refreshMe()});closeOv('authOv');enterApp()}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
@@ -326,21 +359,32 @@ $('lP').addEventListener('keydown',e=>{if(e.key==='Enter')$('bl').click()});
 function signout(silent){if(token&&!silent)fetch(API+'/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{});token=null;me=null;ls('lc_token',null);ls('lc_me',null);$('app').hidden=true;$('landing').hidden=false;renderLandingPlans();!silent&&toast('Signed out')}
 $('navOut').onclick=()=>signout();
 async function refreshMe(){me=await api('/api/me');saveMe();render()}
-function enterApp(){$('landing').hidden=true;$('app').hidden=false;scrollTo(0,0);render();renderPlat();if(!ls('lc_tut_done'))startTut()}
+function enterApp(){$('landing').hidden=true;$('app').hidden=false;scrollTo(0,0);render();renderPlat();if(!(me.plan in LIM)&&!/checkout=success/.test(location.search))openPlans(true);else if(!ls('lc_tut_done'))startTut()}
 function render(){
   if(!me)return;const p=me.plan,lim=LIM[p],isPro=p==='pro',left=me.credits_left;
   $('spName').textContent=lim===undefined?'No active plan':NAME[p]+' Plan';
   $('spUse').textContent=lim===undefined?'Choose a plan to begin':isPro?'Unlimited credits':`${left}/${lim} credits left`;
   $('spBar').style.width=lim===undefined?'0%':isPro?'100%':(left/lim*100)+'%';$('spUp').textContent=isPro?'Manage plan':lim===undefined?'Choose a plan':'Upgrade plan';
   $('leftPill').textContent=lim===undefined?'No active plan':isPro?'Unlimited leads':`${left} lead${left===1?'':'s'} left`;
+  if(me.on_trial){const tl=me.trial_left,tn=me.trial_limit||TRIAL_DISPUTES;$('spName').textContent='Free trial: '+NAME[p];$('spUse').textContent=`${tl} of ${tn} free disputes left`;$('spBar').style.width=(tl/tn*100)+'%';$('spUp').textContent='Start plan now';$('leftPill').textContent=`${tl} free dispute${tl===1?'':'s'} left`}
   $('evBox').innerHTML=isPro?`<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div><div class="f"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
    :`<div class="pro" data-up><span class="in"><b>Audio &amp; PDF evidence upload</b><small>Attach call recordings and documents for the AI to cite</small></span><span class="bg">PRO ONLY</span></div>`;
   $('teamBox').innerHTML=isPro?`<div class="panel"><h2>Team seats</h2><p class="sub" style="margin:0">Priority multi-user seats are included in your plan. Contact the LeadClaw team to add teammates.</p></div>`
-   :`<div class="pro" data-up><span class="in"><b>Priority team seats</b><small>Invite teammates to share one workspace and dispute history</small></span><span class="bg">PRO ONLY</span></div>`;
+   :'';
   document.querySelectorAll('#evBox [data-up],#teamBox [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
   if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
   renderHist()}
-$('spUp').onclick=()=>openPlans();
+function showTrialEnd(ended=true){const o=$('trOv'),n=(me&&me.trial_limit)||TRIAL_DISPUTES;o.dataset.force=ended?'1':'';
+  $('trT').textContent=ended?'Your free trial has ended':'Start your plan now';
+  $('trS').textContent=ended?`You have used your ${n} free disputes. Start your ${NAME[me.plan]||''} plan to keep generating dispute letters.`:`Starting now ends your free trial and charges your card today. You have ${me.trial_left} free dispute${me.trial_left===1?'':'s'} left.`;
+  $('trNo').hidden=ended;$('trM').textContent='';o.hidden=false}
+$('trGo').onclick=async()=>{const b=$('trGo'),m=$('trM');m.textContent='';busy(b,true);
+  try{await withWake(b,()=>api('/api/billing/start-plan',{method:'POST'}),'Starting your plan. This can take up to 30 seconds.',0);await refreshMe();$('trOv').dataset.force='';$('trOv').hidden=true;toast('Your plan is active. Thank you!')}
+  catch(e){m.textContent=e.message}finally{busy(b,false)}};
+$('trNo').onclick=()=>{$('trOv').dataset.force='';$('trOv').hidden=true};
+$('trMng').onclick=async ev=>{ev.preventDefault();try{const d=await api('/api/billing/portal',{method:'POST'});location.href=d.url}catch(e){$('trM').textContent=e.message}};
+$('trOut').onclick=ev=>{ev.preventDefault();$('trOv').dataset.force='';$('trOv').hidden=true;signout()};
+$('spUp').onclick=()=>me&&me.on_trial?showTrialEnd(me.trial_left<=0):openPlans();
 function renderHist(){const ds=me.disputes;$('hE').hidden=ds.length>0;$('kN').textContent=ds.length;$('kE').textContent='$'+ds.filter(d=>d.valid).reduce((a,d)=>a+d.amount,0).toFixed(0);$('kC').textContent='$'+ds.filter(d=>d.recovered).reduce((a,d)=>a+d.amount,0).toFixed(0);
   $('hb').innerHTML=ds.map(d=>`<tr><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td><td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Not eligible'}</span></td>
   <td>${d.valid?`<button class="btn sm${d.recovered?'':' sec'}" onclick="mark(${d.id},${!d.recovered})">${d.recovered?'Claimed':'Mark claimed'}</button>`:'-'}</td><td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="view(${d.id})">View</button>`:''}</td></tr>`).join('')}
@@ -391,7 +435,8 @@ $('go').onclick=async()=>{
   if(!need(['acct','lp2','le','lid','cost','notes']))return;
   const f={account:$('acct').value.trim(),phone:$('lp2').value.trim(),email:$('le').value.trim(),lid:$('lid').value.trim(),cost:parseFloat($('cost').value),notes:$('notes').value.trim()};
   if(!(isEmail(f.account)||isPhone(f.account))){$('acct').classList.add('invalid');$('acct').focus();return toast('Enter the email or phone number of your '+plat+' account.')}
-  if(!(me.plan in LIM)){toast('Choose a plan to generate dispute letters.');return openPlans()}
+  if(!(me.plan in LIM)){toast('Choose a plan to generate dispute letters.');return openPlans(true)}
+  if(me.on_trial&&me.trial_left<=0)return showTrialEnd(true);
   if(me.credits_left===0){toast('You have used all credits this month.');return openPlans()}
   saveAcct(f.account);
   const fd=new FormData();fd.append('platform',plat);fd.append('notes',f.notes);fd.append('cost',f.cost.toFixed(2));fd.append('lead_phone',f.phone);fd.append('lead_email',f.email);fd.append('lead_id',f.lid);fd.append('account',f.account);
@@ -399,9 +444,9 @@ $('go').onclick=async()=>{
   const btn=$('go'),bar=$('pBar');busy(btn,true);$('prog').style.display='block';$('out').className='empty';$('out').textContent='Analyzing your lead. This can take up to 30 seconds.';
   const msgs=['Reviewing marketplace credit guidelines','Evaluating your lead details','Writing your dispute letter'];let p=0,s=0;
   const iv=setInterval(()=>{s+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'%';$('pStat').textContent=s>12?'Still working. The server is starting up.':msgs[Math.min(2,Math.floor(p/32))]},350);
-  try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100%';$('pStat').textContent='Complete';showResult(d,plat,d.dispute_id);await refreshMe()}
+  try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100%';$('pStat').textContent='Complete';showResult(d,plat,d.dispute_id);await refreshMe();if(me.on_trial&&me.trial_left===0)toast('That was your last free dispute. Start your plan from the sidebar to keep going.')}
   catch(e){clearInterval(iv);
-    if(e.status===402||e.status===403){$('out').textContent=e.message;toast(e.message);openPlans()}
+    if(e.status===402||e.status===403){$('out').textContent=e.message;toast(e.message);/trial has ended/i.test(e.message)?showTrialEnd(true):openPlans()}
     else if(e.status===400){$('out').textContent=e.message}
     else{showResult(fallback(f),plat,0);toast('AI is unavailable. A standard template was generated instead.')}}
   finally{busy(btn,false);setTimeout(()=>{$('prog').style.display='none';bar.style.width='0'},900)}};
@@ -412,7 +457,7 @@ function endTut(){$('tut').hidden=true;document.querySelectorAll('.hs').forEach(
 $('tutN').onclick=()=>tut===TUT.length-1?endTut():(tut++,tutShow());$('tutB').onclick=()=>{tut--;tutShow()};$('tutX').onclick=endTut;$('navTut').onclick=()=>{tab('new');startTut()};
 $('navAcc').onclick=()=>{const m=me;$('aN').value=m.full_name||'';$('aPh').value=m.phone||'';$('aA').value=m.acc_angi||'';$('aT2').value=m.acc_thumbtack||'';$('aPo').value=m.acc_porch||'';$('aNx').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;
   $('accP').textContent=`${m.email} | ${LIM[m.plan]===undefined?'No active plan':NAME[m.plan]+' plan'}`;$('accOv').hidden=false};
-$('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7+ characters and 1 special character.');
+$('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7 to 20 characters and 1 special character.');
   const f={full_name:$('aN').value,phone:$('aPh').value,acc_angi:$('aA').value,acc_thumbtack:$('aT2').value,acc_porch:$('aPo').value,acc_networx:$('aNx').value};
   try{await api('/api/user/profile',{method:'POST',json:{password:pw,...f}});Object.assign(me,f);saveMe();closeOv('accOv');renderPlat();toast('Saved')}catch(e){toast(e.message)}};
 $('billBtn').onclick=async()=>{try{const d=await withWake($('billBtn'),()=>api('/api/billing/portal',{method:'POST'}));location.href=d.url}catch(e){toast(e.message)}};
@@ -428,12 +473,12 @@ async function loadAdmin(){let r;try{r=await rfetch(API+'/api/admin/analytics',{
   $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>$${(+x.amount).toFixed(2)}</td><td>${x.valid?'Eligible':'Not eligible'}</td><td>${x.recovered?'Yes':'No'}</td></tr>`).join('');
   $('admLogin').hidden=true;$('admData').hidden=false}
 function openAdmin(){$('admOv').hidden=false;if(Date.now()<lockUntil){if(!lockTimer)lockTimer=setInterval(lockTick,1000);lockTick()}}
-$('navAdm').onclick=openAdmin;$('admL').onclick=openAdmin;
+$('admL').onclick=openAdmin;
 $('admGo').onclick=async()=>{if(Date.now()<lockUntil)return lockTick();const k=$('admK').value.trim();if(!k)return $('admM').textContent='Enter the admin key.';const b=$('admGo');adminKey=k;busy(b,true);$('admM').textContent='';
   try{await withWake(b,loadAdmin)}catch(e){adminKey='';if(Date.now()>=lockUntil)$('admM').textContent=e.message}finally{busy(b,false);b.disabled=Date.now()<lockUntil}};
 $('admK').addEventListener('keydown',e=>{if(e.key==='Enter')$('admGo').click()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','planOv','termsOv','accOv','admOv'].forEach(closeOv)});
-document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)o.hidden=true}));
+document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)closeOv(o.id)}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe().catch(()=>{})});
 if(SUPPORT_EMAIL){$('fSup').hidden=false;$('fSup').href='mailto:'+SUPPORT_EMAIL}
 $('yr').textContent=new Date().getFullYear();
