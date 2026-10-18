@@ -1,4 +1,5 @@
-import asyncio, hashlib, hmac, json, logging, os, re, secrets, time
+import asyncio, hashlib, hmac, json, logging, os, re, secrets, smtplib, time
+from email.mime.text import MIMEText
 from contextlib import contextmanager
 from datetime import datetime, date
 from typing import List, Optional
@@ -8,6 +9,7 @@ import psycopg2
 import psycopg2.extras
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import google.generativeai as genai
 from groq import Groq
@@ -17,8 +19,25 @@ log = logging.getLogger("leadclaw")
 app = FastAPI(title="LeadClaw API", version="15.0.0")
 
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://leadclaw.pages.dev").rstrip("/")
-app.add_middleware(CORSMiddleware, allow_origins=[FRONTEND_URL] if FRONTEND_URL else ["*"],
-                   allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
+
+
+@app.middleware("http")
+async def catch_all(request: Request, call_next):
+    """Turns crashes into JSON errors. Registered before CORS so error replies still carry CORS headers
+    (otherwise the browser reports a crash as 'cannot reach the server')."""
+    try:
+        return await call_next(request)
+    except Exception as e:
+        log.exception("Unhandled error on %s", request.url.path)
+        db_problem = isinstance(e, (psycopg2.Error, RuntimeError))
+        return JSONResponse({"detail": "Database is not connected. Check DATABASE_URL on the server." if db_problem
+                             else "Server error. Please try again shortly."}, status_code=500)
+
+
+app.add_middleware(
+    CORSMiddleware, allow_origins=[FRONTEND_URL] if FRONTEND_URL else ["*"],
+    allow_origin_regex=r"^https://([a-z0-9-]+\.)?leadclaw\.pages\.dev$|^http://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_credentials=False, allow_methods=["*"], allow_headers=["*"])
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
@@ -27,7 +46,31 @@ GROQ_MODEL = os.environ.get("GROQ_MODEL", "qwen3-4b")
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-STRIPE_PRICES = {"solo": os.environ.get("STRIPE_PRICE_SOLO", ""), "growth": os.environ.get("STRIPE_PRICE_GROWTH", "")}
+STRIPE_PRICES = {p: os.environ.get("STRIPE_PRICE_" + p.upper(), "") for p in ("basic", "standard", "pro")}
+SMTP_SENDER = os.environ.get("SMTP_SENDER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+TEST_MODE = os.environ.get("TEST_MODE", "") == "1"  # activates plans without Stripe (testing only)
+CREDITS = {"basic": 7, "standard": 15, "pro": -1}  # monthly AI dispute credits; -1 = unlimited
+
+
+def credits_left(plan, used):
+    lim = CREDITS.get(plan)
+    return 0 if lim is None else (-1 if lim < 0 else max(0, lim - used))
+
+
+def send_mail(to, subject, body):
+    if not SMTP_SENDER or not SMTP_PASSWORD:
+        raise HTTPException(503, "Email service is not configured yet.")
+    try:
+        msg = MIMEText(body)
+        msg["From"], msg["To"], msg["Subject"] = SMTP_SENDER, to, subject
+        with smtplib.SMTP("smtp.gmail.com", 587, timeout=20) as s:
+            s.starttls(); s.login(SMTP_SENDER, SMTP_PASSWORD); s.sendmail(SMTP_SENDER, to, msg.as_string())
+    except HTTPException:
+        raise
+    except Exception as e:
+        log.error("mail failed: %s", e)
+        raise HTTPException(502, "Could not send the verification email. Please try again.")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 SESSION_TTL = 60 * 60 * 24 * 30
 SOLO_MONTHLY_LIMIT = 25
@@ -48,8 +91,19 @@ class _Q:
         return self.cur
 
 
+_ready = {"ok": False}
+
+
 @contextmanager
 def db():
+    if not _ready["ok"]:
+        init_db()
+    with _db_raw() as c:
+        yield c
+
+
+@contextmanager
+def _db_raw():
     if not DATABASE_URL:
         raise RuntimeError("DATABASE_URL is not set.")
     conn = psycopg2.connect(DATABASE_URL, connect_timeout=15)
@@ -64,12 +118,12 @@ def db():
 
 
 def init_db():
-    with db() as c:
+    with _db_raw() as c:
         c.execute("""CREATE TABLE IF NOT EXISTS users (
             email TEXT PRIMARY KEY, password TEXT, age INTEGER, workspace TEXT,
             full_name TEXT DEFAULT '', phone TEXT DEFAULT '', acc_angi TEXT DEFAULT '',
             acc_thumbtack TEXT DEFAULT '', acc_porch TEXT DEFAULT '', acc_networx TEXT DEFAULT '',
-            plan TEXT DEFAULT 'free', trials_left INTEGER DEFAULT 3, stripe_customer TEXT DEFAULT '',
+            plan TEXT DEFAULT 'none', trials_left INTEGER DEFAULT 3, stripe_customer TEXT DEFAULT '',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         c.execute("""CREATE TABLE IF NOT EXISTS disputes (
             id SERIAL PRIMARY KEY, email TEXT, platform TEXT, lead_phone TEXT, lead_email TEXT,
@@ -77,9 +131,17 @@ def init_db():
             recovered INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         c.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, created DOUBLE PRECISION)")
         c.execute("CREATE INDEX IF NOT EXISTS disputes_email_idx ON disputes (email)")
+        c.execute("CREATE TABLE IF NOT EXISTS email_codes (email TEXT PRIMARY KEY, code_hash TEXT, expires DOUBLE PRECISION, attempts INTEGER DEFAULT 0, verified INTEGER DEFAULT 0)")
+        c.execute("UPDATE users SET plan='none' WHERE plan='free'")
+        c.execute("UPDATE users SET plan='basic' WHERE plan='solo'")
+        c.execute("UPDATE users SET plan='pro' WHERE plan='growth'")
+    _ready["ok"] = True
 
 
-init_db()
+try:
+    init_db()
+except Exception as e:  # keep the server up so /health shows the problem; retried on the next request
+    log.error("Database init failed: %s", e)
 
 # ---------- security helpers ----------
 def hash_pw(pw: str) -> str:
@@ -128,7 +190,12 @@ def current_user(authorization: str = "") -> dict:
 
 # ---------- models ----------
 class RegisterReq(BaseModel):
-    email: str; password: str; dob: str; business: str; accept_terms: bool = False
+    email: str; password: str; full_name: str; business: str; accept_terms: bool = False
+    acc_angi: str = ""; acc_thumbtack: str = ""; acc_porch: str = ""; acc_networx: str = ""
+class CodeReq(BaseModel):
+    email: str; full_name: str = ""
+class VerifyReq(BaseModel):
+    email: str; code: str
 class LoginReq(BaseModel):
     email: str; password: str
 class ProfileReq(BaseModel):
@@ -234,32 +301,81 @@ def template_claim(platform, policy, handle, phone, lead_email, cost, notes, rea
 # ---------- auth ----------
 @app.get("/")
 def health():
-    return {"status": "healthy", "service": "LeadClaw API"}
+    try:
+        with db() as c:
+            c.execute("SELECT 1")
+        database = "ok"
+    except Exception as e:
+        log.error("Health check DB error: %s", e)
+        database = "error: check DATABASE_URL"
+    return {"status": "healthy", "service": "LeadClaw API", "database": database}
+
+
+def gmail(v):
+    v = v.strip().lower()
+    if not re.fullmatch(r"[a-z0-9._%+-]+@gmail\.com", v):
+        raise HTTPException(400, "A valid @gmail.com email address is required.")
+    return v
+
+
+def hcode(email, code):
+    return hashlib.sha256(f"{email}:{code}".encode()).hexdigest()
+
+
+@app.post("/api/auth/send-code")
+async def send_code(req: CodeReq):
+    email = gmail(req.email)
+    throttle("c:" + email)
+    FAILS.setdefault("c:" + email, []).append(time.time())
+    with db() as c:
+        if c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
+            raise HTTPException(409, "An account with this email already exists. Please log in.")
+        code = "".join(secrets.choice("0123456789") for _ in range(6))
+        c.execute("INSERT INTO email_codes (email,code_hash,expires,attempts,verified) VALUES (?,?,?,0,0) ON CONFLICT (email) DO UPDATE SET code_hash=EXCLUDED.code_hash, expires=EXCLUDED.expires, attempts=0, verified=0",
+                  (email, hcode(email, code), time.time() + 600))
+    name = (req.full_name.strip() or "there")[:60]
+    await asyncio.to_thread(send_mail, email, "Your LeadClaw verification code",
+        f"Hello {name},\n\nYour LeadClaw verification code is {code}. It expires in 10 minutes.\n\nIf you did not request this, you can ignore this email.")
+    return {"status": "sent"}
+
+
+@app.post("/api/auth/verify-code")
+async def verify_code(req: VerifyReq):
+    email = gmail(req.email)
+    with db() as c:
+        row = c.execute("SELECT code_hash, expires, attempts FROM email_codes WHERE email=?", (email,)).fetchone()
+        if not row or row["expires"] < time.time():
+            raise HTTPException(400, "This code has expired. Request a new one.")
+        if row["attempts"] >= 5:
+            raise HTTPException(429, "Too many incorrect attempts. Request a new code.")
+        ok = hmac.compare_digest(row["code_hash"], hcode(email, req.code.strip()))
+        if ok:
+            c.execute("UPDATE email_codes SET verified=1, expires=? WHERE email=?", (time.time() + 1800, email))
+        else:
+            c.execute("UPDATE email_codes SET attempts=attempts+1 WHERE email=?", (email,))
+    if not ok:
+        raise HTTPException(400, "Incorrect code. Please try again.")
+    return {"status": "verified"}
 
 
 @app.post("/api/auth/register")
 async def register(req: RegisterReq):
-    email = req.email.strip().lower()
-    if not (email and req.password and req.dob.strip() and req.business.strip()):
-        raise HTTPException(400, "Please fill out all fields.")
-    if not email.endswith("@gmail.com"):
-        raise HTTPException(400, "A valid @gmail.com email address is required.")
+    email = gmail(req.email)
+    if not (req.full_name.strip() and req.business.strip() and req.password):
+        raise HTTPException(400, "Please fill out all required fields.")
     if not req.accept_terms:
-        raise HTTPException(400, "You must accept the Terms & Policies.")
+        raise HTTPException(400, "You must accept the Terms & Conditions.")
     validate_password(req.password)
-    try:
-        d = datetime.strptime(req.dob, "%Y-%m-%d").date()
-    except ValueError:
-        raise HTTPException(400, "Invalid Date of Birth.")
-    t = date.today()
-    age = t.year - d.year - ((t.month, t.day) < (d.month, d.day))
-    if age < 18:
-        raise HTTPException(403, "You must be at least 18 years old.")
     with db() as c:
+        row = c.execute("SELECT verified, expires FROM email_codes WHERE email=?", (email,)).fetchone()
+        if not row or not row["verified"] or row["expires"] < time.time():
+            raise HTTPException(403, "Please verify your email first.")
         if c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
             raise HTTPException(409, "An account with this email already exists. Please log in.")
-        c.execute("INSERT INTO users (email,password,age,workspace,plan,trials_left) VALUES (?,?,?,?, 'free',3)",
-                  (email, hash_pw(req.password), age, req.business.strip()))
+        c.execute("INSERT INTO users (email,password,workspace,full_name,acc_angi,acc_thumbtack,acc_porch,acc_networx,plan) VALUES (?,?,?,?,?,?,?,?,'none')",
+                  (email, hash_pw(req.password), req.business.strip()[:120], req.full_name.strip()[:80],
+                   req.acc_angi.strip()[:120], req.acc_thumbtack.strip()[:120], req.acc_porch.strip()[:120], req.acc_networx.strip()[:120]))
+        c.execute("DELETE FROM email_codes WHERE email=?", (email,))
     return {"status": "success", "token": new_session(email)}
 
 
@@ -291,7 +407,7 @@ async def me(authorization: str = Header("")):
     with db() as c:
         used = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date_trunc('month', CURRENT_TIMESTAMP)", (u["email"],)).fetchone()[0]
         ds = [dict(r) for r in c.execute("SELECT id,platform,lead_phone,lead_email,claim,reason,amount,valid,recovered,created_at FROM disputes WHERE email=? ORDER BY id DESC LIMIT 200", (u["email"],))]
-    return {"email": u["email"], "plan": u["plan"], "trials_left": u["trials_left"], "workspace": u["workspace"],
+    return {"email": u["email"], "plan": u["plan"], "credits_left": credits_left(u["plan"], used), "credits_limit": CREDITS.get(u["plan"]), "workspace": u["workspace"],
             "full_name": u["full_name"], "phone": u["phone"], "acc_angi": u["acc_angi"], "acc_thumbtack": u["acc_thumbtack"],
             "acc_porch": u["acc_porch"], "acc_networx": u["acc_networx"], "month_used": used,
             "solo_limit": SOLO_MONTHLY_LIMIT, "billing": bool(u["stripe_customer"]), "disputes": ds,
@@ -334,8 +450,14 @@ async def stripe_call(path, data):
 @app.post("/api/billing/checkout")
 async def checkout(req: PlanReq, authorization: str = Header("")):
     u = current_user(authorization)
-    if req.plan not in STRIPE_PRICES or not STRIPE_PRICES[req.plan]:
+    if req.plan not in CREDITS:
         raise HTTPException(400, "Unknown plan.")
+    if not STRIPE_SECRET and TEST_MODE:
+        with db() as c:
+            c.execute("UPDATE users SET plan=? WHERE email=?", (req.plan, u["email"]))
+        return {"url": None, "activated": True}
+    if not STRIPE_PRICES.get(req.plan):
+        raise HTTPException(503, "Billing is not configured yet.")
     base = FRONTEND_URL or "http://localhost:8080"
     s = await stripe_call("checkout/sessions", {
         "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
@@ -377,11 +499,11 @@ async def webhook(request: Request, stripe_signature: str = Header("")):
             price = (((obj.get("items") or {}).get("data") or [{}])[0].get("price") or {}).get("id")
             plan = next((k for k, v in STRIPE_PRICES.items() if v and v == price), None)
             if status in ("canceled", "unpaid", "incomplete_expired"):
-                c.execute("UPDATE users SET plan='free' WHERE stripe_customer=?", (obj.get("customer"),))
+                c.execute("UPDATE users SET plan='none' WHERE stripe_customer=?", (obj.get("customer"),))
             elif status in ("active", "trialing", "past_due") and plan:
                 c.execute("UPDATE users SET plan=? WHERE stripe_customer=?", (plan, obj.get("customer")))
         elif ev["type"] == "customer.subscription.deleted":
-            c.execute("UPDATE users SET plan='free' WHERE stripe_customer=?", (obj.get("customer"),))
+            c.execute("UPDATE users SET plan='none' WHERE stripe_customer=?", (obj.get("customer"),))
     return {"received": True}
 
 
@@ -400,14 +522,16 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
         raise HTTPException(400, "Enter a valid lead cost.")
     plan = u["plan"]
     files = [f for f in files if f and f.filename]
-    if plan == "free" and u["trials_left"] <= 0:
-        raise HTTPException(402, "Free trial used up. Upgrade to keep filing disputes.")
-    if plan != "growth":
-        raise HTTPException(403, "AI-assisted claims are a Growth Pro feature. Use the standard template.")
+    if plan not in CREDITS:
+        raise HTTPException(402, "Choose a plan to generate dispute letters.")
+    with db() as c:
+        used = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date_trunc('month', CURRENT_TIMESTAMP)", (u["email"],)).fetchone()[0]
+    if credits_left(plan, used) == 0:
+        raise HTTPException(402, f"You have used all {CREDITS[plan]} AI credits this month. Upgrade for more.")
     if not valid_account(account):
         raise HTTPException(400, f"Enter the email or phone number of your {platform} account.")
-    if files and plan != "growth":
-        raise HTTPException(403, "Audio/PDF evidence is a Growth Pro feature.")
+    if files and plan != "pro":
+        raise HTTPException(403, "Audio/PDF evidence is a Pro feature.")
     parts = []
     for f in files:
         raw = await f.read()
@@ -422,7 +546,7 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
               f"Lead Cost: ${cost:.2f}\nLead ID: {lead_id or 'Not provided'}\nDate/Time Received: {received or 'Not provided'}\nBusiness Name: {u['workspace']}\nContractor Name: {u['full_name'] or 'Not provided'}\nContractor Phone: {u['phone'] or 'Not provided'}\nContractor Email: {u['email']}\nLead Phone: {lead_phone}\nLead Email: {lead_email}\n\n"
               f"Contractor Call Notes:\n{notes or '(none)'}\n\nTranscript:\n{transcript or '(none)'}")
     try:
-        data = await run_ai(prompt, parts, "groq" if model == "groq" and plan == "growth" else "gemini")
+        data = await run_ai(prompt, parts, "groq" if model == "groq" and plan == "pro" else "gemini")
     except Exception as e:
         log.exception("AI failed")
         raise HTTPException(502, "Our AI is temporarily unavailable. You were not charged a dispute — please retry.")
@@ -433,40 +557,14 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
     claim = ""
     if valid:
         claim = str(data.get("claim") or "").strip()
-        if plan == "solo" or not claim:
+        if not claim:
             claim = template_claim(platform, policy, handle, lead_phone, lead_email, cost, notes, reason)
     with db() as c:
-        if plan == "free":
-            c.execute("UPDATE users SET trials_left=GREATEST(0,trials_left-1) WHERE email=?", (u["email"],))
         cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?) RETURNING id",
                         (u["email"], platform, lead_phone, lead_email, claim, reason, cost, int(valid))).fetchone()[0]
-        left = c.execute("SELECT trials_left FROM users WHERE email=?", (u["email"],)).fetchone()[0]
+        left = credits_left(plan, used + 1)
     return {"valid": valid, "confidence": float(data.get("confidence") or 0.9), "reason": reason, "claim": claim,
-            "amount": cost, "trials_left": left, "dispute_id": cur}
-
-
-class RecordReq(BaseModel):
-    platform: str; lead_phone: str; lead_email: str; cost: float; valid: bool; reason: str = ""; claim: str = ""
-
-
-@app.post("/api/dispute/record")
-async def record(req: RecordReq, authorization: str = Header("")):
-    """Saves an instant-template dispute (generated in the browser) and enforces plan limits."""
-    u = current_user(authorization)
-    if req.platform not in PLATFORM_POLICY or not (0 < req.cost <= 10000):
-        raise HTTPException(400, "Invalid dispute.")
-    with db() as c:
-        if u["plan"] == "free" and u["trials_left"] <= 0:
-            raise HTTPException(402, "Free trial used up. Upgrade to keep filing disputes.")
-        if u["plan"] == "solo":
-            n = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date_trunc('month', CURRENT_TIMESTAMP)", (u["email"],)).fetchone()[0]
-            if n >= SOLO_MONTHLY_LIMIT:
-                raise HTTPException(402, f"You've used all {SOLO_MONTHLY_LIMIT} disputes this month. Upgrade to Growth Pro for unlimited.")
-        if u["plan"] == "free":
-            c.execute("UPDATE users SET trials_left=GREATEST(0,trials_left-1) WHERE email=?", (u["email"],))
-        cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?) RETURNING id",
-                        (u["email"], req.platform, req.lead_phone[:40], req.lead_email[:120], req.claim[:8000], req.reason[:500], req.cost, int(req.valid))).fetchone()[0]
-    return {"dispute_id": cur}
+            "amount": cost, "credits_left": left, "dispute_id": cur}
 
 
 ADMIN_LOCK_SECONDS = 300
@@ -488,7 +586,7 @@ async def analytics(x_admin_key: str = Header("")):
             "(SELECT COUNT(*) FROM disputes d WHERE d.email=u.email) AS disputes FROM users u ORDER BY u.created_at DESC")]
         disputes = [dict(r) for r in c.execute(
             "SELECT id,email,platform,lead_phone,amount,valid,recovered,created_at FROM disputes ORDER BY id DESC LIMIT 300")]
-        u = c.execute("SELECT COUNT(*) n, COALESCE(SUM((plan<>'free')::int),0) paid, COALESCE(SUM((created_at>=NOW()-INTERVAL '7 days')::int),0) new7 FROM users").fetchone()
+        u = c.execute("SELECT COUNT(*) n, COALESCE(SUM((plan IN ('basic','standard','pro'))::int),0) paid, COALESCE(SUM((created_at>=NOW()-INTERVAL '7 days')::int),0) new7 FROM users").fetchone()
         d = c.execute("SELECT COUNT(*) n, COALESCE(SUM(CASE WHEN valid=1 THEN amount END),0) el, COALESCE(SUM(CASE WHEN recovered=1 THEN amount END),0) rec FROM disputes").fetchone()
     return {"summary": {"users": u["n"], "paid": u["paid"], "new_7d": u["new7"], "disputes": d["n"],
                         "eligible_total": d["el"], "recovered_total": d["rec"]},
