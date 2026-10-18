@@ -313,8 +313,8 @@ async def verify_code(req: VerifyCodeReq):
     code = req.code.strip()
     k = "verify:" + email
     throttle(k)
-    if not re.fullmatch(r"\d{6}", code):
-        raise HTTPException(400, "Enter the 6-digit code.")
+    if not re.fullmatch(r"\d{6,10}", code):
+        raise HTTPException(400, "Enter the full code from your email.")
     r = await supabase_post("verify", {"type": "email", "email": email, "token": code})
     if r.status_code >= 400:
         FAILS.setdefault(k, []).append(time.time())
