@@ -225,180 +225,684 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-const API='https://leadclaw-api.onrender.com';
-const SUPPORT_EMAIL='';
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){return null}};
-const LIM={basic:7,standard:15,pro:-1},NAME={basic:'Basic',standard:'Standard',pro:'Pro',none:'No plan'};
-const EM={Angi:'prosupport@angi.com',Thumbtack:'support@thumbtack.com',Porch:'support@porch.com',Networx:'service@networx.com'};
-const PLANS=[
- {id:'basic',name:'Basic',price:19,cred:'7 AI dispute credits per month',f:['AI-generated dispute letters','Eligibility check against platform guidelines','Dispute history and claim tracker','Copy-ready claim text'],x:['Audio & PDF evidence upload','Gmail direct compose']},
- {id:'standard',name:'Standard',price:39,rec:1,cred:'15 AI dispute credits per month',f:['AI-generated dispute letters','Eligibility check against platform guidelines','Dispute history and claim tracker','Copy-ready claim text'],x:['Audio & PDF evidence upload','Gmail direct compose']},
- {id:'pro',name:'Pro',price:79,cred:'Unlimited AI dispute credits',f:['AI-generated dispute letters','Audio & PDF evidence upload','Gmail direct compose','Choice of Gemini 3.5 Flash or Groq Qwen3 4B','Dispute history and claim tracker']}];
-const CHIPS={'Disconnected phone':'Permanently disconnected phone number. Called twice with no answer.','Outside service area':'Customer is outside our service area and zip codes.','Duplicate lead':'Duplicate lead received within the same billing window.','Spam or bot':'Spam or bot submission with fake contact information.','Wrong trade':'Wrong trade category. The requested service does not match our trade.','Customer mistake':'Homeowner stated they clicked by mistake and did not request this service.'};
-const NOT='Pricing objections, competitor hiring, project postponements and other customer choices are not eligible for credit under marketplace guidelines.';
-const BAD=/hired (another|a|an|someone|a different)|went (with|to) (a |another |the )?(competitor|contractor)|project went to|chose (another|a different)|competitor|too expensive|over (our|my) budget|on hold|postponed/i;
-let token=ls('lc_token'),me=null,plat='Angi',claim='',curId=0,tut=0;
-try{me=JSON.parse(ls('lc_me')||'null')}catch(e){}if(!token)me=null;
-const saveMe=()=>ls('lc_me',JSON.stringify(me));
-fetch(API+'/').catch(()=>{});
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
-async function rfetch(url,o,tries=8){for(let i=0;i<tries;i++){try{const r=await fetch(url,o),ct=r.headers.get('content-type')||'';if(!(r.status>=502&&r.status<=504&&!ct.includes('json'))||i===tries-1)return r}catch(e){if(i===tries-1)throw e}await new Promise(x=>setTimeout(x,4000))}}
-async function api(path,o={}){
-  const auth=path.startsWith('/api/auth');
-  if(!auth&&!token){openAuth('login');throw new Error('Please log in to continue.')}
-  const h=o.headers||{};if(token)h.Authorization='Bearer '+token;
-  if(o.json){h['Content-Type']='application/json';o.body=JSON.stringify(o.json)}
-  let r;try{r=await rfetch(API+path,{...o,headers:h})}catch(e){throw new Error('Cannot reach the server. It may still be starting up. Please try again in a minute.')}
-  const d=await r.json().catch(()=>({}));
-  if(r.status===401&&token&&!auth){signout(true);openAuth('login');throw new Error('Session expired. Please log in again.')}
-  if(!r.ok){const e=new Error(typeof d.detail==='string'?d.detail:'Something went wrong. Please try again.');e.status=r.status;throw e}
-  return d}
-function wake(after){const w=document.createElement('div');w.className='prog';w.style.display='block';w.innerHTML='<div class="t"><span>Connecting to the server. This can take up to 30 seconds.</span></div><div class="bar"><i></i></div>';after.insertAdjacentElement('afterend',w);const i=w.querySelector('i');let p=0;const iv=setInterval(()=>{p=Math.min(94,p+(p<50?4:1.5));i.style.width=p+'%'},400);return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),300)}}
-async function withWake(el,fn){let stop=null;const t=setTimeout(()=>{stop=wake(el)},1200);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
-function closeOv(id){$(id).hidden=true}
-function jump(id){$(id).scrollIntoView({behavior:'smooth'})}
-document.querySelectorAll('.tgl').forEach(b=>b.onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;ls('lc_theme',n)});
-let io;function observe(){io&&io.disconnect();io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});document.querySelectorAll('.rv').forEach(el=>io.observe(el))}
-function openTerms(){$('tDate').textContent=new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});$('termsOv').hidden=false}
-function planHtml(p,cur,label){return `<article class="plan rv${p.rec?' rec':''}">${p.rec?'<span class="tag">RECOMMENDED</span>':''}<h3>${p.name}</h3><div class="price">$${p.price}<small>/mo</small></div><div class="cred">${p.cred}</div>
- <ul>${p.f.map(x=>`<li>${x}</li>`).join('')}${(p.x||[]).map(x=>`<li class="no">${x}</li>`).join('')}</ul><button class="btn full${p.rec?'':' sec'}" ${cur?'disabled':''} data-plan="${p.id}">${cur?'Current plan':label}</button></article>`}
-function bindPlans(box,fn){box.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>fn(b.dataset.plan,b))}
-async function pick(id,btn,msgEl){
-  if(!me){openAuth('signup');return}
-  msgEl.textContent='';
-  try{const d=await withWake(btn,()=>api('/api/billing/checkout',{method:'POST',json:{plan:id}}));
-    if(d.activated){await refreshMe();closeOv('authOv');closeOv('planOv');enterApp();toast('Plan activated')}else if(d.url)location.href=d.url}
-  catch(e){msgEl.textContent=e.message}}
-function renderLandingPlans(){$('lp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,'Get '+p.name)).join('');bindPlans($('lp'),()=>me?openPlans():openAuth('signup'));observe()}
-function openPlans(){$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Choose '+p.name)).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
-function showStep(n){['s1','s4','sl'].forEach(x=>$(x).hidden=true);$(n==='l'?'sl':'s'+n).hidden=false;$('dots').hidden=n==='l';[...$('dots').children].forEach((d,i)=>d.classList.toggle('on',i<n));$('authM').classList.toggle('w',n===4);
-  const T={1:['Create your account','Step 1 of 2: your details'],4:['Choose your plan','Step 2 of 2: pick the plan that fits your volume'],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
-function openAuth(m){showStep(m==='login'?'l':1);['m1','m4','ml'].forEach(i=>$(i).textContent='');$('authOv').hidden=false}
-const pwOk=p=>p.length>=7&&/[!@#$%^&*(),.?":{}|<>]/.test(p);
-function busy(b,on){b.disabled=on;b.classList.toggle('busy',on)}
-
-$('b1').onclick=async()=>{
-  const m=$('m1'),b=$('b1');
-  const n=$('rN').value.trim();
-  const e=$('rE').value.trim().toLowerCase();
-  const p=$('rP').value;
-  const biz=$('rB').value.trim();
+  // --------------------------------------------------------------------------
+  // Configuration & Environment Setup
+  // --------------------------------------------------------------------------
+  const API = 'https://leadclaw-api.onrender.com';
+  const SUPPORT_EMAIL = '';
   
-  m.textContent='';
-  if(!n)return m.textContent='Enter your full name.';
-  if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(e))return m.textContent='A valid @gmail.com address is required.';
-  if(!pwOk(p))return m.textContent='Password needs 7+ characters and 1 special character.';
-  if(p!==$('rP2').value)return m.textContent='Passwords do not match.';
-  if(!biz)return m.textContent='Enter your business name.';
-  if(!$('rT').checked)return m.textContent='Please accept the Terms & Conditions.';
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } };
 
-  busy(b,true);
-  try{
-    const d=await withWake(b,()=>api('/api/auth/register',{
-      method:'POST',
-      json:{email:e,password:p,full_name:n,business:biz,accept_terms:true}
-    }));
-    token=d.token;
-    ls('lc_token',token);
-    await refreshMe();
-    showStep(4);
-    $('rp').innerHTML=PLANS.map(plan=>planHtml(plan,false,'Choose '+plan.name)).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));
-    bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')));
-  }catch(x){
-    m.textContent=x.message;
-  }finally{
-    busy(b,false);
+  const LIM = { basic: 7, standard: 15, pro: -1 };
+  const NAME = { basic: 'Basic', standard: 'Standard', pro: 'Pro', none: 'No plan' };
+  const EM = { Angi: 'prosupport@angi.com', Thumbtack: 'support@thumbtack.com', Porch: 'support@porch.com', Networx: 'service@networx.com' };
+
+  const PLANS = [
+    { id: 'basic', name: 'Basic', price: 19, cred: '7 AI dispute credits per month', f: ['AI-generated dispute letters', 'Eligibility check against platform guidelines', 'Dispute history and claim tracker', 'Copy-ready claim text'], x: ['Audio & PDF evidence upload', 'Gmail direct compose'] },
+    { id: 'standard', name: 'Standard', price: 39, rec: 1, cred: '15 AI dispute credits per month', f: ['AI-generated dispute letters', 'Eligibility check against platform guidelines', 'Dispute history and claim tracker', 'Copy-ready claim text'], x: ['Audio & PDF evidence upload', 'Gmail direct compose'] },
+    { id: 'pro', name: 'Pro', price: 79, cred: 'Unlimited AI dispute credits', f: ['AI-generated dispute letters', 'Audio & PDF evidence upload', 'Gmail direct compose', 'Choice of Gemini 3.5 Flash or Groq Qwen3 4B', 'Dispute history and claim tracker'] }
+  ];
+
+  const CHIPS = {
+    'Disconnected phone': 'Permanently disconnected phone number. Called twice with no answer.',
+    'Outside service area': 'Customer is outside our service area and zip codes.',
+    'Duplicate lead': 'Duplicate lead received within the same billing window.',
+    'Spam or bot': 'Spam or bot submission with fake contact information.',
+    'Wrong trade': 'Wrong trade category. The requested service does not match our trade.',
+    'Customer mistake': 'Homeowner stated they clicked by mistake and did not request this service.'
+  };
+
+  const NOT = 'Pricing objections, competitor hiring, project postponements and other customer choices are not eligible for credit under marketplace guidelines.';
+  const BAD = /hired (another|a|an|someone|a different)|went (with|to) (a |another |the )?(competitor|contractor)|project went to|chose (another|a different)|competitor|too expensive|over (our|my) budget|on hold|postponed/i;
+
+  let token = ls('lc_token');
+  let me = null;
+  let plat = 'Angi';
+  let claim = '';
+  let curId = 0;
+  let tut = 0;
+
+  try { me = JSON.parse(ls('lc_me') || 'null'); } catch (e) {}
+  if (!token) me = null;
+
+  const saveMe = () => ls('lc_me', JSON.stringify(me));
+  fetch(API + '/').catch(() => {});
+
+  // --------------------------------------------------------------------------
+  // Utility & API Helper Functions
+  // --------------------------------------------------------------------------
+  function toast(m) {
+    const t = $('toast');
+    t.textContent = m;
+    t.classList.add('show');
+    clearTimeout(toast.t);
+    toast.t = setTimeout(() => t.classList.remove('show'), 3200);
   }
-};
 
-$('skip').onclick=e=>{e.preventDefault();closeOv('authOv');enterApp()};$('bl').onclick=async()=>{const m=$('ml'),b=$('bl'),email=$('lE').value.trim().toLowerCase(),password=$('lP').value;m.textContent='';if(!email||!password)return m.textContent='Enter your email and password.';
-  busy(b,true);try{await withWake(b,async()=>{const d=await api('/api/auth/login',{method:'POST',json:{email,password}});token=d.token;ls('lc_token',token);await refreshMe()});closeOv('authOv');enterApp()}
-  catch(x){m.textContent=x.message}finally{busy(b,false)}};
-$('lP').addEventListener('keydown',e=>{if(e.key==='Enter')$('bl').click()});
-function signout(silent){if(token&&!silent)fetch(API+'/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{});token=null;me=null;ls('lc_token',null);ls('lc_me',null);$('app').hidden=true;$('landing').hidden=false;renderLandingPlans();!silent&&toast('Signed out')}$('navOut').onclick=()=>signout();
-async function refreshMe(){me=await api('/api/me');saveMe();render()}
-function enterApp(){$('landing').hidden=true;$('app').hidden=false;scrollTo(0,0);render();renderPlat();if(!ls('lc_tut_done'))startTut()}
-function render(){
-  if(!me)return;const p=me.plan,lim=LIM[p],isPro=p==='pro',left=me.credits_left;
-  $('spName').textContent=lim===undefined?'No active plan':NAME[p]+' Plan';$('spUse').textContent=lim===undefined?'Choose a plan to begin':isPro?'Unlimited credits':`${left}/${lim} credits left`;
-  $('spBar').style.width=lim===undefined?'0%':isPro?'100%':(left/lim*100)+'%';$('spUp').textContent=isPro?'Manage plan':lim===undefined?'Choose a plan':'Upgrade plan';$('leftPill').textContent=lim===undefined?'No active plan':isPro?'Unlimited leads':`${left} lead${left===1?'':'s'} left`;
-  $('evBox').innerHTML=isPro?`<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div><div class="f"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
-   :`<div class="pro" data-up><span class="in"><b>Audio &amp; PDF evidence upload</b><small>Attach call recordings and documents for the AI to cite</small></span><span class="bg">PRO ONLY</span></div>`;
-  $('teamBox').innerHTML=isPro?`<div class="panel"><h2>Team seats</h2><p class="sub" style="margin:0">Priority multi-user seats are included in your plan. Contact the LeadClaw team to add teammates.</p></div>`
-   :`<div class="pro" data-up><span class="in"><b>Priority team seats</b><small>Invite teammates to share one workspace and dispute history</small></span><span class="bg">PRO ONLY</span></div>`;
-  document.querySelectorAll('#evBox [data-up],#teamBox [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
-  if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
-  renderHist()}
-$('spUp').onclick=()=>openPlans();
-function renderHist(){const ds=me.disputes;$('hE').hidden=ds.length>0;$('kN').textContent=ds.length;$('kE').textContent='$'+ds.filter(d=>d.valid).reduce((a,d)=>a+d.amount,0).toFixed(0);$('kC').textContent='$'+ds.filter(d=>d.recovered).reduce((a,d)=>a+d.amount,0).toFixed(0);$('hb').innerHTML=ds.map(d=>`<tr><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td><td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Not eligible'}</span></td>
-  <td>${d.valid?`<button class="btn sm${d.recovered?'':' sec'}" onclick="mark(${d.id},${!d.recovered})">${d.recovered?'Claimed':'Mark claimed'}</button>`:'-'}</td><td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="view(${d.id})">View</button>`:''}</td></tr>`).join('')}
-async function mark(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as claimed':'Unmarked')}catch(e){toast(e.message)}}
-function view(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},d.platform,id);tab('new')}
-function tab(t){document.querySelectorAll('.nv[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('tNew').hidden=t!=='new';$('tHist').hidden=t!=='hist';$('ttl').textContent=t==='new'?'New dispute':'Dispute history'}
-document.querySelectorAll('.nv[data-t]').forEach(b=>b.onclick=()=>tab(b.dataset.t));
-function renderPlat(){$('plat').innerHTML=['Angi','Thumbtack','Porch','Networx'].map(p=>`<button type="button" class="${p===plat?'on':''}">${p}</button>`).join('');$('acctL').textContent=`Your ${plat} account (email or phone) *`;$('acct').value=(me&&me['acc_'+plat.toLowerCase()])||'';
-  [...$('plat').children].forEach(b=>b.onclick=()=>{plat=b.textContent;renderPlat()})}$('chips').innerHTML=Object.keys(CHIPS).map(k=>`<button type="button" class="chip">${k}</button>`).join('');[...$('chips').children].forEach((c,i)=>c.onclick=()=>{$('notes').value=Object.values(CHIPS)[i]});
-const isEmail=v=>/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v),isPhone=v=>/^[\d\s().+-]+$/.test(v)&&v.replace(/\D/g,'').length>=10&&v.replace(/\D/g,'').length<=15;
-function saveAcct(a){const k='acc_'+plat.toLowerCase();if(me[k]===a)return;me[k]=a;saveMe();api('/api/user/profile',{method:'POST',json:{password:'',full_name:me.full_name||'',phone:me.phone||'',acc_angi:me.acc_angi||'',acc_thumbtack:me.acc_thumbtack||'',acc_porch:me.acc_porch||'',acc_networx:me.acc_networx||''}}).catch(()=>{})}
-function fallback(f){const amt='$'+f.cost.toFixed(2);if(BAD.test(f.notes))return{valid:false,reason:NOT,claim:''};
- return{valid:true,reason:'The AI service was unavailable, so a standard template was used. No credit was deducted.',claim:`Subject: Urgent: Lead Credit Request - Account # ${f.account} - Lead ID ${f.lid}
+  async function rfetch(url, o, tries = 8) {
+    for (let i = 0; i < tries; i++) {
+      try {
+        const r = await fetch(url, o);
+        const ct = r.headers.get('content-type') || '';
+        if (!(r.status >= 502 && r.status <= 504 && !ct.includes('json')) || i === tries - 1) return r;
+      } catch (e) {
+        if (i === tries - 1) throw e;
+      }
+      await new Promise(x => setTimeout(x, 4000));
+    }
+  }
 
-Dear Partner Support Team,
+  async function api(path, o = {}) {
+    const auth = path.startsWith('/api/auth');
+    if (!auth && !token) {
+      openAuth('login');
+      throw new Error('Please log in to continue.');
+    }
+    const h = o.headers || {};
+    if (token) h.Authorization = 'Bearer ' + token;
+    if (o.json) {
+      h['Content-Type'] = 'application/json';
+      o.body = JSON.stringify(o.json);
+    }
+    let r;
+    try {
+      r = await rfetch(API + path, { ...o, headers: h });
+    } catch (e) {
+      throw new Error('Cannot reach the server. It may still be starting up. Please try again in a minute.');
+    }
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401 && token && !auth) {
+      signout(true);
+      openAuth('login');
+      throw new Error('Session expired. Please log in again.');
+    }
+    if (!r.ok) {
+      const e = new Error(typeof d.detail === 'string' ? d.detail : 'Something went wrong. Please try again.');
+      e.status = r.status;
+      throw e;
+    }
+    return d;
+  }
 
-I am writing to formally request a credit/refund for an invalid lead charged to my account. Below are the required identification details for this transaction:
+  function wake(after) {
+    const w = document.createElement('div');
+    w.className = 'prog';
+    w.style.display = 'block';
+    w.innerHTML = '<div class="t"><span>Connecting to the server. This can take up to 30 seconds.</span></div><div class="bar"><i></i></div>';
+    after.insertAdjacentElement('afterend', w);
+    const i = w.querySelector('i');
+    let p = 0;
+    const iv = setInterval(() => {
+      p = Math.min(94, p + (p < 50 ? 4 : 1.5));
+      i.style.width = p + '%';
+    }, 400);
+    return () => {
+      clearInterval(iv);
+      i.style.width = '100%';
+      setTimeout(() => w.remove(), 300);
+    };
+  }
 
-LEAD IDENTIFICATION DATA
-- Business Name: ${me.workspace}
-- Platform Account ID: ${f.account}
-- Lead ID Number: ${f.lid}
-- Lead Cost: ${amt}
-- Customer Phone: ${f.phone}
-- Customer Email: ${f.email}
+  async function withWake(el, fn) {
+    let stop = null;
+    const t = setTimeout(() => {
+      stop = wake(el);
+    }, 1200);
+    try {
+      return await fn();
+    } finally {
+      clearTimeout(t);
+      stop && stop();
+    }
+  }
 
-REASON FOR DISPUTE
-This lead qualifies for a credit under your platform's credit guarantee guidelines for the following reason:
-${f.notes}
+  // --------------------------------------------------------------------------
+  // UI Navigation, Modals & Theme Handlers
+  // --------------------------------------------------------------------------
+  function closeOv(id) {
+    $(id).hidden = true;
+  }
 
-REQUEST
-Please review this lead and issue a credit of ${amt} to my account. I am happy to provide any additional information.
+  function jump(id) {
+    $(id).scrollIntoView({ behavior: 'smooth' });
+  }
 
-Sincerely,
-${me.full_name||me.workspace}
-${me.workspace}
-${me.email}`}}
-function showResult(d,p=plat,id=0){claim=d.claim||'';curId=id;const isPro=me.plan==='pro';
-  $('out').className='res';$('out').innerHTML=`<div class="verdict ${d.valid?'ok':'er'}">${d.valid?'Eligible for credit':'Not eligible'}</div><p style="color:var(--mu);margin:8px 0 0">${esc(d.reason)}</p>`+(d.valid&&claim?`<div class="claim" id="cl"></div><div class="acts"><button class="btn sec sm" id="cp">Copy letter</button>${isPro?'<button class="btn sm" id="gm">Open in Gmail</button>':'<span class="pro inl" data-up><span class="in">Open in Gmail</span><span class="bg">PRO ONLY</span></span>'}${id?'<button class="btn sec sm" id="cm">Mark as claimed</button>':''}</div>`:'');
-  if(d.valid&&claim){$('cl').textContent=claim;$('cp').onclick=async()=>{try{await navigator.clipboard.writeText(claim);toast('Letter copied')}catch(e){toast('Copy failed. Select the text manually.')}};
-    if(isPro)$('gm').onclick=()=>{const mm=claim.match(/^Subject:\s*(.+?)\r?\n+/),su=mm?mm[1]:'Lead Credit Request',body=mm?claim.slice(mm[0].length):claim;const w=window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(EM[p]||'')}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`,'_blank');if(w)w.opener=null;else toast('Popup blocked. Allow popups or copy the letter.')};
-    if(id)$('cm').onclick=()=>mark(id,true)}
-  document.querySelectorAll('#out [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()})}
-function need(ids){let bad=null;for(const id of ids){const el=$(id),v=el.value.trim(),ok=id==='cost'?(Number.isFinite(parseFloat(v))&&parseFloat(v)>0):!!v;el.classList.toggle('invalid',!ok);if(!ok&&!bad)bad=el}if(bad){bad.focus();toast('Please complete the highlighted fields.');return false}return true}
-document.querySelectorAll('.inp,textarea').forEach(i=>i.addEventListener('input',()=>i.classList.remove('invalid')));
-$('go').onclick=async()=>{
-  if(!need(['acct','lp2','le','lid','cost','notes']))return;
-  const f={account:$('acct').value.trim(),phone:$('lp2').value.trim(),email:$('le').value.trim(),lid:$('lid').value.trim(),cost:parseFloat($('cost').value),notes:$('notes').value.trim()};
-  if(!(isEmail(f.account)||isPhone(f.account))){$('acct').classList.add('invalid');$('acct').focus();return toast('Enter the email or phone number of your '+plat+' account.')}
-  if(!(me.plan in LIM)){toast('Choose a plan to generate dispute letters.');return openPlans()}
-  if(me.credits_left===0){toast('You have used all credits this month.');return openPlans()}
-  saveAcct(f.account);
-  const fd=new FormData();fd.append('platform',plat);fd.append('notes',f.notes);fd.append('cost',f.cost.toFixed(2));fd.append('lead_phone',f.phone);fd.append('lead_email',f.email);fd.append('lead_id',f.lid);fd.append('account',f.account);
-  if(me.plan==='pro'){fd.append('model',$('model').value);[...$('files').files].forEach(x=>fd.append('files',x))}
-  const btn=$('go'),bar=$('pBar');busy(btn,true);$('prog').style.display='block';$('out').className='empty';$('out').textContent='Analyzing your lead. This can take up to 30 seconds.';
-  const msgs=['Reviewing marketplace credit guidelines','Evaluating your lead details','Writing your dispute letter'];let p=0,s=0;
-  const iv=setInterval(()=>{s+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'\%';$('pStat').textContent=s>12?'Still working. The server is starting up.':msgs[Math.min(2,Math.floor(p/32))]},350);
-  try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100\%';$('pStat').textContent='Complete';showResult(d,plat,d.dispute_id);await refreshMe()}
-  catch(e){clearInterval(iv);
-    if(e.status===402||e.status===403){$('out').textContent=e.message;toast(e.message);openPlans()}
-    else if(e.status===400){$('out').textContent=e.message}
-    else{showResult(fallback(f),plat,0);toast('AI is unavailable. A standard template was generated instead.')}}
-  finally{busy(btn,false);setTimeout(()=>{$('prog').style.display='none';bar.style.width='0'},900)}};
-const TUT=[['Select a platform','Choose the marketplace that sold you the lead, then enter the email or phone number of your account on that platform.','gPlat'],['Enter real numbers','Type the exact lead cost as a number, for example 75.00, along with the lead phone, email and reference ID from the marketplace.','gCost'],['Add your notes','Describe what went wrong, or tap a quick reason. The more specific the facts, the stronger the letter.','gNotes'],['Generate the letter','Click Generate. A progress bar shows the AI working, and your formatted dispute letter appears on the right.','go']];
-function startTut(){tut=0;$('tut').hidden=false;tutShow()}
-function tutShow(){document.querySelectorAll('.hs').forEach(e=>e.classList.remove('hs'));const t=TUT[tut];$('tutH').textContent=`Quick start ${tut+1} of ${TUT.length}: ${t[0]}`;$('tutP').textContent=t[1];$('tutB').hidden=tut===0;$('tutN').textContent=tut===TUT.length-1?'Finish':'Next';const el=$(t[2]);el.classList.add('hs');el.scrollIntoView({behavior:'smooth',block:'center'})}
-function endTut(){$('tut').hidden=true;document.querySelectorAll('.hs').forEach(e=>e.classList.remove('hs'));ls('lc_tut_done','1')}$('tutN').onclick=()=>tut===TUT.length-1?endTut():(tut++,tutShow());$('tutB').onclick=()=>{tut--;tutShow()};$('tutX').onclick=endTut;$('navTut').onclick=()=>{tab('new');startTut()};$('navAcc').onclick=()=>{const m=me;$('aN').value=m.full_name\vert{}\vert{}'';$('aPh').value=m.phone||'';$('aA').value=m.acc_angi\vert{}\vert{}'';$('aT2').value=m.acc_thumbtack||'';$('aPo').value=m.acc_porch\vert{}\vert{}'';$('aNx').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;
-  $('accP').textContent=`${m.email} | ${LIM[m.plan]===undefined?'No active plan':NAME[m.plan]+' plan'}`;$('accOv').hidden=false};
-$('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7+ characters and 1 special character.');
-  const f={full_name:$('aN').value,phone:$('aPh').value,acc_angi:$('aA').value,acc_thumbtack:$('aT2').value,acc_porch:$('aPo').value,acc_networx:$('aNx').value};
-  try{await api('/api/user/profile',{method:'POST',json:{password:pw,...f}});Object.assign(me,
+  document.querySelectorAll('.tgl').forEach(b => b.onclick = () => {
+    const n = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = n;
+    ls('lc_theme', n);
+  });
+
+  let io;
+  function observe() {
+    io && io.disconnect();
+    io = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('in');
+        io.unobserve(e.target);
+      }
+    }), { threshold: .12 });
+    document.querySelectorAll('.rv').forEach(el => io.observe(el));
+  }
+
+  function openTerms() {
+    $('tDate').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    $('termsOv').hidden = false;
+  }
+
+  function planHtml(p, cur, label) {
+    return `<article class="plan rv${p.rec ? ' rec' : ''}">${p.rec ? '<span class="tag">RECOMMENDED</span>' : ''}<h3>${p.name}</h3><div class="price">$${p.price}<small>/mo</small></div><div class="cred">${p.cred}</div>
+    <ul>${p.f.map(x => `<li>${x}</li>`).join('')}${(p.x || []).map(x => `<li class="no">${x}</li>`).join('')}</ul><button class="btn full${p.rec ? '' : ' sec'}" ${cur ? 'disabled' : ''} data-plan="${p.id}">${cur ? 'Current plan' : label}</button></article>`;
+  }
+
+  function bindPlans(box, fn) {
+    box.querySelectorAll('[data-plan]').forEach(b => b.onclick = () => fn(b.dataset.plan, b));
+  }
+
+  async function pick(id, btn, msgEl) {
+    if (!me) {
+      openAuth('signup');
+      return;
+    }
+    msgEl.textContent = '';
+    try {
+      const d = await withWake(btn, () => api('/api/billing/checkout', { method: 'POST', json: { plan: id } }));
+      if (d.activated) {
+        await refreshMe();
+        closeOv('authOv');
+        closeOv('planOv');
+        enterApp();
+        toast('Plan activated');
+      } else if (d.url) {
+        location.href = d.url;
+      }
+    } catch (e) {
+      msgEl.textContent = e.message;
+    }
+  }
+
+  function renderLandingPlans() {
+    $('lp').innerHTML = PLANS.map(p => planHtml(p, me && me.plan === p.id, 'Get ' + p.name)).join('');
+    bindPlans($('lp'), () => me ? openPlans() : openAuth('signup'));
+    observe();
+  }
+
+  function openPlans() {
+    $('mp').innerHTML = PLANS.map(p => planHtml(p, me && me.plan === p.id, me && me.plan !== 'none' ? 'Switch to ' + p.name : 'Choose ' + p.name)).join('');
+    $('mp').querySelectorAll('.rv').forEach(x => x.classList.add('in'));
+    bindPlans($('mp'), (id, b) => pick(id, b, $('mpM')));
+    $('mpM').textContent = '';
+    $('planOv').hidden = false;
+  }
+
+  function showStep(n) {
+    ['s1', 's4', 'sl'].forEach(x => $(x).hidden = true);
+    $(n === 'l' ? 'sl' : 's' + n).hidden = false;
+    $('dots').hidden = n === 'l';
+    [...$('dots').children].forEach((d, i) => d.classList.toggle('on', i < n));
+    $('authM').classList.toggle('w', n === 4);
+    const T = {
+      1: ['Create your account', 'Step 1 of 2: your details'],
+      4: ['Choose your plan', 'Step 2 of 2: pick the plan that fits your volume'],
+      l: ['Welcome back', 'Sign in to your dashboard']
+    }[n];
+    $('aT').textContent = T[0];
+    $('aS').textContent = T[1];
+  }
+
+  function openAuth(m) {
+    showStep(m === 'login' ? 'l' : 1);
+    ['m1', 'm4', 'ml'].forEach(i => $(i).textContent = '');
+    $('authOv').hidden = false;
+  }
+
+  const pwOk = p => p.length >= 7 && /[!@#$%^&*(),.?":{}|<>]/.test(p);
+  function busy(b, on) {
+    b.disabled = on;
+    b.classList.toggle('busy', on);
+  }
+
+  // --------------------------------------------------------------------------
+  // Authentication & Registration Form Flow
+  // --------------------------------------------------------------------------
+  $('b1').onclick = async () => {
+    const m = $('m1'), b = $('b1');
+    const n = $('rN').value.trim();
+    const e = $('rE').value.trim().toLowerCase();
+    const p = $('rP').value;
+    const biz = $('rB').value.trim();
+    
+    m.textContent = '';
+    if (!n) return m.textContent = 'Enter your full name.';
+    if (!/^[a-z0-9._%+-]+@gmail\.com$/.test(e)) return m.textContent = 'A valid @gmail.com address is required.';
+    if (!pwOk(p)) return m.textContent = 'Password needs 7+ characters and 1 special character.';
+    if (p !== $('rP2').value) return m.textContent = 'Passwords do not match.';
+    if (!biz) return m.textContent = 'Enter your business name.';
+    if (!$('rT').checked) return m.textContent = 'Please accept the Terms & Conditions.';
+
+    busy(b, true);
+    try {
+      const d = await withWake(b, () => api('/api/auth/register', {
+        method: 'POST',
+        json: { email: e, password: p, full_name: n, business: biz, accept_terms: true }
+      }));
+      token = d.token;
+      ls('lc_token', token);
+      await refreshMe();
+      showStep(4);
+      $('rp').innerHTML = PLANS.map(plan => planHtml(plan, false, 'Choose ' + plan.name)).join('');
+      $('rp').querySelectorAll('.rv').forEach(x => x.classList.add('in'));
+      bindPlans($('rp'), (id, bt) => pick(id, bt, $('m4')));
+    } catch (x) {
+      m.textContent = x.message;
+    } finally {
+      busy(b, false);
+    }
+  };
+
+  $('skip').onclick = e => { e.preventDefault(); closeOv('authOv'); enterApp(); };
+  
+  $('bl').onclick = async () => {
+    const m = $('ml'), b = $('bl'), email = $('lE').value.trim().toLowerCase(), password = $('lP').value;
+    m.textContent = '';
+    if (!email || !password) return m.textContent = 'Enter your email and password.';
+    busy(b, true);
+    try {
+      await withWake(b, async () => {
+        const d = await api('/api/auth/login', { method: 'POST', json: { email, password } });
+        token = d.token;
+        ls('lc_token', token);
+        await refreshMe();
+      });
+      closeOv('authOv');
+      enterApp();
+    } catch (x) {
+      m.textContent = x.message;
+    } finally {
+      busy(b, false);
+    }
+  };
+
+  $('lP').addEventListener('keydown', e => { if (e.key === 'Enter') $('bl').click(); });
+
+  function signout(silent) {
+    if (token && !silent) fetch(API + '/api/auth/logout', { method: 'POST', headers: { Authorization: 'Bearer ' + token } }).catch(() => {});
+    token = null;
+    me = null;
+    ls('lc_token', null);
+    ls('lc_me', null);
+    $('app').hidden = true;
+    $('landing').hidden = false;
+    renderLandingPlans();
+    !silent && toast('Signed out');
+  }
+
+  $('navOut').onclick = () => signout();
+
+  async function refreshMe() {
+    me = await api('/api/me');
+    saveMe();
+    render();
+  }
+
+  function enterApp() {
+    $('landing').hidden = true;
+    $('app').hidden = false;
+    scrollTo(0, 0);
+    render();
+    renderPlat();
+    if (!ls('lc_tut_done')) startTut();
+  }
+
+  // --------------------------------------------------------------------------
+  // Dashboard & Dispute Logic
+  // --------------------------------------------------------------------------
+  function render() {
+    if (!me) return;
+    const p = me.plan, lim = LIM[p], isPro = p === 'pro', left = me.credits_left;
+    $('spName').textContent = lim === undefined ? 'No active plan' : NAME[p] + ' Plan';
+    $('spUse').textContent = lim === undefined ? 'Choose a plan to begin' : isPro ? 'Unlimited credits' : `${left}/${lim} credits left`;
+    $('spBar').style.width = lim === undefined ? '0%' : isPro ? '100%' : (left / lim * 100) + '%';
+    $('spUp').textContent = isPro ? 'Manage plan' : lim === undefined ? 'Choose a plan' : 'Upgrade plan';
+    $('leftPill').textContent = lim === undefined ? 'No active plan' : isPro ? 'Unlimited leads' : `${left} lead${left === 1 ? '' : 's'} left`;
+    
+    $('evBox').innerHTML = isPro ? `<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div><div class="f"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
+     : `<div class="pro" data-up><span class="in"><b>Audio &amp; PDF evidence upload</b><small>Attach call recordings and documents for the AI to cite</small></span><span class="bg">PRO ONLY</span></div>`;
+    
+    $('teamBox').innerHTML = isPro ? `<div class="panel"><h2>Team seats</h2><p class="sub" style="margin:0">Priority multi-user seats are included in your plan. Contact the LeadClaw team to add teammates.</p></div>`
+     : `<div class="pro" data-up><span class="in"><b>Priority team seats</b><small>Invite teammates to share one workspace and dispute history</small></span><span class="bg">PRO ONLY</span></div>`;
+    
+    document.querySelectorAll('#evBox [data-up],#teamBox [data-up]').forEach(e => e.onclick = () => { toast('This is a Pro feature.'); openPlans(); });
+    if (!$('acct').value)$('acct').value = me['acc_' + plat.toLowerCase()] || '';
+    renderHist();
+  }
+
+  $('spUp').onclick = () => openPlans();
+
+  function renderHist() {
+    const ds = me.disputes;
+    $('hE').hidden = ds.length > 0;
+    $('kN').textContent = ds.length;
+    $('kE').textContent = '$' + ds.filter(d => d.valid).reduce((a, d) => a + d.amount, 0).toFixed(0);$('kC').textContent = '$' + ds.filter(d => d.recovered).reduce((a, d) => a + d.amount, 0).toFixed(0);$('hb').innerHTML = ds.map(d => `<tr><td>${esc((d.created_at || '').slice(0, 10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td><td><span class="bad ${d.valid ? 'y' : 'n'}">${d.valid ? 'Eligible' : 'Not eligible'}</span></td><td>${d.valid ? `<button class="btn sm${d.recovered ? '' : ' sec'}" onclick="mark(${d.id},${!d.recovered})">${d.recovered ? 'Claimed' : 'Mark claimed'}</button>` : '-'}</td><td>${d.valid && d.claim ? `<button class="btn sm sec" onclick="view(${d.id})">View</button>` : ''}</td></tr>`).join('');
+  }
+
+  async function mark(id, v) {
+    try {
+      await api(`/api/disputes/${id}/recovered`, { method: 'POST', json: { recovered: v } });
+      await refreshMe();
+      toast(v ? 'Marked as claimed' : 'Unmarked');
+    } catch (e) {
+      toast(e.message);
+    }
+  }
+
+  function view(id) {
+    const d = me.disputes.find(x => x.id === id);
+    showResult({ valid: true, reason: d.reason || 'Eligible for credit.', claim: d.claim }, d.platform, id);
+    tab('new');
+  }
+
+  function tab(t) {
+    document.querySelectorAll('.nv[data-t]').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    $('tNew').hidden = t !== 'new';
+    $('tHist').hidden = t !== 'hist';$('ttl').textContent = t === 'new' ? 'New dispute' : 'Dispute history';
+  }
+
+  document.querySelectorAll('.nv[data-t]').forEach(b => b.onclick = () => tab(b.dataset.t));
+
+  function renderPlat() {
+    $('plat').innerHTML = ['Angi', 'Thumbtack', 'Porch', 'Networx'].map(p => `<button type="button" class="${p === plat ? 'on' : ''}">${p}</button>`).join('');
+    $('acctL').textContent = `Your ${plat} account (email or phone) *`;
+    $('acct').value = (me && me['acc_' + plat.toLowerCase()]) || '';
+    [...$('plat').children].forEach(b => b.onclick = () => { plat = b.textContent; renderPlat(); });
+  }
+
+  $('chips').innerHTML = Object.keys(CHIPS).map(k => `<button type="button" class="chip">${k}</button>`).join('');
+  [...$('chips').children].forEach((c, i) => c.onclick = () => {$('notes').value = Object.values(CHIPS)[i]; });
+
+  const isEmail = v => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v);
+  const isPhone = v => /^[\d\s().+-]+$/.test(v) && v.replace(/\D/g, '').length >= 10 && v.replace(/\D/g, '').length <= 15;
+
+  function saveAcct(a) {
+    const k = 'acc_' + plat.toLowerCase();
+    if (me[k] === a) return;
+    me[k] = a;
+    saveMe();
+    api('/api/user/profile', { method: 'POST', json: { password: '', full_name: me.full_name || '', phone: me.phone || '', acc_angi: me.acc_angi || '', acc_thumbtack: me.acc_thumbtack || '', acc_porch: me.acc_porch || '', acc_networx: me.acc_networx || '' } }).catch(() => {});
+  }
+
+  function fallback(f) {
+    const amt = '$' + f.cost.toFixed(2);
+    if (BAD.test(f.notes)) return { valid: false, reason: NOT, claim: '' };
+    return {
+      valid: true,
+      reason: 'The AI service was unavailable, so a standard template was used. No credit was deducted.',
+      claim: `Subject: Urgent: Lead Credit Request - Account # ${f.account} - Lead ID ${f.lid}\n\nDear Partner Support Team,\n\nI am writing to formally request a credit/refund for an invalid lead charged to my account. Below are the required identification details for this transaction:\n\nLEAD IDENTIFICATION DATA\n- Business Name: ${me.workspace}\n- Platform Account ID: ${f.account}\n- Lead ID Number: ${f.lid}\n- Lead Cost: ${amt}\n- Customer Phone: ${f.phone}\n- Customer Email: ${f.email}\n\nREASON FOR DISPUTE\nThis lead qualifies for a credit under your platform's credit guarantee guidelines for the following reason:\n${f.notes}\n\nREQUEST\nPlease review this lead and issue a credit of ${amt} to my account. I am happy to provide any additional information.\n\nSincerely,\n${me.full_name || me.workspace}\n${me.workspace}\n${me.email}`
+    };
+  }
+
+  function showResult(d, p = plat, id = 0) {
+    claim = d.claim || '';
+    curId = id;
+    const isPro = me.plan === 'pro';
+    $('out').className = 'res';$('out').innerHTML = `<div class="verdict ${d.valid ? 'ok' : 'er'}">${d.valid ? 'Eligible for credit' : 'Not eligible'}</div><p style="color:var(--mu);margin:8px 0 0">${esc(d.reason)}</p>` + (d.valid && claim ? `<div class="claim" id="cl"></div><div class="acts"><button class="btn sec sm" id="cp">Copy letter</button>${isPro ? '<button class="btn sm" id="gm">Open in Gmail</button>' : '<span class="pro inl" data-up><span class="in">Open in Gmail</span><span class="bg">PRO ONLY</span></span>'}${id ? '<button class="btn sec sm" id="cm">Mark as claimed</button>' : ''}</div>` : '');
+    if (d.valid && claim) {
+      $('cl').textContent = claim;
+      $('cp').onclick = async () => {
+        try { await navigator.clipboard.writeText(claim); toast('Letter copied'); } catch (e) { toast('Copy failed. Select the text manually.'); }
+      };
+      if (isPro) $('gm').onclick = () => {
+        const mm = claim.match(/^Subject:\s*(.+?)\r?\n+/), su = mm ? mm[1] : 'Lead Credit Request', body = mm ? claim.slice(mm[0].length) : claim;
+        const w = window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(EM[p] || '')}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`, '_blank');
+        if (w) w.opener = null; else toast('Popup blocked. Allow popups or copy the letter.');
+      };
+      if (id) $('cm').onclick = () => mark(id, true);
+    }
+    document.querySelectorAll('#out [data-up]').forEach(e => e.onclick = () => { toast('This is a Pro feature.'); openPlans(); });
+  }
+
+  function need(ids) {
+    let bad = null;
+    for (const id of ids) {
+      const el = $(id), v = el.value.trim(), ok = id === 'cost' ? (Number.isFinite(parseFloat(v)) && parseFloat(v) > 0) : !!v;
+      el.classList.toggle('invalid', !ok);
+      if (!ok && !bad) bad = el;
+    }
+    if (bad) {
+      bad.focus();
+      toast('Please complete the highlighted fields.');
+      return false;
+    }
+    return true;
+  }
+
+  document.querySelectorAll('.inp,textarea').forEach(i => i.addEventListener('input', () => i.classList.remove('invalid')));
+
+  $('go').onclick = async () => {
+    if (!need(['acct', 'lp2', 'le', 'lid', 'cost', 'notes'])) return;
+    const f = { account: $('acct').value.trim(), phone:$('lp2').value.trim(), email: $('le').value.trim(), lid:$('lid').value.trim(), cost: parseFloat($('cost').value), notes:$('notes').value.trim() };
+    if (!(isEmail(f.account) || isPhone(f.account))) {
+      $('acct').classList.add('invalid');$('acct').focus();
+      return toast('Enter the email or phone number of your ' + plat + ' account.');
+    }
+    if (!(me.plan in LIM)) {
+      toast('Choose a plan to generate dispute letters.');
+      return openPlans();
+    }
+    if (me.credits_left === 0) {
+      toast('You have used all credits this month.');
+      return openPlans();
+    }
+    saveAcct(f.account);
+    const fd = new FormData();
+    fd.append('platform', plat);
+    fd.append('notes', f.notes);
+    fd.append('cost', f.cost.toFixed(2));
+    fd.append('lead_phone', f.phone);
+    fd.append('lead_email', f.email);
+    fd.append('lead_id', f.lid);
+    fd.append('account', f.account);
+    if (me.plan === 'pro') {
+      fd.append('model', $('model').value);
+      [...$('files').files].forEach(x => fd.append('files', x));
+    }
+    const btn = $('go'), bar =$('pBar');
+    busy(btn, true);
+    $('prog').style.display = 'block';
+    $('out').className = 'empty';$('out').textContent = 'Analyzing your lead. This can take up to 30 seconds.';
+    const msgs = ['Reviewing marketplace credit guidelines', 'Evaluating your lead details', 'Writing your dispute letter'];
+    let p = 0, s = 0;
+    const iv = setInterval(() => {
+      s += .35;
+      p = Math.min(92, p + (p < 60 ? 5 : 1));
+      bar.style.width = p + '%';
+      $('pPct').textContent = p + '\%';$('pStat').textContent = s > 12 ? 'Still working. The server is starting up.' : msgs[Math.min(2, Math.floor(p / 32))];
+    }, 350);
+    try {
+      const d = await api('/api/dispute', { method: 'POST', body: fd });
+      clearInterval(iv);
+      bar.style.width = '100%';
+      $('pPct').textContent = '100\%';$('pStat').textContent = 'Complete';
+      showResult(d, plat, d.dispute_id);
+      await refreshMe();
+    } catch (e) {
+      clearInterval(iv);
+      if (e.status === 402 || e.status === 403) {
+        $('out').textContent = e.message;
+        toast(e.message);
+        openPlans();
+      } else if (e.status === 400) {
+        $('out').textContent = e.message;
+      } else {
+        showResult(fallback(f), plat, 0);
+        toast('AI is unavailable. A standard template was generated instead.');
+      }
+    } finally {
+      busy(btn, false);
+      setTimeout(() => { $('prog').style.display = 'none'; bar.style.width = '0'; }, 900);
+    }
+  };
+
+  const TUT = [
+    ['Select a platform', 'Choose the marketplace that sold you the lead, then enter the email or phone number of your account on that platform.', 'gPlat'],
+    ['Enter real numbers', 'Type the exact lead cost as a number, for example 75.00, along with the lead phone, email and reference ID from the marketplace.', 'gCost'],
+    ['Add your notes', 'Describe what went wrong, or tap a quick reason. The more specific the facts, the stronger the letter.', 'gNotes'],
+    ['Generate the letter', 'Click Generate. A progress bar shows the AI working, and your formatted dispute letter appears on the right.', 'go']
+  ];
+
+  function startTut() { tut = 0; $('tut').hidden = false; tutShow(); }
+  function tutShow() {
+    document.querySelectorAll('.hs').forEach(e => e.classList.remove('hs'));
+    const t = TUT[tut];
+    $('tutH').textContent = `Quick start ${tut + 1} of ${TUT.length}: ${t[0]}`;
+    $('tutP').textContent = t[1];$('tutB').hidden = tut === 0;
+    $('tutN').textContent = tut === TUT.length - 1 ? 'Finish' : 'Next';
+    const el = $(t[2]);
+    el.classList.add('hs');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function endTut() { $('tut').hidden = true; document.querySelectorAll('.hs').forEach(e => e.classList.remove('hs')); ls('lc_tut_done', '1'); }
+
+  $('tutN').onclick = () => tut === TUT.length - 1 ? endTut() : (tut++, tutShow());
+  $('tutB').onclick = () => { tut--; tutShow(); };$('tutX').onclick = endTut;
+  $('navTut').onclick = () => { tab('new'); startTut(); };
+
+  $('navAcc').onclick = () => {
+    const m = me;
+    $('aN').value = m.full_name \vert{}\vert{} '';$('aPh').value = m.phone || '';
+    $('aA').value = m.acc_angi \vert{}\vert{} '';$('aT2').value = m.acc_thumbtack || '';
+    $('aPo').value = m.acc_porch \vert{}\vert{} '';$('aNx').value = m.acc_networx || '';
+    $('aW').value = '';$('billBtn').hidden = !m.billing;
+    $('accP').textContent = `${m.email} | ${LIM[m.plan] === undefined ? 'No active plan' : NAME[m.plan] + ' plan'}`;
+    $('accOv').hidden = false;
+  };
+
+  $('saveAcc').onclick = async () => {
+    const pw = $('aW').value;
+    if (pw && !pwOk(pw)) return toast('Password needs 7+ characters and 1 special character.');
+    const f = { full_name: $('aN').value, phone:$('aPh').value, acc_angi: $('aA').value, acc_thumbtack:$('aT2').value, acc_porch: $('aPo').value, acc_networx:$('aNx').value };
+    try {
+      await api('/api/user/profile', { method: 'POST', json: { password: pw, ...f } });
+      Object.assign(me, f);
+      saveMe();
+      closeOv('accOv');
+      renderPlat();
+      toast('Saved');
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+
+  $('billBtn').onclick = async () => {
+    try {
+      const d = await withWake($('billBtn'), () => api('/api/billing/portal', { method: 'POST' }));
+      location.href = d.url;
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+
+  // --------------------------------------------------------------------------
+  // Admin Panel Controls
+  // --------------------------------------------------------------------------
+  let adminKey = '', lockUntil = +(ls('lc_adm_lock') || 0), lockTimer = null;
+  function lockTick() {
+    const l = Math.ceil((lockUntil - Date.now()) / 1000), b = $('admGo');
+    if (l <= 0) {
+      clearInterval(lockTimer);
+      lockTimer = null;
+      ls('lc_adm_lock', null);
+      b.disabled = false;
+      $('admM').textContent = '';
+      return;
+    }
+    b.disabled = true;
+    $('admM').textContent = `Locked. Try again in ${Math.floor(l / 60)}:${String(l % 60).padStart(2, '0')}.`;
+  }
+  function startLock(s) {
+    lockUntil = Date.now() + s * 1000;
+    ls('lc_adm_lock', lockUntil);
+    clearInterval(lockTimer);
+    lockTick();
+    lockTimer = setInterval(lockTick, 1000);
+  }
+
+  async function loadAdmin() {
+    let r;
+    try {
+      r = await rfetch(API + '/api/admin/analytics', { headers: { 'X-Admin-Key': adminKey } });
+    } catch (e) {
+      throw new Error('Cannot reach the server. Please try again in a minute.');
+    }
+    const d = await r.json().catch(() => ({})), det = d.detail && typeof d.detail === 'object' ? d.detail : {};
+    if (r.status === 403 || r.status === 429) {
+      if (det.retry_after) startLock(det.retry_after);
+      throw new Error(det.message || 'Access denied.');
+    }
+    if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : 'Could not load admin data.');
+    const s = d.summary;
+    $('aK').innerHTML = [['Users', s.users], ['Paid users', s.paid], ['Disputes', s.disputes]].map(([l, v]) => `<div><span>${l}</span><b>${v}</b></div>`).join('');
+    $('aU').innerHTML = d.users.map(u => `<tr><td>${esc(u.email)}</td><td>${esc(u.workspace)}</td><td>${esc(u.plan)}</td><td>${u.disputes}</td><td>${esc((u.created_at || '').slice(0, 10))}</td></tr>`).join('');
+    $('aD').innerHTML = d.disputes.map(x => `<tr><td>${esc((x.created_at || '').slice(0, 10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>$${(+x.amount).toFixed(2)}</td><td>${x.valid ? 'Eligible' : 'Not eligible'}</td><td>${x.recovered ? 'Yes' : 'No'}</td></tr>`).join('');
+    $('admLogin').hidden = true;
+    $('admData').hidden = false;
+  }
+
+  function openAdmin() {
+    $('admOv').hidden = false;
+    if (Date.now() < lockUntil) {
+      if (!lockTimer) lockTimer = setInterval(lockTick, 1000);
+      lockTick();
+    }
+  }
+
+  $('navAdm').onclick = openAdmin;
+  $('admL').onclick = openAdmin;
+
+  $('admGo').onclick = async () => {
+    if (Date.now() < lockUntil) return lockTick();
+    const k = $('admK').value.trim();
+    if (!k) return $('admM').textContent = 'Enter the admin key.';
+    const b = $('admGo');
+    adminKey = k;
+    busy(b, true);
+    $('admM').textContent = '';
+    try {
+      await withWake(b, loadAdmin);
+    } catch (e) {
+      adminKey = '';
+      if (Date.now() >= lockUntil) $('admM').textContent = e.message;
+    } finally {
+      busy(b, false);
+      b.disabled = Date.now() < lockUntil;
+    }
+  };
+
+  $('admK').addEventListener('keydown', e => { if (e.key === 'Enter')$('admGo').click(); });
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') ['authOv', 'planOv', 'termsOv', 'accOv', 'admOv'].forEach(closeOv); });
+  document.querySelectorAll('.ov').forEach(o => o.addEventListener('mousedown', e => { if (e.target === o) o.hidden = true; }));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && token && me) refreshMe().catch(() => {}); });
+
+  if (SUPPORT_EMAIL) { $('fSup').hidden = false; $('fSup').href = 'mailto:' + SUPPORT_EMAIL; }$('yr').textContent = new Date().getFullYear();
+
+  renderLandingPlans();
+  renderPlat();
+
+  if (me) {
+    enterApp();
+    refreshMe().catch(() => {});
+    const q = new URLSearchParams(location.search).get('checkout');
+    if (q) {
+      history.replaceState({}, '', location.pathname);
+      if (q === 'success') {
+        toast('Payment received. Activating your plan.');
+        [3500, 10000].forEach(t => setTimeout(() => refreshMe().catch(() => {}), t));
+      }
+    }
+  }
+</script>
+</body>
+</html>
