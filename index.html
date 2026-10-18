@@ -550,7 +550,6 @@ $('navHelp').onclick=()=>{location.href='mailto:'+SUPPORT_EMAIL+'?subject='+enco
 </body>
 </html>
 <script>
-// Inject Quick Plan Testing Tool and enforce 5-minute cooldown on wrong keys
 window.addEventListener('DOMContentLoaded', () => {
   const admData = document.getElementById('admData');
   if (admData && !document.getElementById('testEmail')) {
@@ -576,11 +575,16 @@ window.addEventListener('DOMContentLoaded', () => {
       const plan = document.getElementById('testPlanSelect').value;
       if (!email) return toast('Enter a user email.');
       try {
-        await api('/api/admin/set-plan', {
+        const res = await fetch(API + '/api/admin/set-plan', {
           method: 'POST',
-          headers: { 'X-Admin-Key': adminKey },
-          json: { email, plan }
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Admin-Key': adminKey
+          },
+          body: JSON.stringify({ email, plan })
         });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Failed to update plan.');
         toast('User plan updated successfully!');
         loadAdmin();
       } catch (e) {
