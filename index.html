@@ -8,10 +8,10 @@
 <link rel="canonical" href="https://leadclaw.pages.dev/">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232563eb'/><path d='M32 26 C36 44 38 62 31 76 M50 26 C54 44 56 62 49 76 M68 26 C72 44 74 62 67 76' stroke='white' stroke-width='9' stroke-linecap='round' fill='none'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <script>try{document.documentElement.setAttribute('data-theme',localStorage.getItem('lc_theme')||'light')}catch(e){document.documentElement.setAttribute('data-theme','light')}</script>
 <style>
-:root{--f:'Inter',system-ui,sans-serif;--d:'Inter',system-ui,sans-serif;--b:#2563eb;--bh:#1d4ed8}
+:root{--f:'Inter',system-ui,sans-serif;--d:'Manrope','Inter',sans-serif;--b:#2563eb;--bh:#1d4ed8}
 html[data-theme=light]{color-scheme:light;--bg:#fff;--bg2:#f6f8fb;--sf:#fff;--s2:#f1f5f9;--bd:#e3e8ef;--tx:#0b1220;--mu:#556178;--ac:#2563eb;--tn:#eff6ff;--ok:#15803d;--er:#dc2626;--sh:0 1px 2px rgba(15,23,42,.05),0 8px 24px rgba(15,23,42,.06)}
 html[data-theme=dark]{color-scheme:dark;--bg:#04060b;--bg2:#070a12;--sf:#0a0e18;--s2:#10162a;--bd:#18213a;--tx:#eef2fa;--mu:#8b97b3;--ac:#4f8bff;--tn:rgba(79,139,255,.1);--ok:#4ade80;--er:#f87171;--sh:none}
 *{box-sizing:border-box}[hidden]{display:none!important}html{scroll-behavior:smooth}
@@ -100,57 +100,6 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 .ib{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0}
 .navl{display:flex;gap:2px}.sun{display:none}html[data-theme=dark] .sun{display:block}html[data-theme=dark] .moon{display:none}
 @media(max-width:700px){nav{flex-wrap:wrap;row-gap:2px}.navl{order:9;width:100%;justify-content:center;border-top:1px solid var(--bd);padding-top:4px}}
-
-/* ===== corporate minimal ===== */
-:root{--b:#1d4ed8;--bh:#1e40af}
-html[data-theme=light]{--bg:#fff;--bg2:#f7f8fa;--sf:#fff;--s2:#f1f3f6;--bd:#dfe3ea;--tx:#0a0f1a;--mu:#586174;--ac:#1d4ed8;--tn:#f0f4ff;--sh:none}
-html[data-theme=dark]{--bg:#05080f;--bg2:#080c15;--sf:#0a0f1a;--bd:#1a2336;--ac:#6b9bff;--tn:rgba(107,155,255,.08)}
-body{font-size:15px;line-height:1.6}
-h1,h2,h3,.logo,.price,.verdict,.kp b,.modal h2,.panel h2,.top h1,.sideplan b{font-weight:600!important;letter-spacing:-.015em}
-nav{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
-.logo{font-size:18px}.lm{background:var(--b);box-shadow:none;border-radius:6px}
-.btn{height:42px;border-radius:6px;background:var(--b);border-color:var(--b);box-shadow:none;font-weight:500}
-.btn:hover{background:var(--bh);box-shadow:none}.btn:active{transform:none}
-.btn.sec{background:transparent;border-color:var(--bd);color:var(--tx)}.btn.sec:hover{background:var(--s2);border-color:var(--tx);color:var(--tx)}
-.btn.sm{height:34px}
-.lnk{border-radius:6px;font-weight:500}
-.hero{text-align:left;padding:104px 0 72px}
-.hero::before{display:none}
-.hero h1{font-size:clamp(36px,5vw,56px);line-height:1.08;letter-spacing:-.03em;margin:14px 0 20px;max-width:760px;animation:none}
-.hero p{margin:0 0 32px;max-width:600px;font-size:18px;animation:none}
-.hero .eyebrow{margin:0;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--ac)}
-.cta{justify-content:flex-start;animation:none}
-.trust{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:center;margin:64px 0 0;padding-top:24px;border-top:1px solid var(--bd);color:var(--mu);font-size:13px}
-.trust b{font-weight:600;font-size:15px;color:var(--tx);opacity:.8}
-section.s{padding:88px 0}
-.h2{text-align:left;font-size:clamp(24px,3vw,32px);letter-spacing:-.02em;margin:0 0 10px}
-.lead{text-align:left;margin:0 0 48px;max-width:560px}
-.g3{gap:40px}
-.fc{background:none;border:0;border-top:1px solid var(--tx);border-radius:0;padding:18px 0 0}
-.fc:hover{border-color:var(--ac);transform:none;box-shadow:none}
-.fc i{display:block;padding:0;background:none;margin-bottom:14px;color:var(--mu);font-weight:500;letter-spacing:.08em}
-.fc h3{font-size:17px}.fc p{font-size:14.5px}
-.plans{gap:20px}
-.plan,.panel,.modal,.pro,.claim,.kp div,.tut,.sideplan{border-radius:8px;box-shadow:none}
-.plan{padding:28px 24px}.plan:hover{transform:none;box-shadow:none}
-.plan.rec{border:1px solid var(--b);box-shadow:inset 0 3px 0 var(--b)}
-.tag{top:12px;left:auto;right:16px;border-radius:4px;background:var(--tn);color:var(--ac);font-weight:600}
-.price{font-size:36px}
-.pill{border-radius:4px;background:var(--s2);color:var(--tx);font-weight:500}
-.inp,textarea,select{border-radius:6px;border-width:1px;background:var(--sf)}
-.inp:focus,textarea:focus,select:focus{box-shadow:0 0 0 3px var(--tn)}
-.chip{border-radius:4px}
-.modal{box-shadow:0 20px 50px rgba(0,0,0,.18)}
-.side{background:var(--bg2)}.nv{border-radius:6px;font-weight:500}.nv.on{background:var(--tn);box-shadow:none}
-.top{background:var(--bg)}.main{background:var(--bg)}
-.panel{background:var(--sf)}
-.seg{border-radius:6px}.seg button{border-radius:4px;font-weight:500}.seg button.on{box-shadow:none}
-.step span{border-radius:4px}
-.bad{border-radius:4px}
-.rv{transform:none}
-footer{background:var(--bg2)}
-@media(max-width:860px){.g3{gap:28px}}
-@media(max-width:700px){.hero{padding:64px 0 48px}}
 </style>
 </head>
 <body>
@@ -164,24 +113,23 @@ footer{background:var(--bg2)}
   <button class="lnk ib" id="admL" aria-label="Admin area" title="Admin"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></button>
 </nav>
 <div class="wrap hero">
-  <p class="eyebrow">Lead credit recovery for home-service contractors</p>
-  <h1>Recover ad spend on invalid leads</h1>
-  <p>LeadClaw reviews each lead against Angi, Thumbtack, Porch and Networx credit guidelines and prepares a formal dispute letter for submission to support.</p>
-  <div class="cta"><button class="btn" onclick="openAuth('signup')">Create an account</button><button class="btn sec" onclick="jump('pricing')">View pricing</button></div>
-  <div class="trust"><span>Supported marketplaces</span><b>Angi</b><b>Thumbtack</b><b>Porch</b><b>Networx</b></div>
+  <span class="pill">Lead refund disputes for home-service contractors</span>
+  <h1>Get refunds on <span class="hl">bad leads</span> from Angi, Thumbtack, Porch &amp; Networx</h1>
+  <p>Enter the lead details and LeadClaw checks it against marketplace credit guidelines, then writes a formatted dispute letter you can send to support.</p>
+  <div class="cta"><button class="btn" onclick="openAuth('signup')">Create your account</button><button class="btn sec" onclick="jump('pricing')">View pricing</button></div>
 </div>
-<section class="s alt" id="how"><div class="wrap"><h2 class="h2 rv">How it works</h2><p class="lead rv">Marketplaces credit defective leads, but only when the dispute is submitted correctly.</p>
+<section class="s alt" id="how"><div class="wrap"><h2 class="h2 rv">How LeadClaw works</h2><p class="lead rv">Marketplaces credit defective leads, but only when the dispute is submitted correctly.</p>
   <div class="g3"><div class="fc rv"><i>STEP 1</i><h3>Enter the lead</h3><p>Add the lead's contact details, cost, ID and a short note on what went wrong.</p></div>
   <div class="fc rv"><i>STEP 2</i><h3>Generate the dispute</h3><p>AI reviews the facts and writes a formal, policy-aligned dispute letter in seconds.</p></div>
   <div class="fc rv"><i>STEP 3</i><h3>Submit and track</h3><p>Copy the letter to the marketplace and mark each claim as claimed in your history.</p></div></div></div></section>
-<section class="s" id="features"><div class="wrap"><h2 class="h2 rv">Platform capabilities</h2><p class="lead rv">Designed for contractors who need disputes filed correctly and quickly.</p>
+<section class="s" id="features"><div class="wrap"><h2 class="h2 rv">Everything you need to win credits</h2><p class="lead rv">Built for contractors who would rather be on the job than on hold with support.</p>
   <div class="g3"><div class="fc rv"><i>01</i><h3>Eligibility check</h3><p>Reviews each lead against marketplace credit guidelines before you file.</p></div>
   <div class="fc rv"><i>02</i><h3>AI dispute letters</h3><p>Formal, formatted letters built from your exact lead details and account ID.</p></div>
   <div class="fc rv"><i>03</i><h3>Audio and PDF evidence</h3><p>Upload call recordings and documents for the AI to reference. Pro plan.</p></div>
   <div class="fc rv"><i>04</i><h3>Gmail direct compose</h3><p>Open the finished dispute in Gmail, addressed to the marketplace. Pro plan.</p></div>
   <div class="fc rv"><i>05</i><h3>Claim tracker</h3><p>Keep a history of every dispute and mark each one as claimed.</p></div>
   <div class="fc rv"><i>06</i><h3>Secure accounts</h3><p>Email-verified signup and hashed passwords. See our Terms for data policies.</p></div></div></div></section>
-<section class="s alt" id="pricing"><div class="wrap"><h2 class="h2 rv">Pricing</h2><p class="lead rv">Each AI dispute uses one credit. Credits reset every month. Cancel anytime.</p><div class="plans" id="lp"></div></div></section>
+<section class="s alt" id="pricing"><div class="wrap"><h2 class="h2 rv">Simple, credit-based pricing</h2><p class="lead rv">Each AI dispute uses one credit. Credits reset every month. Cancel anytime.</p><div class="plans" id="lp"></div></div></section>
 <footer><div class="wrap fgrid">
   <div><div class="logo"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div><p style="color:var(--mu);font-size:14px;max-width:260px">Dispute assistance for contractors.</p></div>
   <div><h4>Product</h4><a onclick="jump('how')">How it works</a><a onclick="jump('features')">Features</a><a onclick="jump('pricing')">Pricing</a></div>
