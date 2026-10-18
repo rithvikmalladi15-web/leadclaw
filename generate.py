@@ -677,3 +677,42 @@ async def analytics(x_admin_key: str = Header("")):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+@app.post("/api/admin/set-plan")
+async def admin_set_plan(req: dict, x_admin_key: str = Header("")):
+    now = time.time()
+    if _admin_lock["until"] > now:
+        raise HTTPException(
+            429,
+            detail={
+                "message": "Admin is locked after a wrong key.",
+              "retry_after": int(_admin_lock["until"] - now) + 1,
+    },
+)
+
+@app.post("/api/admin/set-plan")
+async def admin_set_plan(req: dict, x_admin_key: str = Header("")):
+    now = time.time()
+    if _admin_lock["until"] > now:
+        raise HTTPException(
+            429,
+            detail={
+                "message": "Admin is locked after a wrong key.",
+                "retry_after": int(_admin_lock["until"] - now) + 1,
+            },
+        )
+    if not ADMIN_KEY or not hmac.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode()):
+        _admin_lock["until"] = now + ADMIN_LOCK_SECONDS
+        raise HTTPException(
+            403,
+            detail={
+                "message": "Incorrect admin key. Locked for 5 minutes.",
+                "retry_after": ADMIN_LOCK_SECONDS,
+            },
+        )
+    email = req.get("email")
+    plan = req.get("plan")
+    if plan not in CREDITS and plan != "none":
+        raise HTTPException(400, "Invalid plan.")
+    with db() as c:
+        c.execute("UPDATE users SET plan=?, on_trial=0 WHERE email=?", (plan, email))
+    return {"status": "success"}
