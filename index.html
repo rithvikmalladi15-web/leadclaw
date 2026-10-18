@@ -225,17 +225,8 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   <h3 style="font:700 15px var(--d);margin:20px 0 4px">Latest disputes</h3><div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Amount</th><th>Result</th><th>Claimed</th></tr></thead><tbody id="aD"></tbody></table></div></div></div></div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 const API='https://leadclaw-api.onrender.com';
-// Supabase: Project Settings > API. The anon/publishable key is safe to put in the browser.
-const SUPABASE_URL='';       // e.g. 'https://abcdxyz.supabase.co'
-const SUPABASE_ANON_KEY='';  // anon / publishable key
-const sb=(window.supabase&&SUPABASE_URL&&SUPABASE_ANON_KEY)?window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:false,autoRefreshToken:false}}):null;
-async function sendCode(email,name){
-  if(!sb)throw new Error('Supabase is not configured. Add SUPABASE_URL and SUPABASE_ANON_KEY at the top of index.html.');
-  const {error}=await sb.auth.signInWithOtp({email,options:{shouldCreateUser:true,data:{full_name:name}}});
-  if(error)throw new Error(/rate|seconds|too many/i.test(error.message)?'Please wait a minute before requesting another code.':'Could not send the code: '+error.message)}
 const SUPPORT_EMAIL=''; // set your support address, e.g. 'support@yourdomain.com'
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -295,15 +286,15 @@ $('b1').onclick=async()=>{const m=$('m1'),b=$('b1'),n=$('rN').value.trim(),e=$('
   if(!pwOk(p))return m.textContent='Password needs 7+ characters and 1 special character.';
   if(p!==$('rP2').value)return m.textContent='Passwords do not match.';
   if(!$('rT').checked)return m.textContent='Please accept the Terms & Conditions.';
-  busy(b,true);try{await sendCode(e,n);reg={name:n,email:e,password:p};showStep(2);$('rC').value='';$('rC').focus()}
+  busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}));reg={name:n,email:e,password:p};showStep(2);$('rC').value='';$('rC').focus()}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
-$('resend').onclick=async ev=>{ev.preventDefault();const m=$('m2');try{await sendCode(reg.email,reg.name);m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}};
+$('resend').onclick=async ev=>{ev.preventDefault();const m=$('m2');try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}};
 $('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6}$/.test(c))return m.textContent='Enter the 6-digit code.';
-  busy(b,true);try{if(!sb)throw new Error('Supabase is not configured.');const {data,error}=await sb.auth.verifyOtp({email:reg.email,token:c,type:'email'});if(error||!data||!data.session)throw new Error('That code is incorrect or has expired.');reg.sbToken=data.session.access_token;showStep(3);$('rB').focus()}catch(x){m.textContent=x.message}finally{busy(b,false)}};
+  busy(b,true);try{await api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}});showStep(3);$('rB').focus()}catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
 $('b3').onclick=async()=>{const m=$('m3'),b=$('b3'),biz=$('rB').value.trim();m.textContent='';if(!biz)return m.textContent='Enter your business name.';
-  busy(b,true);try{const d=await api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,supabase_token:reg.sbToken||'',acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}});
-    token=d.token;ls('lc_token',token);reg.password='';reg.sbToken='';await refreshMe();showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Choose '+p.name)).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
+  busy(b,true);try{const d=await api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}});
+    token=d.token;ls('lc_token',token);reg.password='';await refreshMe();showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Choose '+p.name)).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('skip').onclick=e=>{e.preventDefault();closeOv('authOv');enterApp()};
 $('bl').onclick=async()=>{const m=$('ml'),b=$('bl'),email=$('lE').value.trim().toLowerCase(),password=$('lP').value;m.textContent='';if(!email||!password)return m.textContent='Enter your email and password.';
