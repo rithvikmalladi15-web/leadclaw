@@ -175,7 +175,7 @@ def current_user(authorization: str = "") -> dict:
 
 
 class RegisterReq(BaseModel):
-    email: str; password: str; full_name: str; business: str; accept_terms: bool = False
+    email: str; password: str; full_name: str; business: str; accept_terms: bool = False; supabase_token: str = ""
     acc_angi: str = ""; acc_thumbtack: str = ""; acc_porch: str = ""; acc_networx: str = ""
 class LoginReq(BaseModel):
     email: str; password: str
@@ -337,9 +337,21 @@ async def register(req: RegisterReq):
         if c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
             raise HTTPException(409, "An account with this email already exists. Please log in.")
 
-    with db() as c:
-        v = c.execute("SELECT verified_at FROM email_verified WHERE email=?", (email,)).fetchone()
-    if not v or time.time() - v[0] > 3600:
+    ok = False
+    if req.supabase_token and SUPABASE_URL and SUPABASE_KEY:
+        try:
+            async with httpx.AsyncClient(timeout=20) as hc:
+                r = await hc.get(f"{SUPABASE_URL}/auth/v1/user",
+                                 headers={"apikey": SUPABASE_KEY, "Authorization": f"Bearer {req.supabase_token}"})
+            su = r.json() if r.status_code == 200 else {}
+            ok = (su.get("email") or "").lower() == email and bool(su.get("email_confirmed_at") or su.get("confirmed_at"))
+        except Exception as e:
+            log.warning("Supabase user check failed: %s", e)
+    if not ok:
+        with db() as c:
+            v = c.execute("SELECT verified_at FROM email_verified WHERE email=?", (email,)).fetchone()
+        ok = bool(v) and time.time() - v[0] <= 3600
+    if not ok:
         raise HTTPException(400, "Please verify your email first.")
 
     with db() as c:
