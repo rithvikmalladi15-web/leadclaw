@@ -106,6 +106,14 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 @keyframes lb{to{left:100%}}
 #lnote{position:fixed;top:14px;left:50%;transform:translate(-50%,-8px);z-index:300;background:var(--sf);color:var(--tx);border:1px solid var(--bd);box-shadow:0 8px 24px rgba(0,0,0,.18);padding:9px 16px;border-radius:999px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:.25s;max-width:92vw;text-align:center}
 #lnote.show{opacity:1;transform:translate(-50%,0)}
+.okv{text-align:center;padding:30px 0 12px}
+.ckm{width:88px;height:88px;display:block;margin:0 auto 16px;animation:ckp .5s .45s both}
+.ckc{fill:none;stroke:var(--ok);stroke-width:2.5;stroke-dasharray:151;stroke-dashoffset:151;animation:ckd .6s ease-out forwards}
+.ckp{fill:none;stroke:var(--ok);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:40;stroke-dashoffset:40;animation:ckd .4s .45s ease-out forwards}
+.okv p{font:800 19px var(--d);margin:0;animation:up .4s .6s both}.okv span{display:block;color:var(--mu);font-size:14px;margin-top:4px;animation:up .4s .75s both}
+@keyframes ckd{to{stroke-dashoffset:0}}
+@keyframes ckp{0%{transform:scale(.9)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.ckc,.ckp{stroke-dashoffset:0}}
 </style>
 </head>
 <body>
@@ -199,11 +207,12 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     <div class="two f"><input class="inp" id="hP" placeholder="Porch username or email"><input class="inp" id="hN" placeholder="Networx username or email"></div>
     <p class="msg" id="m3"></p><button class="btn full" id="b3">Create workspace</button></div>
   <div id="s4" hidden><div class="plans" id="rp"></div><p class="msg" id="m4"></p><p style="text-align:center;margin:8px 0 0"><a href="#" id="skip" style="color:var(--mu);font-size:13.5px">Skip for now</a></p></div>
+  <div id="sOk" hidden class="okv"><svg class="ckm" viewBox="0 0 52 52" aria-hidden="true"><circle class="ckc" cx="26" cy="26" r="24"/><path class="ckp" d="M14 27l8 8 16-17"/></svg><p>Email verified</p><span>Setting up your workspace...</span></div>
   <div id="sl" hidden><div class="f"><label for="lE">Gmail address</label><input class="inp" id="lE" type="email" autocomplete="email"></div><div class="f"><label for="lP">Password</label><input class="inp" id="lP" type="password" autocomplete="current-password"></div>
     <p class="msg" id="ml"></p><button class="btn full" id="bl">Sign in</button><p style="text-align:center;font-size:13.5px;color:var(--mu);margin:14px 0 0">New to LeadClaw? <a href="#" onclick="openAuth('signup');return false" style="color:var(--ac);font-weight:600">Create an account</a></p></div>
 </div></div>
 
-<div class="ov" id="planOv" hidden><div class="modal w"><div class="mh"><div><h2>Choose your plan</h2><p class="sub">Upgrade to unlock more credits and Pro features.</p></div><button class="lnk" onclick="closeOv('planOv')">Close</button></div><div class="plans" id="mp"></div><p class="msg" id="mpM"></p></div></div>
+<div class="ov" id="planOv" hidden><div class="modal w"><div class="mh"><div><h2 id="pT">Choose your plan</h2><p class="sub" id="pS">Upgrade to unlock more credits and Pro features.</p></div><button class="lnk" onclick="closeOv('planOv')">Close</button></div><div class="plans" id="mp"></div><p class="msg" id="mpM"></p></div></div>
 
 <div class="ov" id="termsOv" hidden><div class="modal m"><div class="mh"><h2>Terms &amp; Conditions</h2><button class="lnk" onclick="closeOv('termsOv')">Close</button></div>
 <div class="terms">
@@ -234,6 +243,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 
 <script>
 const API='https://leadclaw-api.onrender.com';
+const TRIAL_DAYS=7; // keep in sync with TRIAL_DAYS on the server
 const SUPPORT_EMAIL=''; // set your support address, e.g. 'support@yourdomain.com'
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -282,10 +292,10 @@ async function pick(id,btn,msgEl){
     if(d.activated){await refreshMe();closeOv('authOv');closeOv('planOv');enterApp();toast('Plan activated')}else if(d.url)location.href=d.url}
   catch(e){msgEl.textContent=e.message}}
 function renderLandingPlans(){$('lp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,'Get '+p.name)).join('');bindPlans($('lp'),()=>me?openPlans():openAuth('signup'));observe()}
-function openPlans(){$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Choose '+p.name)).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
-function showStep(n){['s1','s2','s3','s4','sl'].forEach(x=>$(x).hidden=true);$(n==='l'?'sl':'s'+n).hidden=false;$('dots').hidden=n==='l';[...$('dots').children].forEach((d,i)=>d.classList.toggle('on',i<n));
+function openPlans(){const nt=!me||me.plan==='none';$('pT').textContent=nt?'Free trial: choose your plan':'Choose your plan';$('pS').textContent=nt?`Free for ${TRIAL_DAYS} days, cancel anytime. Unlock credits and Pro features.`:'Upgrade to unlock more credits and Pro features.';$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Start free trial')).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
+function showStep(n){['s1','s2','s3','s4','sl','sOk'].forEach(x=>$(x).hidden=true);$(n==='l'?'sl':'s'+n).hidden=false;$('dots').hidden=n==='l';[...$('dots').children].forEach((d,i)=>d.classList.toggle('on',i<n));
   $('authM').classList.toggle('w',n===4);
-  const T={1:['Create your account','Step 1 of 4: your details'],2:['Verify your email','Step 2 of 4: we sent a verification code to '+(reg.email||'your inbox')],3:['Set up your workspace','Step 3 of 4: business and marketplace accounts'],4:['Choose your plan','Step 4 of 4: pick the plan that fits your volume'],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
+  const T={1:['Create your account','Step 1 of 4: your details'],2:['Verify your email','Step 2 of 4: we sent a verification code to '+(reg.email||'your inbox')],3:['Set up your workspace','Step 3 of 4: business and marketplace accounts'],4:['Free trial: choose your plan',`Step 4 of 4: free for ${TRIAL_DAYS} days, cancel anytime`],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
 function openAuth(m){showStep(m==='login'?'l':1);['m1','m2','m3','m4','ml'].forEach(i=>$(i).textContent='');$('authOv').hidden=false}
 const pwOk=p=>p.length>=7&&/[!@#$%^&*(),.?":{}|<>]/.test(p);
 function busy(b,on){b.disabled=on;b.classList.toggle('busy',on)}
@@ -302,11 +312,11 @@ function startResend(){const a=$('resend');clearInterval(rsT);let s=60;a.style.p
   rsT=setInterval(()=>{s--;if(s<=0){clearInterval(rsT);rsT=null;a.style.pointerEvents='';a.style.opacity='';a.textContent='Resend code';return}a.textContent='Resend code in '+s+'s'},1000)}
 $('resend').onclick=async ev=>{ev.preventDefault();if(rsT)return;const m=$('m2');m.className='msg good';m.textContent='Sending a new code. This can take a few seconds.';try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}startResend()};
 $('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6,10}$/.test(c))return m.textContent='Enter the full code from your email.';
-  busy(b,true);try{await api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}});showStep(3);$('rB').focus()}catch(x){m.textContent=x.message}finally{busy(b,false)}};
+  busy(b,true);try{await api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}});$('s2').hidden=true;$('sOk').hidden=false;setTimeout(()=>{if(!$('sOk').hidden){showStep(3);$('rB').focus()}},1600)}catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
 $('b3').onclick=async()=>{const m=$('m3'),b=$('b3'),biz=$('rB').value.trim();m.textContent='';if(!biz)return m.textContent='Enter your business name.';
   busy(b,true);try{const d=await api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}});
-    token=d.token;ls('lc_token',token);reg.password='';await refreshMe();showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Choose '+p.name)).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
+    token=d.token;ls('lc_token',token);reg.password='';await refreshMe();showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Start free trial')).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('skip').onclick=e=>{e.preventDefault();closeOv('authOv');enterApp()};
 $('bl').onclick=async()=>{const m=$('ml'),b=$('bl'),email=$('lE').value.trim().toLowerCase(),password=$('lP').value;m.textContent='';if(!email||!password)return m.textContent='Enter your email and password.';
