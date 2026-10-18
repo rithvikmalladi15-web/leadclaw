@@ -59,7 +59,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 .inp:focus,textarea:focus,select:focus{outline:0;border-color:var(--b);box-shadow:0 0 0 3px var(--tn)}
 .inp.invalid{border-color:var(--er);animation:shake .3s}@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--s2);border:1px solid var(--bd);border-radius:9px;padding:3px}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--s2);border:1px solid var(--bd);border-radius:99px;padding:3px}
 .seg button{border:0;background:none;padding:8px 4px;border-radius:6px;font-weight:600;color:var(--mu);cursor:pointer;transition:.15s}.seg button.on{background:var(--b);color:#fff}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.chip{padding:5px 11px;background:var(--bg);border:1px solid var(--bd);border-radius:999px;font-size:12.5px;color:var(--mu);cursor:pointer;transition:.15s}.chip:hover{border-color:var(--b);color:var(--ac);background:var(--tn)}
 .note{font-size:12.5px;color:var(--mu);background:var(--tn);border:1px solid var(--bd);border-radius:8px;padding:9px 12px}
@@ -225,12 +225,9 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 <div class="toast" id="toast" role="status"></div>
 
 <script>
-  // --------------------------------------------------------------------------
-  // Configuration & Environment Setup
-  // --------------------------------------------------------------------------
+  // Setup Constants & Global State
   const API = 'https://leadclaw-api.onrender.com';
   const SUPPORT_EMAIL = '';
-  
   const $ = id => document.getElementById(id);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) { return null; } };
@@ -270,9 +267,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   const saveMe = () => ls('lc_me', JSON.stringify(me));
   fetch(API + '/').catch(() => {});
 
-  // --------------------------------------------------------------------------
-  // Utility & API Helper Functions
-  // --------------------------------------------------------------------------
+  // Utility Functions
   function toast(m) {
     const t = $('toast');
     t.textContent = m;
@@ -347,9 +342,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 
   async function withWake(el, fn) {
     let stop = null;
-    const t = setTimeout(() => {
-      stop = wake(el);
-    }, 1200);
+    const t = setTimeout(() => { stop = wake(el); }, 1200);
     try {
       return await fn();
     } finally {
@@ -358,16 +351,8 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     }
   }
 
-  // --------------------------------------------------------------------------
-  // UI Navigation, Modals & Theme Handlers
-  // --------------------------------------------------------------------------
-  function closeOv(id) {
-    $(id).hidden = true;
-  }
-
-  function jump(id) {
-    $(id).scrollIntoView({ behavior: 'smooth' });
-  }
+  function closeOv(id) { $(id).hidden = true; }
+  function jump(id) { $(id).scrollIntoView({ behavior: 'smooth' }); }
 
   document.querySelectorAll('.tgl').forEach(b => b.onclick = () => {
     const n = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
@@ -393,8 +378,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   }
 
   function planHtml(p, cur, label) {
-    return `<article class="plan rv${p.rec ? ' rec' : ''}">${p.rec ? '<span class="tag">RECOMMENDED</span>' : ''}<h3>${p.name}</h3><div class="price">$${p.price}<small>/mo</small></div><div class="cred">${p.cred}</div>
-    <ul>${p.f.map(x => `<li>${x}</li>`).join('')}${(p.x || []).map(x => `<li class="no">${x}</li>`).join('')}</ul><button class="btn full${p.rec ? '' : ' sec'}" ${cur ? 'disabled' : ''} data-plan="${p.id}">${cur ? 'Current plan' : label}</button></article>`;
+    return `<article class="plan rv${p.rec ? ' rec' : ''}">${p.rec ? '<span class="tag">RECOMMENDED</span>' : ''}<h3>${p.name}</h3><div class="price">$${p.price}<small>/mo</small></div><div class="cred">${p.cred}</div><ul>${p.f.map(x => `<li>${x}</li>`).join('')}${(p.x || []).map(x => `<li class="no">${x}</li>`).join('')}</ul><button class="btn full${p.rec ? '' : ' sec'}" ${cur ? 'disabled' : ''} data-plan="${p.id}">${cur ? 'Current plan' : label}</button></article>`;
   }
 
   function bindPlans(box, fn) {
@@ -402,10 +386,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   }
 
   async function pick(id, btn, msgEl) {
-    if (!me) {
-      openAuth('signup');
-      return;
-    }
+    if (!me) { openAuth('signup'); return; }
     msgEl.textContent = '';
     try {
       const d = await withWake(btn, () => api('/api/billing/checkout', { method: 'POST', json: { plan: id } }));
@@ -464,9 +445,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     b.classList.toggle('busy', on);
   }
 
-  // --------------------------------------------------------------------------
-  // Authentication & Registration Form Flow
-  // --------------------------------------------------------------------------
+  // Registration & Auth handlers
   $('b1').onclick = async () => {
     const m = $('m1'), b = $('b1');
     const n = $('rN').value.trim();
@@ -503,7 +482,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   };
 
   $('skip').onclick = e => { e.preventDefault(); closeOv('authOv'); enterApp(); };
-  
+
   $('bl').onclick = async () => {
     const m = $('ml'), b = $('bl'), email = $('lE').value.trim().toLowerCase(), password = $('lP').value;
     m.textContent = '';
@@ -556,9 +535,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     if (!ls('lc_tut_done')) startTut();
   }
 
-  // --------------------------------------------------------------------------
-  // Dashboard & Dispute Logic
-  // --------------------------------------------------------------------------
+  // Dashboard render logic
   function render() {
     if (!me) return;
     const p = me.plan, lim = LIM[p], isPro = p === 'pro', left = me.credits_left;
@@ -567,13 +544,13 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     $('spBar').style.width = lim === undefined ? '0%' : isPro ? '100%' : (left / lim * 100) + '%';
     $('spUp').textContent = isPro ? 'Manage plan' : lim === undefined ? 'Choose a plan' : 'Upgrade plan';
     $('leftPill').textContent = lim === undefined ? 'No active plan' : isPro ? 'Unlimited leads' : `${left} lead${left === 1 ? '' : 's'} left`;
-    
+
     $('evBox').innerHTML = isPro ? `<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div><div class="f"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
      : `<div class="pro" data-up><span class="in"><b>Audio &amp; PDF evidence upload</b><small>Attach call recordings and documents for the AI to cite</small></span><span class="bg">PRO ONLY</span></div>`;
-    
+
     $('teamBox').innerHTML = isPro ? `<div class="panel"><h2>Team seats</h2><p class="sub" style="margin:0">Priority multi-user seats are included in your plan. Contact the LeadClaw team to add teammates.</p></div>`
      : `<div class="pro" data-up><span class="in"><b>Priority team seats</b><small>Invite teammates to share one workspace and dispute history</small></span><span class="bg">PRO ONLY</span></div>`;
-    
+
     document.querySelectorAll('#evBox [data-up],#teamBox [data-up]').forEach(e => e.onclick = () => { toast('This is a Pro feature.'); openPlans(); });
     if (!$('acct').value)$('acct').value = me['acc_' + plat.toLowerCase()] || '';
     renderHist();
@@ -636,11 +613,26 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   function fallback(f) {
     const amt = '$' + f.cost.toFixed(2);
     if (BAD.test(f.notes)) return { valid: false, reason: NOT, claim: '' };
-    return {
-      valid: true,
-      reason: 'The AI service was unavailable, so a standard template was used. No credit was deducted.',
-      claim: `Subject: Urgent: Lead Credit Request - Account # ${f.account} - Lead ID ${f.lid}\n\nDear Partner Support Team,\n\nI am writing to formally request a credit/refund for an invalid lead charged to my account. Below are the required identification details for this transaction:\n\nLEAD IDENTIFICATION DATA\n- Business Name: ${me.workspace}\n- Platform Account ID: ${f.account}\n- Lead ID Number: ${f.lid}\n- Lead Cost: ${amt}\n- Customer Phone: ${f.phone}\n- Customer Email: ${f.email}\n\nREASON FOR DISPUTE\nThis lead qualifies for a credit under your platform's credit guarantee guidelines for the following reason:\n${f.notes}\n\nREQUEST\nPlease review this lead and issue a credit of ${amt} to my account. I am happy to provide any additional information.\n\nSincerely,\n${me.full_name || me.workspace}\n${me.workspace}\n${me.email}`
-    };
+    const text = "Subject: Urgent: Lead Credit Request - Account # " + f.account + " - Lead ID " + f.lid + "\n\n" +
+      "Dear Partner Support Team,\n\n" +
+      "I am writing to formally request a credit/refund for an invalid lead charged to my account. Below are the required identification details for this transaction:\n\n" +
+      "LEAD IDENTIFICATION DATA\n" +
+      "- Business Name: " + me.workspace + "\n" +
+      "- Platform Account ID: " + f.account + "\n" +
+      "- Lead ID Number: " + f.lid + "\n" +
+      "- Lead Cost: " + amt + "\n" +
+      "- Customer Phone: " + f.phone + "\n" +
+      "- Customer Email: " + f.email + "\n\n" +
+      "REASON FOR DISPUTE\n" +
+      "This lead qualifies for a credit under your platform's credit guarantee guidelines for the following reason:\n" +
+      f.notes + "\n\n" +
+      "REQUEST\n" +
+      "Please review this lead and issue a credit of " + amt + " to my account. I am happy to provide any additional information.\n\n" +
+      "Sincerely,\n" +
+      (me.full_name || me.workspace) + "\n" +
+      me.workspace + "\n" +
+      me.email;
+    return { valid: true, reason: 'The AI service was unavailable, so a standard template was used. No credit was deducted.', claim: text };
   }
 
   function showResult(d, p = plat, id = 0) {
@@ -804,9 +796,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     }
   };
 
-  // --------------------------------------------------------------------------
-  // Admin Panel Controls
-  // --------------------------------------------------------------------------
+  // Admin section
   let adminKey = '', lockUntil = +(ls('lc_adm_lock') || 0), lockTimer = null;
   function lockTick() {
     const l = Math.ceil((lockUntil - Date.now()) / 1000), b = $('admGo');
