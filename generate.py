@@ -709,10 +709,13 @@ async def admin_set_plan(req: dict, x_admin_key: str = Header("")):
                 "retry_after": ADMIN_LOCK_SECONDS,
             },
         )
-    email = req.get("email")
+    email = (req.get("email") or "").strip().lower()
     plan = req.get("plan")
     if plan not in CREDITS and plan != "none":
         raise HTTPException(400, "Invalid plan.")
     with db() as c:
+        user = c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone()
+        if not user:
+            raise HTTPException(404, "User email not found in database.")
         c.execute("UPDATE users SET plan=?, on_trial=0 WHERE email=?", (plan, email))
     return {"status": "success"}
