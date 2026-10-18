@@ -295,9 +295,12 @@ $('b1').onclick=async()=>{const m=$('m1'),b=$('b1'),n=$('rN').value.trim(),e=$('
   if(!pwOk(p))return m.textContent='Password needs 7+ characters and 1 special character.';
   if(p!==$('rP2').value)return m.textContent='Passwords do not match.';
   if(!$('rT').checked)return m.textContent='Please accept the Terms & Conditions.';
-  busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}),'Sending your verification code. This can take up to 30 seconds if the server is starting up.',0);reg={name:n,email:e,password:p};showStep(2);$('rC').value='';$('rC').focus()}
+  busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}),'Sending your verification code. This can take up to 30 seconds if the server is starting up.',0);reg={name:n,email:e,password:p};showStep(2);startResend();$('rC').value='';$('rC').focus()}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
-$('resend').onclick=async ev=>{ev.preventDefault();const m=$('m2');m.className='msg good';m.textContent='Sending a new code. This can take a few seconds.';try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}};
+let rsT=null;
+function startResend(){const a=$('resend');clearInterval(rsT);let s=60;a.style.pointerEvents='none';a.style.opacity='.55';a.textContent='Resend code in '+s+'s';
+  rsT=setInterval(()=>{s--;if(s<=0){clearInterval(rsT);rsT=null;a.style.pointerEvents='';a.style.opacity='';a.textContent='Resend code';return}a.textContent='Resend code in '+s+'s'},1000)}
+$('resend').onclick=async ev=>{ev.preventDefault();if(rsT)return;const m=$('m2');m.className='msg good';m.textContent='Sending a new code. This can take a few seconds.';try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}startResend()};
 $('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6}$/.test(c))return m.textContent='Enter the 6-digit code.';
   busy(b,true);try{await api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}});showStep(3);$('rB').focus()}catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
