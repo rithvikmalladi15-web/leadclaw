@@ -46,8 +46,8 @@ STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICES = {p: os.environ.get("STRIPE_PRICE_" + p.upper(), "") for p in ("basic", "standard", "pro")}
 
 # Supabase Auth configuration (handles automated emails for free)
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "")
-SUPABASE_SECRET_KEY = os.environ.get("SUPABASE_SECRET_KEY", "")
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_SECRET_KEY", "")
 
 TEST_MODE = os.environ.get("TEST_MODE", "") == "1"
 CREDITS = {"basic": 7, "standard": 15, "pro": -1}
@@ -118,6 +118,7 @@ def init_db():
             recovered INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         c.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, created DOUBLE PRECISION)")
         c.execute("CREATE INDEX IF NOT EXISTS disputes_email_idx ON disputes (email)")
+        c.execute("CREATE TABLE IF NOT EXISTS email_verified (email TEXT PRIMARY KEY, verified_at DOUBLE PRECISION)")
         c.execute("UPDATE users SET plan='none' WHERE plan='free'")
         c.execute("UPDATE users SET plan='basic' WHERE plan='solo'")
         c.execute("UPDATE users SET plan='pro' WHERE plan='growth'")
@@ -185,6 +186,10 @@ class PlanReq(BaseModel):
     plan: str
 class RecoveredReq(BaseModel):
     recovered: bool
+class SendCodeReq(BaseModel):
+    email: str; full_name: str = ""
+class VerifyCodeReq(BaseModel):
+    email: str; code: str
 
 PLATFORM_POLICY = {"Angi": "Angi Lead Credit Policy", "Thumbtack": "Thumbtack Lead Price Credit Terms",
                    "Porch": "Porch Pro Lead Guarantee", "Networx": "Networx Lead Dispute Terms"}
@@ -274,6 +279,51 @@ def gmail(v):
 
 
 # ---------- Auth via Supabase API ----------
+async def supabase_post(path, body):
+    if not (SUPABASE_URL and SUPABASE_KEY):
+        raise HTTPException(503, "Email verification is not configured yet.")
+    try:
+        async with httpx.AsyncClient(timeout=20) as h:
+            return await h.post(f"{SUPABASE_URL}/auth/v1/{path}", json=body,
+                                headers={"apikey": SUPABASE_KEY, "Content-Type": "application/json"})
+    except httpx.HTTPError as e:
+        log.warning("Supabase request failed: %s", e)
+        raise HTTPException(502, "Could not reach the email service. Please try again.")
+
+
+@app.post("/api/auth/send-code")
+async def send_code(req: SendCodeReq):
+    email = gmail(req.email)
+    k = "send:" + email
+    throttle(k)
+    FAILS.setdefault(k, []).append(time.time())
+    with db() as c:
+        if c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
+            raise HTTPException(409, "An account with this email already exists. Please log in.")
+    r = await supabase_post("otp", {"email": email, "create_user": True, "data": {"full_name": req.full_name.strip()[:80]}})
+    if r.status_code >= 400:
+        log.error("Supabase otp error: %s %s", r.status_code, r.text)
+        raise HTTPException(429 if r.status_code == 429 else 502, "Could not send the verification email. Please wait a minute and try again.")
+    return {"status": "sent"}
+
+
+@app.post("/api/auth/verify-code")
+async def verify_code(req: VerifyCodeReq):
+    email = gmail(req.email)
+    code = req.code.strip()
+    k = "verify:" + email
+    throttle(k)
+    if not re.fullmatch(r"\d{6}", code):
+        raise HTTPException(400, "Enter the 6-digit code.")
+    r = await supabase_post("verify", {"type": "email", "email": email, "token": code})
+    if r.status_code >= 400:
+        FAILS.setdefault(k, []).append(time.time())
+        raise HTTPException(400, "That code is incorrect or has expired.")
+    with db() as c:
+        c.execute("INSERT INTO email_verified (email, verified_at) VALUES (?,?) ON CONFLICT (email) DO UPDATE SET verified_at=EXCLUDED.verified_at", (email, time.time()))
+    return {"status": "verified"}
+
+
 @app.post("/api/auth/register")
 async def register(req: RegisterReq):
     email = gmail(req.email)
@@ -287,24 +337,16 @@ async def register(req: RegisterReq):
         if c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
             raise HTTPException(409, "An account with this email already exists. Please log in.")
 
-    # Call Supabase Auth API to trigger automated verification email
-    if SUPABASE_URL and SUPABASE_SECRET_KEY:
-        try:
-            async with httpx.Client(timeout=20) as client:
-                r = client.post(
-                    f"{SUPABASE_URL}/auth/v1/signup",
-                    json={"email": email, "password": req.password},
-                    headers={"apikey": SUPABASE_SECRET_KEY, "Authorization": f"Bearer {SUPABASE_SECRET_KEY}", "Content-Type": "application/json"}
-                )
-                if r.status_code >= 400:
-                    log.error("Supabase signup error: %s", r.text)
-        except Exception as e:
-            log.warning("Supabase network error during signup: %s", e)
+    with db() as c:
+        v = c.execute("SELECT verified_at FROM email_verified WHERE email=?", (email,)).fetchone()
+    if not v or time.time() - v[0] > 3600:
+        raise HTTPException(400, "Please verify your email first.")
 
     with db() as c:
         c.execute("INSERT INTO users (email,password,workspace,full_name,acc_angi,acc_thumbtack,acc_porch,acc_networx,plan) VALUES (?,?,?,?,?,?,?,?,'none')",
                   (email, hash_pw(req.password), req.business.strip()[:120], req.full_name.strip()[:80],
                    req.acc_angi.strip()[:120], req.acc_thumbtack.strip()[:120], req.acc_porch.strip()[:120], req.acc_networx.strip()[:120]))
+        c.execute("DELETE FROM email_verified WHERE email=?", (email,))
     return {"status": "success", "token": new_session(email)}
 
 
