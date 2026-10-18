@@ -256,8 +256,8 @@ async function api(path,o={}){
   if(r.status===401&&token&&!auth){signout(true);openAuth('login');throw new Error('Session expired. Please log in again.')}
   if(!r.ok){const e=new Error(typeof d.detail==='string'?d.detail:'Something went wrong. Please try again.');e.status=r.status;throw e}
   return d}
-function wake(after){const w=document.createElement('div');w.className='prog';w.style.display='block';w.innerHTML='<div class="t"><span>Connecting to the server. This can take up to 30 seconds.</span></div><div class="bar"><i></i></div>';after.insertAdjacentElement('afterend',w);const i=w.querySelector('i');let p=0;const iv=setInterval(()=>{p=Math.min(94,p+(p<50?4:1.5));i.style.width=p+'%'},400);return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),300)}}
-async function withWake(el,fn){let stop=null;const t=setTimeout(()=>{stop=wake(el)},1200);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
+function wake(after,msg){const w=document.createElement('div');w.className='prog';w.style.display='block';w.innerHTML='<div class="t"><span></span></div><div class="bar"><i></i></div>';w.querySelector('span').textContent=msg||'Connecting to the server. This can take up to 30 seconds.';after.insertAdjacentElement('afterend',w);const i=w.querySelector('i');let p=0;const iv=setInterval(()=>{p=Math.min(94,p+(p<50?4:1.5));i.style.width=p+'%'},400);return()=>{clearInterval(iv);i.style.width='100%';setTimeout(()=>w.remove(),300)}}
+async function withWake(el,fn,msg,delay=1200){let stop=null;const t=setTimeout(()=>{stop=wake(el,msg)},delay);try{return await fn()}finally{clearTimeout(t);stop&&stop()}}
 function closeOv(id){$(id).hidden=true}
 function jump(id){$(id).scrollIntoView({behavior:'smooth'})}
 document.querySelectorAll('.tgl').forEach(b=>b.onclick=()=>{const n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;ls('lc_theme',n)});
@@ -286,7 +286,7 @@ $('b1').onclick=async()=>{const m=$('m1'),b=$('b1'),n=$('rN').value.trim(),e=$('
   if(!pwOk(p))return m.textContent='Password needs 7+ characters and 1 special character.';
   if(p!==$('rP2').value)return m.textContent='Passwords do not match.';
   if(!$('rT').checked)return m.textContent='Please accept the Terms & Conditions.';
-  busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}));reg={name:n,email:e,password:p};showStep(2);$('rC').value='';$('rC').focus()}
+  busy(b,true);try{await withWake(b,()=>api('/api/auth/send-code',{method:'POST',json:{email:e,full_name:n}}),'Sending your verification code. This can take up to 30 seconds if the server is starting up.',0);reg={name:n,email:e,password:p};showStep(2);$('rC').value='';$('rC').focus()}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('resend').onclick=async ev=>{ev.preventDefault();const m=$('m2');try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}};
 $('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6}$/.test(c))return m.textContent='Enter the 6-digit code.';
