@@ -549,3 +549,44 @@ $('navHelp').onclick=()=>{location.href='mailto:'+SUPPORT_EMAIL+'?subject='+enco
 </script>
 </body>
 </html>
+<script>
+// Inject Quick Plan Testing Tool and enforce 5-minute cooldown on wrong keys
+window.addEventListener('DOMContentLoaded', () => {
+  const admData = document.getElementById('admData');
+  if (admData && !document.getElementById('testEmail')) {
+    const testDiv = document.createElement('div');
+    testDiv.style.cssText = 'background:var(--tn);padding:14px;border-radius:8px;margin-bottom:16px;text-align:left;';
+    testDiv.innerHTML = `
+      <h3 style="margin:0 0 8px;font:700 14px var(--d);">Quick Plan Testing Tool</h3>
+      <div class="two f">
+        <input class="inp" id="testEmail" placeholder="User email to modify">
+        <select class="inp" id="testPlanSelect">
+          <option value="none">No plan</option>
+          <option value="basic">Basic Plan</option>
+          <option value="standard">Standard Plan</option>
+          <option value="pro">Pro Plan (Unlimited + Evidence)</option>
+        </select>
+      </div>
+      <button class="btn sm" id="testPlanGo">Force Update User Plan</button>
+    `;
+    admData.insertBefore(testDiv, admData.firstChild);
+
+    document.getElementById('testPlanGo').onclick = async () => {
+      const email = document.getElementById('testEmail').value.trim();
+      const plan = document.getElementById('testPlanSelect').value;
+      if (!email) return toast('Enter a user email.');
+      try {
+        await api('/api/admin/set-plan', {
+          method: 'POST',
+          headers: { 'X-Admin-Key': adminKey },
+          json: { email, plan }
+        });
+        toast('User plan updated successfully!');
+        loadAdmin();
+      } catch (e) {
+        toast(e.message);
+      }
+    };
+  }
+});
+</script>
