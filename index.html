@@ -191,7 +191,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
     <p class="note" style="margin-bottom:10px">7+ characters with 1 special character. For safety, passwords cannot be recovered. Please remember yours.</p>
     <label class="chk"><input type="checkbox" id="rT"><span>I have read and agree to the <a href="#" onclick="openTerms();return false" style="color:var(--ac);font-weight:600">Terms &amp; Conditions</a>.</span></label>
     <p class="msg" id="m1"></p><button class="btn full" id="b1">Send verification code</button></div>
-  <div id="s2" hidden><div class="f"><label for="rC">6-digit verification code</label><input class="inp" id="rC" inputmode="numeric" maxlength="6" autocomplete="one-time-code" style="letter-spacing:.4em;font-size:20px;text-align:center"></div>
+  <div id="s2" hidden><div class="f"><label for="rC">Verification code</label><input class="inp" id="rC" inputmode="numeric" maxlength="10" autocomplete="one-time-code" style="letter-spacing:.4em;font-size:20px;text-align:center"></div>
     <p class="msg" id="m2"></p><button class="btn full" id="b2">Verify email</button><p style="text-align:center;font-size:13.5px;color:var(--mu);margin:12px 0 0">Did not get it? <a href="#" id="resend" style="color:var(--ac);font-weight:600">Resend code</a></p></div>
   <div id="s3" hidden><div class="f"><label for="rB">Contractor business name *</label><input class="inp" id="rB" placeholder="Apex Roofing &amp; Plumbing"></div>
     <p class="lbl" style="margin-top:6px">Marketplace credentials (optional)</p><p class="sub" style="margin:0 0 10px">Add your account handles to autofill claims. You can edit these later.</p>
@@ -285,7 +285,7 @@ function renderLandingPlans(){$('lp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.p
 function openPlans(){$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Choose '+p.name)).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
 function showStep(n){['s1','s2','s3','s4','sl'].forEach(x=>$(x).hidden=true);$(n==='l'?'sl':'s'+n).hidden=false;$('dots').hidden=n==='l';[...$('dots').children].forEach((d,i)=>d.classList.toggle('on',i<n));
   $('authM').classList.toggle('w',n===4);
-  const T={1:['Create your account','Step 1 of 4: your details'],2:['Verify your email','Step 2 of 4: we sent a 6-digit code to '+(reg.email||'your inbox')],3:['Set up your workspace','Step 3 of 4: business and marketplace accounts'],4:['Choose your plan','Step 4 of 4: pick the plan that fits your volume'],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
+  const T={1:['Create your account','Step 1 of 4: your details'],2:['Verify your email','Step 2 of 4: we sent a verification code to '+(reg.email||'your inbox')],3:['Set up your workspace','Step 3 of 4: business and marketplace accounts'],4:['Choose your plan','Step 4 of 4: pick the plan that fits your volume'],l:['Welcome back','Sign in to your dashboard']}[n];$('aT').textContent=T[0];$('aS').textContent=T[1]}
 function openAuth(m){showStep(m==='login'?'l':1);['m1','m2','m3','m4','ml'].forEach(i=>$(i).textContent='');$('authOv').hidden=false}
 const pwOk=p=>p.length>=7&&/[!@#$%^&*(),.?":{}|<>]/.test(p);
 function busy(b,on){b.disabled=on;b.classList.toggle('busy',on)}
@@ -301,7 +301,7 @@ let rsT=null;
 function startResend(){const a=$('resend');clearInterval(rsT);let s=60;a.style.pointerEvents='none';a.style.opacity='.55';a.textContent='Resend code in '+s+'s';
   rsT=setInterval(()=>{s--;if(s<=0){clearInterval(rsT);rsT=null;a.style.pointerEvents='';a.style.opacity='';a.textContent='Resend code';return}a.textContent='Resend code in '+s+'s'},1000)}
 $('resend').onclick=async ev=>{ev.preventDefault();if(rsT)return;const m=$('m2');m.className='msg good';m.textContent='Sending a new code. This can take a few seconds.';try{await api('/api/auth/send-code',{method:'POST',json:{email:reg.email,full_name:reg.name}});m.className='msg good';m.textContent='A new code has been sent.'}catch(x){m.className='msg';m.textContent=x.message}startResend()};
-$('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6}$/.test(c))return m.textContent='Enter the 6-digit code.';
+$('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textContent='';const c=$('rC').value.trim();if(!/^\d{6,10}$/.test(c))return m.textContent='Enter the full code from your email.';
   busy(b,true);try{await api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}});showStep(3);$('rB').focus()}catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
 $('b3').onclick=async()=>{const m=$('m3'),b=$('b3'),biz=$('rB').value.trim();m.textContent='';if(!biz)return m.textContent='Enter your business name.';
