@@ -51,6 +51,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_S
 
 TEST_MODE = os.environ.get("TEST_MODE", "") == "1"
 TRIAL_DAYS = int(os.environ.get("TRIAL_DAYS", "7") or 0)
+TRIAL_DISPUTES = int(os.environ.get("TRIAL_DISPUTES", "3") or 3)
 CREDITS = {"basic": 7, "standard": 15, "pro": -1}
 
 
@@ -120,6 +121,8 @@ def init_db():
         c.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, created DOUBLE PRECISION)")
         c.execute("CREATE INDEX IF NOT EXISTS disputes_email_idx ON disputes (email)")
         c.execute("CREATE TABLE IF NOT EXISTS email_verified (email TEXT PRIMARY KEY, verified_at DOUBLE PRECISION)")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_sub TEXT DEFAULT ''")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS on_trial INTEGER DEFAULT 0")
         c.execute("UPDATE users SET plan='none' WHERE plan='free'")
         c.execute("UPDATE users SET plan='basic' WHERE plan='solo'")
         c.execute("UPDATE users SET plan='pro' WHERE plan='growth'")
@@ -146,8 +149,8 @@ def check_pw(pw: str, stored: str) -> bool:
 
 
 def validate_password(pw: str):
-    if len(pw) < 7 or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", pw):
-        raise HTTPException(400, "Password must be at least 7 characters and contain 1 special character.")
+    if len(pw) < 7 or len(pw) > 20 or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", pw):
+        raise HTTPException(400, "Password must be 7 to 20 characters and contain 1 special character.")
 
 
 FAILS: dict = {}
@@ -391,7 +394,11 @@ async def me(authorization: str = Header("")):
     with db() as c:
         used = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date_trunc('month', CURRENT_TIMESTAMP)", (u["email"],)).fetchone()[0]
         ds = [dict(r) for r in c.execute("SELECT id,platform,lead_phone,lead_email,claim,reason,amount,valid,recovered,created_at FROM disputes WHERE email=? ORDER BY id DESC LIMIT 200", (u["email"],))]
-    return {"email": u["email"], "plan": u["plan"], "credits_left": credits_left(u["plan"], used), "credits_limit": CREDITS.get(u["plan"]), "workspace": u["workspace"],
+    with db() as c:
+        total = c.execute("SELECT COUNT(*) FROM disputes WHERE email=?", (u["email"],)).fetchone()[0]
+    return {"on_trial": bool(u.get("on_trial")), "trial_limit": TRIAL_DISPUTES,
+            "trial_left": max(0, TRIAL_DISPUTES - total) if u.get("on_trial") else None,
+            "email": u["email"], "plan": u["plan"], "credits_left": credits_left(u["plan"], used), "credits_limit": CREDITS.get(u["plan"]), "workspace": u["workspace"],
             "full_name": u["full_name"], "phone": u["phone"], "acc_angi": u["acc_angi"], "acc_thumbtack": u["acc_thumbtack"],
             "acc_porch": u["acc_porch"], "acc_networx": u["acc_networx"], "month_used": used,
             "solo_limit": SOLO_MONTHLY_LIMIT, "billing": bool(u["stripe_customer"]), "disputes": ds,
@@ -438,7 +445,7 @@ async def checkout(req: PlanReq, authorization: str = Header("")):
         raise HTTPException(400, "Unknown plan.")
     if not STRIPE_SECRET and TEST_MODE:
         with db() as c:
-            c.execute("UPDATE users SET plan=? WHERE email=?", (req.plan, u["email"]))
+            c.execute("UPDATE users SET plan=?, on_trial=? WHERE email=?", (req.plan, 1 if TRIAL_DAYS > 0 else 0, u["email"]))
         return {"url": None, "activated": True}
     if not STRIPE_PRICES.get(req.plan):
         raise HTTPException(503, "Billing is not configured yet.")
@@ -448,6 +455,22 @@ async def checkout(req: PlanReq, authorization: str = Header("")):
         "line_items[0][price]": STRIPE_PRICES[req.plan], "line_items[0][quantity]": "1",
         "metadata[plan]": req.plan, **({"subscription_data[trial_period_days]": str(TRIAL_DAYS)} if TRIAL_DAYS > 0 else {}), "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
     return {"url": s["url"]}
+
+
+@app.post("/api/billing/start-plan")
+async def start_plan(authorization: str = Header("")):
+    u = current_user(authorization)
+    if not u.get("on_trial"):
+        return {"status": "active"}
+    if STRIPE_SECRET and u.get("stripe_sub"):
+        sub = await stripe_call(f"subscriptions/{u['stripe_sub']}", {"trial_end": "now"})
+        if sub.get("status") != "active":
+            raise HTTPException(402, "We could not charge your card. Update your payment method under Manage subscription.")
+    elif not TEST_MODE:
+        raise HTTPException(503, "Billing is not configured yet.")
+    with db() as c:
+        c.execute("UPDATE users SET on_trial=0 WHERE email=?", (u["email"],))
+    return {"status": "active"}
 
 
 @app.post("/api/billing/portal")
@@ -477,17 +500,17 @@ async def webhook(request: Request, stripe_signature: str = Header("")):
             plan = (obj.get("metadata") or {}).get("plan")
             email = (obj.get("client_reference_id") or "").lower()
             if plan in STRIPE_PRICES and email:
-                c.execute("UPDATE users SET plan=?, stripe_customer=? WHERE email=?", (plan, obj.get("customer") or "", email))
+                c.execute("UPDATE users SET plan=?, stripe_customer=?, stripe_sub=?, on_trial=? WHERE email=?", (plan, obj.get("customer") or "", obj.get("subscription") or "", 1 if obj.get("payment_status") == "no_payment_required" else 0, email))
         elif ev["type"] == "customer.subscription.updated":
             status = obj.get("status")
             price = (((obj.get("items") or {}).get("data") or [{}])[0].get("price") or {}).get("id")
             plan = next((k for k, v in STRIPE_PRICES.items() if v and v == price), None)
             if status in ("canceled", "unpaid", "incomplete_expired"):
-                c.execute("UPDATE users SET plan='none' WHERE stripe_customer=?", (obj.get("customer"),))
+                c.execute("UPDATE users SET plan='none', on_trial=0 WHERE stripe_customer=?", (obj.get("customer"),))
             elif status in ("active", "trialing", "past_due") and plan:
-                c.execute("UPDATE users SET plan=? WHERE stripe_customer=?", (plan, obj.get("customer")))
+                c.execute("UPDATE users SET plan=?, on_trial=? WHERE stripe_customer=?", (plan, 1 if status == "trialing" else 0, obj.get("customer")))
         elif ev["type"] == "customer.subscription.deleted":
-            c.execute("UPDATE users SET plan='none' WHERE stripe_customer=?", (obj.get("customer"),))
+            c.execute("UPDATE users SET plan='none', on_trial=0 WHERE stripe_customer=?", (obj.get("customer"),))
     return {"received": True}
 
 
@@ -508,6 +531,11 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
     files = [f for f in files if f and f.filename]
     if plan not in CREDITS:
         raise HTTPException(402, "Choose a plan to generate dispute letters.")
+    if u.get("on_trial"):
+        with db() as c:
+            done = c.execute("SELECT COUNT(*) FROM disputes WHERE email=?", (u["email"],)).fetchone()[0]
+        if done >= TRIAL_DISPUTES:
+            raise HTTPException(402, f"Your free trial has ended after {TRIAL_DISPUTES} disputes. Start your plan to continue.")
     with db() as c:
         used = c.execute("SELECT COUNT(*) FROM disputes WHERE email=? AND created_at>=date_trunc('month', CURRENT_TIMESTAMP)", (u["email"],)).fetchone()[0]
     if credits_left(plan, used) == 0:
