@@ -50,9 +50,12 @@ SUPABASE_URL = re.sub(r"/(rest|auth)/v1/?$", "", os.environ.get("SUPABASE_URL", 
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_SECRET_KEY", "")
 
 TEST_MODE = os.environ.get("TEST_MODE", "") == "1"
+if TEST_MODE:
+    log.warning("TEST_MODE is ON: plans can be activated without payment. Turn it off before launch.")
 TRIAL_DAYS = int(os.environ.get("TRIAL_DAYS", "7") or 0)
 TRIAL_DISPUTES = int(os.environ.get("TRIAL_DISPUTES", "3") or 3)
 STRIPE_TAX = os.environ.get("STRIPE_AUTOMATIC_TAX", "") == "1"  # turn on once Stripe Tax is set up
+TRIAL_NO_CARD = os.environ.get("TRIAL_NO_CARD", "1") == "1"  # 1 = free trial without a card (default)
 CREDITS = {"basic": 7, "standard": 15, "pro": -1}
 
 
@@ -124,6 +127,7 @@ def init_db():
         c.execute("CREATE TABLE IF NOT EXISTS email_verified (email TEXT PRIMARY KEY, verified_at DOUBLE PRECISION)")
         c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_sub TEXT DEFAULT ''")
         c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS on_trial INTEGER DEFAULT 0")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used INTEGER DEFAULT 0")
         c.execute("UPDATE users SET plan='none' WHERE plan='free'")
         c.execute("UPDATE users SET plan='basic' WHERE plan='solo'")
         c.execute("UPDATE users SET plan='pro' WHERE plan='growth'")
@@ -195,6 +199,10 @@ class SendCodeReq(BaseModel):
     email: str; full_name: str = ""
 class VerifyCodeReq(BaseModel):
     email: str; code: str
+class ForgotReq(BaseModel):
+    email: str
+class ResetReq(BaseModel):
+    email: str; code: str; password: str
 
 PLATFORM_POLICY = {"Angi": "Angi Lead Credit Policy", "Thumbtack": "Thumbtack Lead Price Credit Terms",
                    "Porch": "Porch Pro Lead Guarantee", "Networx": "Networx Lead Dispute Terms"}
@@ -273,7 +281,9 @@ def health():
     except Exception as e:
         log.error("Health check DB error: %s", e)
         database = "error: check DATABASE_URL"
-    return {"status": "healthy", "service": "LeadClaw API", "database": database}
+    checks = {"stripe": bool(STRIPE_SECRET and STRIPE_WEBHOOK and all(STRIPE_PRICES.values())),
+              "email": bool(SUPABASE_URL and SUPABASE_KEY), "ai": bool(GEMINI_API_KEY or GROQ_API_KEY), "admin": bool(ADMIN_KEY)}
+    return {"status": "healthy", "service": "LeadClaw API", "database": database, "configured": checks}
 
 
 def gmail(v):
@@ -327,6 +337,43 @@ async def verify_code(req: VerifyCodeReq):
     with db() as c:
         c.execute("INSERT INTO email_verified (email, verified_at) VALUES (?,?) ON CONFLICT (email) DO UPDATE SET verified_at=EXCLUDED.verified_at", (email, time.time()))
     return {"status": "verified"}
+
+
+@app.post("/api/auth/forgot")
+async def forgot(req: ForgotReq):
+    email = gmail(req.email)
+    k = "forgot:" + email
+    throttle(k)
+    FAILS.setdefault(k, []).append(time.time())
+    with db() as c:
+        exists = c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone()
+    if exists:
+        r = await supabase_post("otp", {"email": email, "create_user": True})
+        if r.status_code >= 400:
+            log.error("Supabase reset otp error: %s %s", r.status_code, r.text)
+            raise HTTPException(429 if r.status_code == 429 else 502, "Could not send the reset email. Please wait a minute and try again.")
+    return {"status": "sent"}
+
+
+@app.post("/api/auth/reset")
+async def reset_password(req: ResetReq):
+    email = gmail(req.email)
+    code = req.code.strip()
+    k = "reset:" + email
+    throttle(k)
+    validate_password(req.password)
+    if not re.fullmatch(r"\d{6,10}", code):
+        raise HTTPException(400, "Enter the full code from your email.")
+    r = await supabase_post("verify", {"type": "email", "email": email, "token": code})
+    if r.status_code >= 400:
+        FAILS.setdefault(k, []).append(time.time())
+        raise HTTPException(400, "That code is incorrect or has expired.")
+    with db() as c:
+        if not c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone():
+            raise HTTPException(400, "That code is incorrect or has expired.")
+        c.execute("UPDATE users SET password=? WHERE email=?", (hash_pw(req.password), email))
+        c.execute("DELETE FROM sessions WHERE email=?", (email,))
+    return {"status": "success"}
 
 
 @app.post("/api/auth/register")
@@ -439,22 +486,35 @@ async def stripe_call(path, data):
     return r.json()
 
 
+def stripe_cust(u):
+    """Reuse the Stripe customer when one exists, so repeat purchases never create duplicate customers."""
+    return {"customer": u["stripe_customer"]} if u.get("stripe_customer") else {"customer_email": u["email"]}
+
+
 @app.post("/api/billing/checkout")
 async def checkout(req: PlanReq, authorization: str = Header("")):
     u = current_user(authorization)
     if req.plan not in CREDITS:
         raise HTTPException(400, "Unknown plan.")
+    if TRIAL_NO_CARD and TRIAL_DISPUTES > 0 and u["plan"] == "none" and not u.get("trial_used") and not u.get("stripe_customer"):
+        with db() as c:
+            c.execute("UPDATE users SET plan=?, on_trial=1, trial_used=1 WHERE email=?", (req.plan, u["email"]))
+        return {"url": None, "activated": True}
     if not STRIPE_SECRET and TEST_MODE:
         with db() as c:
             c.execute("UPDATE users SET plan=?, on_trial=? WHERE email=?", (req.plan, 1 if TRIAL_DAYS > 0 else 0, u["email"]))
         return {"url": None, "activated": True}
     if not STRIPE_PRICES.get(req.plan):
         raise HTTPException(503, "Billing is not configured yet.")
+    if STRIPE_SECRET and u.get("stripe_sub") and u.get("stripe_customer") and u["plan"] in CREDITS:
+        # already subscribed: change plans in the Stripe billing portal so nobody is billed twice
+        p = await stripe_call("billing_portal/sessions", {"customer": u["stripe_customer"], "return_url": FRONTEND_URL or "http://localhost:8080"})
+        return {"url": p["url"]}
     base = FRONTEND_URL or "http://localhost:8080"
     s = await stripe_call("checkout/sessions", {
-        "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
+        "mode": "subscription", **stripe_cust(u), "client_reference_id": u["email"],
         "line_items[0][price]": STRIPE_PRICES[req.plan], "line_items[0][quantity]": "1",
-        "metadata[plan]": req.plan, **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}), **({"subscription_data[trial_period_days]": str(TRIAL_DAYS)} if TRIAL_DAYS > 0 else {}), "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
+        "metadata[plan]": req.plan, **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}), **({"subscription_data[trial_period_days]": str(TRIAL_DAYS)} if TRIAL_DAYS > 0 and not TRIAL_NO_CARD else {}), "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
     return {"url": s["url"]}
 
 
@@ -463,6 +523,14 @@ async def start_plan(authorization: str = Header("")):
     u = current_user(authorization)
     if not u.get("on_trial"):
         return {"status": "active"}
+    if TRIAL_NO_CARD and not u.get("stripe_sub") and STRIPE_SECRET and STRIPE_PRICES.get(u["plan"]):
+        base = FRONTEND_URL or "http://localhost:8080"
+        sess = await stripe_call("checkout/sessions", {
+            "mode": "subscription", **stripe_cust(u), "client_reference_id": u["email"],
+            "line_items[0][price]": STRIPE_PRICES[u["plan"]], "line_items[0][quantity]": "1", "metadata[plan]": u["plan"],
+            **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}),
+            "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
+        return {"url": sess["url"]}
     if STRIPE_SECRET and u.get("stripe_sub"):
         sub = await stripe_call(f"subscriptions/{u['stripe_sub']}", {"trial_end": "now"})
         if sub.get("status") != "active":
