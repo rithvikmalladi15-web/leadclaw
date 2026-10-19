@@ -338,7 +338,7 @@ def template_claim(platform, policy, handle, phone, lead_email, cost, notes, rea
             f"REASON FOR DISPUTE (POLICY VIOLATION)\nThis lead qualifies for a credit under the {policy} for the following reason:\n"
             f"- {notes.strip() or reason}\n\n"
             f"REQUEST\nPlease review this lead and issue a credit of ${cost:.2f} to my account. I am happy to provide any additional information.\n\n"
-            f"Sincerely,\n{name or business}\n{business}\n{cphone or ''}\n{cemail}").replace("\n\n\n","\n\n").rstrip()+"\n"
+            "Sincerely,\n" + "\n".join(x for x in (name or business, business, cphone, cemail) if x)).rstrip()+"\n"
 
 
 @app.get("/")
