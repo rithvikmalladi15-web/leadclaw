@@ -328,12 +328,17 @@ async def run_ai(prompt, parts, prefer):
     raise err or ValueError("No AI provider available.")
 
 
-def template_claim(platform, policy, handle, phone, lead_email, cost, notes, reason):
-    return (f"Subject: Lead Credit Request - {platform} - {phone}\n\nDear {platform} Support Team,\n\n"
-            f"I am writing to request a credit of ${cost:.2f} for a lead delivered to my account"
-            f"{f' ({handle})' if handle else ''}.\n\nLead details:\n- Phone: {phone}\n- Email: {lead_email}\n\n"
-            f"Issue: {notes.strip() or reason}\n\nThis lead does not meet the standards of the {policy}. "
-            f"Please review the lead and issue a credit to my account.\n\nThank you,\n[Your name]")
+def template_claim(platform, policy, handle, phone, lead_email, cost, notes, reason, business="", lead_id="", received="", name="", cphone="", cemail=""):
+    return (f"Subject: Urgent: Lead Credit Request - Account # {handle or 'N/A'} - Lead ID {lead_id or 'N/A'}\n\n"
+            f"Dear {platform} Partner Support Team,\n\n"
+            f"I am writing to formally request a credit/refund for an invalid lead charged to my account.\n\n"
+            f"LEAD IDENTIFICATION DATA\n- Business Name: {business or 'Not provided'}\n- Platform Account ID: {handle or 'Not provided'}\n"
+            f"- Lead ID Number: {lead_id or 'Not provided'}\n- Date & Time Received: {received or 'Not provided'}\n- Lead Cost: ${cost:.2f}\n"
+            f"- Customer Phone: {phone or 'Not provided'}\n- Customer Email: {lead_email or 'Not provided'}\n\n"
+            f"REASON FOR DISPUTE (POLICY VIOLATION)\nThis lead qualifies for a credit under the {policy} for the following reason:\n"
+            f"- {notes.strip() or reason}\n\n"
+            f"REQUEST\nPlease review this lead and issue a credit of ${cost:.2f} to my account. I am happy to provide any additional information.\n\n"
+            f"Sincerely,\n{name or business}\n{business}\n{cphone or ''}\n{cemail}").replace("\n\n\n","\n\n").rstrip()+"\n"
 
 
 @app.get("/")
@@ -569,9 +574,6 @@ async def profile(req: ProfileReq, authorization: str = Header("")):
     with db() as c:
         c.execute("UPDATE users SET full_name=?,phone=?,acc_angi=?,acc_thumbtack=?,acc_porch=?,acc_networx=? WHERE email=?",
                   (req.full_name, req.phone, req.acc_angi, req.acc_thumbtack, req.acc_porch, req.acc_networx, u["email"]))
-        if req.password:
-            validate_password(req.password)
-            c.execute("UPDATE users SET password=? WHERE email=?", (hash_pw(req.password), u["email"]))
     return {"status": "success"}
 
 
@@ -706,13 +708,13 @@ async def webhook(request: Request, stripe_signature: str = Header("")):
 @app.post("/api/dispute")
 async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_email: str = Form(""),
                   notes: str = Form(""), transcript: str = Form(""), cost: float = Form(45.0), lead_id: str = Form(""), received: str = Form(""), account: str = Form(""),
-                  model: str = Form("gemini"), authorization: str = Header(""),
+                  model: str = Form("gemini"), letter_mode: str = Form("ai"), authorization: str = Header(""),
                   files: List[UploadFile] = File(default=[])):
     u = current_user(authorization)
     if platform not in PLATFORM_POLICY:
         raise HTTPException(400, "Unknown platform.")
-    if not lead_phone.strip() or not lead_email.strip():
-        raise HTTPException(400, "Lead phone and email are required.")
+    if not lead_phone.strip() and not lead_email.strip():
+        raise HTTPException(400, "Enter the lead phone number or email.")
     if not (0 < cost <= 10000):
         raise HTTPException(400, "Enter a valid lead cost.")
     plan = u["plan"]
@@ -732,6 +734,7 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
         raise HTTPException(400, f"Enter the email or phone number of your {platform} account.")
     if files and plan != "pro":
         raise HTTPException(403, "Audio/PDF evidence is a Pro feature.")
+    use_template = letter_mode == "template"
     parts = []
     for f in files:
         raw = await f.read()
@@ -745,11 +748,17 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
     prompt = (f"Marketplace Platform: {platform}\nContractor Account ID: {handle or 'Default Workspace'}\nPolicy: {policy}\n"
               f"Lead Cost: ${cost:.2f}\nLead ID: {lead_id or 'Not provided'}\nDate/Time Received: {received or 'Not provided'}\nBusiness Name: {u['workspace']}\nContractor Name: {u['full_name'] or 'Not provided'}\nContractor Phone: {u['phone'] or 'Not provided'}\nContractor Email: {u['email']}\nLead Phone: {lead_phone}\nLead Email: {lead_email}\n\n"
               f"Contractor Call Notes:\n{notes or '(none)'}\n\nTranscript:\n{transcript or '(none)'}")
-    try:
-        data = await run_ai(prompt, parts, "groq" if model == "groq" and plan == "pro" else "gemini")
-    except Exception as e:
-        log.exception("AI failed")
-        raise HTTPException(502, "Our AI is temporarily unavailable. You were not charged a dispute — please retry.")
+    if use_template:
+        blocked = bool(INVALID_SAFETY_RE.search(f"{notes} {transcript}"))
+        data = {"valid": not blocked, "confidence": 0.9,
+                "reason": NOT_ELIGIBLE_REASON if blocked else "Template letter built from your lead details.",
+                "claim": ""}
+    else:
+        try:
+            data = await run_ai(prompt, parts, "groq" if model == "groq" and plan == "pro" else "gemini")
+        except Exception as e:
+            log.exception("AI failed")
+            raise HTTPException(502, "Our AI is temporarily unavailable. You were not charged a dispute — please retry.")
     valid = bool(data.get("valid")) and not INVALID_SAFETY_RE.search(f"{notes} {transcript}")
     ai_valid = bool(data.get("valid"))
     reason = (data.get("reason") or "").strip() if (valid or not ai_valid) else ""
@@ -758,7 +767,8 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
     if valid:
         claim = str(data.get("claim") or "").strip()
         if not claim:
-            claim = template_claim(platform, policy, handle, lead_phone, lead_email, cost, notes, reason)
+            claim = template_claim(platform, policy, handle, lead_phone, lead_email, cost, notes, reason,
+                                   u["workspace"], lead_id, received, u["full_name"], u["phone"], u["email"])
     with db() as c:
         cur = c.execute("INSERT INTO disputes (email,platform,lead_phone,lead_email,claim,reason,amount,valid) VALUES (?,?,?,?,?,?,?,?) RETURNING id",
                         (u["email"], platform, lead_phone, lead_email, claim, reason, cost, int(valid))).fetchone()[0]
