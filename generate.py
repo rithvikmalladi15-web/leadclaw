@@ -301,35 +301,16 @@ def _gemini(prompt, parts):
 def _groq(prompt):
     if not groq_client:
         raise ValueError("GROQ_API_KEY is not configured.")
-    errs, tried = [], set()
-
-    def attempt(name):
-        r = groq_client.chat.completions.create(model=name, temperature=0.1,
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
-            response_format={"type": "json_object"})
-        return _checked(extract_json(r.choices[0].message.content))
-
-    for name in _models(GROQ_MODEL, "GROQ_FALLBACK_MODELS", "llama-3.3-70b-versatile,qwen/qwen3-32b,llama-3.1-8b-instant"):
-        tried.add(name)
+    err = None
+    for name in _models(GROQ_MODEL, "GROQ_FALLBACK_MODELS", "qwen/qwen3-32b,llama-3.1-8b-instant"):
         try:
-            return attempt(name)
+            r = groq_client.chat.completions.create(model=name, temperature=0.1,
+                messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
+                response_format={"type": "json_object"})
+            return _checked(extract_json(r.choices[0].message.content))
         except Exception as e:
-            errs.append(f"{name}: {str(e)[:140]}"); log.warning("groq model %s failed: %s", name, e)
-    # none of the configured names worked: ask Groq which models this key can use and try the best few
-    try:
-        ids = [m.id for m in groq_client.models.list().data]
-        skip = ("whisper", "guard", "tts", "orpheus", "compound", "safeguard", "embed")
-        prefer = ("llama-3.3-70b", "qwen", "llama-4", "gpt-oss", "llama-3.1-8b")
-        cands = sorted((i for i in ids if i not in tried and not any(k in i for k in skip)),
-                       key=lambda i: next((n for n, k in enumerate(prefer) if k in i), 99))
-        for name in cands[:3]:
-            try:
-                return attempt(name)
-            except Exception as e:
-                errs.append(f"{name}: {str(e)[:140]}"); log.warning("groq auto model %s failed: %s", name, e)
-    except Exception as e:
-        errs.append(f"model list: {str(e)[:140]}")
-    raise ValueError("Groq failed. " + " | ".join(errs))
+            err = e; log.warning("groq model %s failed: %s", name, e)
+    raise err
 
 
 async def run_ai(prompt, parts, prefer):
@@ -820,7 +801,7 @@ async def ai_test(x_admin_key: str = Header("")):
             d = await asyncio.to_thread(fn)
             out[name] = {"ok": True, "valid": d.get("valid"), "seconds": round(time.time() - t, 1)}
         except Exception as e:
-            out[name] = {"ok": False, "error": str(e)[:700], "seconds": round(time.time() - t, 1)}
+            out[name] = {"ok": False, "error": str(e)[:240], "seconds": round(time.time() - t, 1)}
     return out
 
 
