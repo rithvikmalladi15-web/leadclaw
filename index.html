@@ -251,6 +251,21 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 .btn.sec.busy::after,.btn.sm.sec.busy::after{border-color:var(--bd);border-top-color:var(--ac)}
 .ldb{height:4px;max-width:220px;margin:0 auto 12px;background:var(--s2);border-radius:9px;overflow:hidden;position:relative}
 .ldb i{position:absolute;top:0;bottom:0;left:-40%;width:40%;background:var(--b);border-radius:9px;animation:lb 1.1s ease-in-out infinite}
+
+/* locked AI model picker (non-Pro) */
+.mlock{display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:10px 12px;border:1.5px dashed var(--bd);border-radius:10px;background:var(--bg2);color:var(--mu);font:inherit;cursor:pointer;transition:border-color .2s,background .2s}
+.mlock:hover,.mlock:focus-visible{border-color:var(--b);background:var(--tn);outline:0}
+.mlock svg{flex:none;color:var(--ac)}
+.mlock .mt{flex:1;min-width:0;display:flex;flex-direction:column}.mlock .mt b{color:var(--tx);font:600 14px var(--f)}.mlock .mt small{font-size:12.5px;line-height:1.35}
+.mlock .mb{flex:none;background:var(--b);color:#fff;font:600 13px var(--f);padding:7px 12px;border-radius:8px;white-space:nowrap}
+.mlock:hover .mb{background:var(--bh)}
+@media(max-width:480px){.mlock{flex-wrap:wrap}.mlock .mb{width:100%;text-align:center}}
+
+/* referral */
+.refrow{display:flex;gap:8px}.refrow .inp{flex:1;min-width:0}.refrow .btn{flex:none}
+.refstats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.refstats div{background:var(--bg2);border:1px solid var(--bd);border-radius:10px;padding:12px;text-align:center}
+.refstats b{display:block;font:700 22px var(--d)}.refstats span{font-size:12.5px;color:var(--mu)}
 </style>
 </head>
 <body>
@@ -284,7 +299,7 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
   <div class="fc rv"><i>04</i><h3>Gmail direct compose</h3><p>Open the finished dispute in Gmail, addressed to the marketplace. Pro plan.</p></div>
   <div class="fc rv"><i>05</i><h3>Claim tracker</h3><p>Keep a history of every dispute and mark each one as claimed.</p></div>
   <div class="fc rv"><i>06</i><h3>Secure accounts</h3><p>Email-verified signup and hashed passwords. See our Terms for data policies.</p></div></div></div></section>
-<section class="s alt" id="pricing"><div class="wrap"><h2 class="h2 rv">Simple, credit-based pricing</h2><p class="lead rv">Each AI dispute uses one credit. Credits reset every month. Cancel anytime.</p><div class="plans" id="lp"></div></div></section>
+<section class="s alt" id="pricing"><div class="wrap"><h2 class="h2 rv">Simple, credit-based pricing</h2><p class="lead rv">Each AI dispute uses one credit. Credits reset every month. Cancel anytime. Refer a friend and you both get 5% off your next month.</p><div class="plans" id="lp"></div></div></section>
 <section class="s" id="security"><div class="wrap"><h2 class="h2 rv">Security you can rely on</h2><p class="lead rv">The most sensitive part of any subscription is your payment information. LeadClaw is built so that it never touches our servers.</p><div class="g3" id="secG"></div><p class="note" style="margin-top:22px">No online service can promise perfect security. We use trusted providers such as Stripe and Supabase for the sensitive parts so that we do not have to handle them ourselves.</p></div></section>
 <section class="s alt" id="contact"><div class="wrap"><div class="cbox"><div><h2 class="h2" style="margin-bottom:8px">Questions or feedback?</h2><p class="lead" style="margin:0">LeadClaw is made and operated by Rixz. Contact us if you need any help or if you have any feedback.</p></div><a class="btn" href="mailto:leadclawai@gmail.com?subject=LeadClaw%20help%20or%20feedback">leadclawai@gmail.com</a></div></div></section>
 <footer><div class="wrap fgrid">
@@ -298,7 +313,7 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
   <aside class="side">
     <div class="logo"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
     <button class="nv on" data-t="new">New dispute</button><button class="nv" data-t="hist">History</button><button class="nv" data-t="team">Team</button>
-    <div class="nvsep"></div><button class="nv" id="navAcc">Account</button><button class="nv" id="navTut">Quick-start guide</button><button class="nv" id="navOut">Sign out</button>
+    <div class="nvsep"></div><button class="nv" id="navRef">Refer &amp; save</button><button class="nv" id="navAcc">Account</button><button class="nv" id="navTut">Quick-start guide</button><button class="nv" id="navOut">Sign out</button>
     <div class="sideplan"><b id="spName">No active plan</b><span id="spUse">Choose a plan to begin</span><div class="meter"><i id="spBar"></i></div><button class="btn sm full" id="spUp">Choose a plan</button></div>
   </aside>
   <div class="main">
@@ -386,10 +401,17 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 <h3>4. Data safety and retention</h3><p>We use reasonable measures to protect your information, but we cannot guarantee absolute data safety or the permanent storage or availability of any data, including your account, dispute history and generated letters. You should keep your own copies of anything important. We may delete data at any time, including after account closure or inactivity.</p>
 <h3>5. Accounts and passwords</h3><p>You must be at least 18 and provide accurate information. You are responsible for your account and for keeping your password confidential. For security reasons, passwords cannot be viewed or recovered, but you can reset yours with a code sent to your Gmail.</p>
 <h3>6. Plans, credits and billing</h3><p>Paid plans include a fixed number of AI dispute credits per month, or unlimited credits on the Pro plan, as shown at purchase. Unused credits do not roll over. Subscriptions renew monthly until cancelled, and you may cancel at any time to stop future charges. Fees already paid are non-refundable except where required by law.</p>
-<h3>7. AI-generated content</h3><p>Letters are generated by artificial intelligence and may contain errors. Evidence files you upload are processed by third-party AI providers to produce your letter.</p>
-<h3>8. Disclaimer and limitation of liability</h3><p>The service is provided "as is" and "as available" without warranties of any kind. To the fullest extent permitted by law, LeadClaw and its operators are not liable for any indirect, incidental or consequential damages, lost profits, lost leads or lost data, and total liability is limited to the fees you paid in the three months before the claim.</p>
-<h3>9. Changes and termination</h3><p>We may modify the service or these Terms, and may suspend or terminate accounts that violate these Terms. Continued use after changes means you accept them.</p>
+<h3>7. Referral program</h3><p>When someone you refer creates an account with your link and makes their first paid purchase of a plan, you and that person each receive a credit worth 5% of your own plan's monthly price, applied to your next invoice. Credits stack, up to a maximum discount of 50% on any one month's bill, and you can earn more once a bill has used your credits up. Credits have no cash value and cannot be earned by referring yourself or accounts you control. We may withhold or reverse credits for abuse and may change or end the program at any time.</p>
+<h3>8. AI-generated content</h3><p>Letters are generated by artificial intelligence and may contain errors. Evidence files you upload are processed by third-party AI providers to produce your letter.</p>
+<h3>9. Disclaimer and limitation of liability</h3><p>The service is provided "as is" and "as available" without warranties of any kind. To the fullest extent permitted by law, LeadClaw and its operators are not liable for any indirect, incidental or consequential damages, lost profits, lost leads or lost data, and total liability is limited to the fees you paid in the three months before the claim.</p>
+<h3>10. Changes and termination</h3><p>We may modify the service or these Terms, and may suspend or terminate accounts that violate these Terms. Continued use after changes means you accept them.</p>
 </div></div></div>
+
+<div class="ov" id="refOv" hidden><div class="modal m"><div class="mh"><div><h2>Refer &amp; save</h2><p class="sub">Give a friend 5% off and get 5% off yourself.</p></div><button class="lnk" onclick="closeOv('refOv')">Close</button></div>
+  <p class="note" style="margin:0 0 14px">When someone signs up with your link and buys a plan, you both get 5% off your next month's subscription. Rewards stack, so three referrals is 15% off.</p>
+  <div class="f"><label for="refLink">Your referral link</label><div class="refrow"><input class="inp" id="refLink" readonly><button class="btn sm" id="refCopy" type="button">Copy link</button></div></div>
+  <div class="refstats"><div><b id="refN">0</b><span>friends subscribed</span></div><div><b id="refP">0%</b><span>5% credits earned so far</span></div></div>
+  <p class="note" id="refCap" style="margin:0"></p></div></div>
 
 <div class="ov" id="accOv" hidden><div class="modal m"><div class="mh"><div><h2>Account</h2><p class="sub" id="accP"></p></div><button class="lnk" onclick="closeOv('accOv')">Close</button></div>
   <div class="two f"><div><label>Full name</label><input class="inp" id="aN"></div><div><label>Business phone</label><input class="inp" id="aPh"></div></div>
@@ -421,6 +443,8 @@ const TRIAL_DAYS=7; // keep in sync with TRIAL_DAYS on the server
 const SUPPORT_EMAIL='leadclawai@gmail.com'; // set your support address, e.g. 'support@yourdomain.com'
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const getRef=()=>ls('lc_ref')||'';
+try{const r=new URLSearchParams(location.search).get('ref');if(r&&/^[a-z0-9]{4,16}$/i.test(r))localStorage.setItem('lc_ref',r.toLowerCase())}catch(e){}
 const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);v===null?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){return null}};
 const LIM={basic:7,standard:15,pro:-1},NAME={basic:'Basic',standard:'Standard',pro:'Pro',none:'No plan'};
 const EM={Angi:'prosupport@angi.com',Thumbtack:'support@thumbtack.com',Porch:'support@porch.com',Networx:'service@networx.com'};
@@ -496,7 +520,7 @@ $('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textCont
   busy(b,true);try{await withWake(b,()=>api('/api/auth/verify-code',{method:'POST',json:{email:reg.email,code:c}}),'Verifying your code...',600);$('s2').hidden=true;$('sOk').hidden=false;setTimeout(()=>{if(!$('sOk').hidden){showStep(3);$('rB').focus()}},1600)}catch(x){m.textContent=x.message}finally{busy(b,false)}};
 $('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
 $('b3').onclick=async()=>{const m=$('m3'),b=$('b3'),biz=$('rB').value.trim();m.textContent='';if(!biz)return m.textContent='Enter your business name.';
-  busy(b,true);try{const d=await withWake(b,()=>api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}}),'Creating your workspace. This can take up to 30 seconds.',600);
+  busy(b,true);try{const d=await withWake(b,()=>api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,ref:getRef(),acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}}),'Creating your workspace. This can take up to 30 seconds.',600);
     token=d.token;ls('lc_token',token);reg.password='';await refreshMe();if(me.team_owner){closeOv('authOv');enterApp();toast('Welcome! Your team gives you Pro access.');return}showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Start free trial')).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
 
@@ -544,11 +568,12 @@ function render(){
   if($('evBox').dataset.k!==String(isPro)){$('evBox').dataset.k=String(isPro);
     $('evBox').innerHTML=isPro?`<div class="dz" id="dz"><input id="files" type="file" multiple accept=".mp3,.wav,.pdf" tabindex="-1"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><b>Drop files here or <u>browse</u></b><small>Call recordings or documents &middot; MP3, WAV, PDF &middot; up to 15 MB each</small></div><ul class="fl" id="fl"></ul>`
       :`<div class="dz lk"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><b>Audio &amp; PDF evidence <span class="pb pb-pro">PRO</span></b><small>Attach call recordings and documents to strengthen your letter</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div>`;
-    $('modeBox').innerHTML=`<div class="seg" id="lmode" style="grid-template-columns:1fr 1fr"><button type="button" data-m="ai" class="on">AI-written letter</button><button type="button" data-m="template">Template letter</button></div><p class="note" id="lmodeNote" style="margin:8px 0 12px"></p>`+(isPro?`<div class="f" id="modelF"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Llama 3.3 70B</option></select></div>`:'');
+    $('modeBox').innerHTML=`<div class="seg" id="lmode" style="grid-template-columns:1fr 1fr"><button type="button" data-m="ai" class="on">AI-written letter</button><button type="button" data-m="template">Template letter</button></div><p class="note" id="lmodeNote" style="margin:8px 0 12px"></p>`+(isPro?`<div class="f" id="modelF"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Llama 3.3 70B</option></select></div>`
+      :`<div class="f" id="modelF"><label>AI model <span class="pb pb-pro">PRO</span></label><button type="button" class="mlock" data-up="Upgrade to Pro to choose your AI model."><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span class="mt"><b>Gemini 3.5 Flash</b><small>Choosing between Gemini and Groq is a Pro feature</small></span><span class="mb">Upgrade to Pro</span></button></div>`);
     lmode='ai';syncMode();document.querySelectorAll('#lmode button').forEach(x=>x.onclick=()=>{lmode=x.dataset.m;syncMode()});
     if(isPro)initDz()}
   renderTeam();
-  document.querySelectorAll('.lock [data-up],.dz [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
+  document.querySelectorAll('.lock [data-up],.dz [data-up],.mlock[data-up]').forEach(e=>e.onclick=()=>{toast(e.dataset.up||'This is a Pro feature.');openPlans()});
   if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
   renderHist()}
 function initDz(){const dz=$('dz'),inp=$('files'),fl=$('fl'),OKX=/\.(mp3|wav|pdf)$/i;
@@ -675,6 +700,12 @@ $('tutDemo').onclick=()=>{$('lid').value='4821937';$('lp2').value='(555) 019-283
   document.querySelectorAll('.inp,textarea').forEach(i=>i.classList.remove('invalid'));tutCheck();setTimeout(tutCheck,700);setTimeout(tutCheck,1400);toast('Example lead filled in. Enter your own marketplace account to continue.')};
 $('navTut').onclick=()=>{tab('new');startTut()};
 document.addEventListener('input',tutCheck);document.addEventListener('click',e=>{if(e.target.closest('#plat'))T.plat=true;setTimeout(tutCheck,0)});
+$('navRef').onclick=async()=>{if(!me.ref_code){try{await refreshMe()}catch(e){return toast(e.message)}}
+  const code=me.ref_code;if(!code)return toast('Could not load your referral link. Please try again.');
+  const base=/^https?:$/.test(location.protocol)?location.origin+'/':'https://leadclaw.pages.dev/';
+  $('refLink').value=base+'?ref='+code;const n=me.ref_count||0,pc=me.ref_percent||5,mx=me.ref_max_percent||50,er=me.ref_earned||0;
+  $('refN').textContent=n;$('refP').textContent=er;$('refCap').textContent=`The most referral credit you can have on any one month's bill is ${mx}% off. Once a bill uses your credit up, you can earn more.`;$('refOv').hidden=false};
+$('refCopy').onclick=async()=>{const v=$('refLink').value;try{await navigator.clipboard.writeText(v);toast('Referral link copied')}catch(e){$('refLink').select();toast('Press Ctrl+C to copy the link')}};
 $('navAcc').onclick=()=>{const m=me;$('aN').value=m.full_name||'';$('aPh').value=m.phone||'';$('aA').value=m.acc_angi||'';$('aT2').value=m.acc_thumbtack||'';$('aPo').value=m.acc_porch||'';$('aNx').value=m.acc_networx||'';$('billBtn').hidden=!m.billing;
   $('accP').textContent=`${m.email} | ${LIM[m.plan]===undefined?'No active plan':NAME[m.plan]+' plan'}`;$('accOv').hidden=false};
 $('saveAcc').onclick=async()=>{const pw='';
@@ -714,7 +745,7 @@ async function applyTest(reset){const b=reset?$('tReset'):$('tApply');busy(b,tru
     await refreshMe();syncTestPanel();toast(reset?'Test disputes reset':'Test plan updated')}
   catch(e){toast(e.message)}finally{busy(b,false)}}
 $('tApply').onclick=()=>applyTest(false);$('tReset').onclick=()=>applyTest(true);$('tBack').onclick=exitTesting;
-document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','planOv','termsOv','accOv','admOv'].forEach(closeOv)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','planOv','termsOv','accOv','refOv','admOv'].forEach(closeOv)});
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)closeOv(o.id)}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe().catch(()=>{})});
 
