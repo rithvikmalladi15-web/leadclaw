@@ -158,8 +158,8 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 #tpanel label{display:block;font-size:12.5px;font-weight:600;margin:8px 0 4px}
 #tpanel .chk{display:flex;align-items:center;gap:8px;font-weight:500;margin-top:10px}
 #tpanel .row{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
-.cbox{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;border:1px solid var(--bd);background:var(--sf);border-radius:16px;padding:28px 32px}
-.cbox .lead{max-width:560px}
+.cbox{display:flex;flex-direction:column;text-align:center;gap:20px;align-items:center;justify-content:center;border:1px solid var(--bd);background:var(--sf);border-radius:16px;padding:28px 32px}
+.cbox .lead{max-width:560px;margin-left:auto!important;margin-right:auto!important}
 @media(max-width:700px){#tpanel{left:12px;right:12px;width:auto}.atop,.abody{padding-left:16px;padding-right:16px}.cbox{padding:22px}}
 /* ===== professional polish: motion, locks, team, admin ===== */
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -234,6 +234,17 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 .panel{transition:box-shadow .25s,border-color .25s}.panel:hover{border-color:var(--ac)}
 .nv{position:relative;transition:padding .15s,background .15s,color .15s}.nv::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:3px;border-radius:3px;background:var(--b);transform:scaleY(0);transition:transform .2s}.nv.on::before{transform:scaleY(1)}.nv:hover{padding-left:16px}
 .verdict{animation:pop .45s both}.plan:nth-child(2){transition-delay:.08s}.plan:nth-child(3){transition-delay:.16s}
+
+/* evidence dropzone */
+.dz{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:22px 16px;border:1.5px dashed var(--bd);border-radius:12px;background:var(--bg2);color:var(--mu);transition:border-color .2s,background .2s;margin-bottom:6px}
+.dz svg{color:var(--ac);margin-bottom:2px}.dz b{color:var(--tx);font:600 14px var(--f)}.dz u{color:var(--ac);text-decoration:none;font-weight:700}.dz small{font-size:12.5px}
+.dz:not(.lk):hover,.dz.over{border-color:var(--b);background:var(--tn)}
+.dz:not(.lk) input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}
+.dz.lk .btn{margin-top:8px}.dz.lk b{display:flex;align-items:center;gap:8px}
+.fl{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px}
+.fl li{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:8px;font-size:13px}
+.fl li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.fl li small{color:var(--mu)}
+.fl li button{border:0;background:none;color:var(--mu);font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}.fl li button:hover{color:var(--er);background:var(--s2)}
 </style>
 </head>
 <body>
@@ -241,7 +252,7 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 <nav>
   <div class="logo" onclick="scrollTo({top:0,behavior:'smooth'})"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
   <span class="sp"></span>
-  <span class="navl"><button class="lnk" onclick="jump('how')">How it works</button><button class="lnk" onclick="jump('features')">Features</button><button class="lnk" onclick="jump('pricing')">Pricing</button></span>
+  <span class="navl"><button class="lnk" onclick="jump('how')">How it works</button><button class="lnk" onclick="jump('features')">Features</button><button class="lnk" onclick="jump('pricing')">Pricing</button><button class="lnk" onclick="jump('contact')">Contact us</button></span>
   <button class="lnk" onclick="openAuth('login')">Log in</button><button class="btn sm" onclick="openAuth('signup')">Get started</button>
   <button class="lnk ib tgl" aria-label="Toggle theme" title="Switch theme"><svg class="moon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg><svg class="sun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
   <button class="lnk ib" id="admL" aria-label="Admin area" title="Admin"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.2 8-8 9-4.8-1-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/></svg></button>
@@ -272,8 +283,8 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 <section class="s" id="contact"><div class="wrap"><div class="cbox"><div><h2 class="h2" style="margin-bottom:8px">Questions or feedback?</h2><p class="lead" style="margin:0">LeadClaw is made and operated by Rixz. Contact us if you need any help or if you have any feedback.</p></div><a class="btn" href="mailto:leadclawai@gmail.com?subject=LeadClaw%20help%20or%20feedback">leadclawai@gmail.com</a></div></div></section>
 <footer><div class="wrap fgrid">
   <div><div class="logo"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div><p style="color:var(--mu);font-size:14px;max-width:260px">Dispute assistance for contractors.</p></div>
-  <div><h4>Product</h4><a onclick="jump('how')">How it works</a><a onclick="jump('features')">Features</a><a onclick="jump('pricing')">Pricing</a></div>
-  <div><h4>Legal</h4><a onclick="openTerms()">Terms &amp; Conditions</a><a onclick="jump('security')">Security</a><a href="mailto:leadclawai@gmail.com">Contact us</a></div>
+  <div><h4>Product</h4><a onclick="jump('how')">How it works</a><a onclick="jump('features')">Features</a><a onclick="jump('pricing')">Pricing</a><a onclick="jump('contact')">Contact us</a></div>
+  <div><h4>Legal</h4><a onclick="openTerms()">Terms &amp; Conditions</a><a onclick="jump('security')">Security</a><a onclick="jump('contact')">Contact us</a></div>
 </div><div class="wrap fine">&copy; <span id="yr"></span> LeadClaw. Made and operated by Rixz. Contact us at <a href="mailto:leadclawai@gmail.com" style="color:inherit;text-decoration:underline">leadclawai@gmail.com</a>. LeadClaw is an independent service and is not affiliated with Angi, Thumbtack, Porch or Networx. It cannot guarantee any refund or credit.</div></footer>
 </div>
 
@@ -308,6 +319,7 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
             <div class="step"><span>4</span>Letter style</div>
             <div id="modeBox"></div>
             <button class="btn full" id="go">Generate dispute letter</button>
+            <p class="note" style="margin:10px 0 0;text-align:center">Nothing happened or got an error? Click &ldquo;Generate dispute letter&rdquo; again. You may need to click it multiple times if it does not work the first time.</p>
             <div class="prog" id="prog"><div class="t"><span id="pStat"></span><span id="pPct">0%</span></div><div class="bar"><i id="pBar"></i></div></div>
           </section>
           <div>
@@ -376,7 +388,6 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 <div class="ov" id="accOv" hidden><div class="modal m"><div class="mh"><div><h2>Account</h2><p class="sub" id="accP"></p></div><button class="lnk" onclick="closeOv('accOv')">Close</button></div>
   <div class="two f"><div><label>Full name</label><input class="inp" id="aN"></div><div><label>Business phone</label><input class="inp" id="aPh"></div></div>
   <div class="two f"><div><label>Angi</label><input class="inp" id="aA"></div><div><label>Thumbtack</label><input class="inp" id="aT2"></div><div><label>Porch</label><input class="inp" id="aPo"></div><div><label>Networx</label><input class="inp" id="aNx"></div></div>
-  <div class="f"><label>New password (optional, cannot be recovered)</label><input class="inp" id="aW" type="password" maxlength="20" autocomplete="new-password"></div>
   <div class="acts"><button class="btn" id="saveAcc">Save changes</button><button class="btn sec" id="billBtn" hidden>Manage subscription</button></div></div></div>
 
 <div id="adm" hidden>
@@ -525,15 +536,25 @@ function render(){
   if(me.on_trial){const tl=me.trial_left,tn=me.trial_limit||TRIAL_DISPUTES;$('spName').textContent='Free trial: '+NAME[p];$('spUse').textContent=`${tl} of ${tn} free disputes left`;$('spBar').style.width=(tl/tn*100)+'%';$('spUp').textContent='Start plan now';$('leftPill').textContent=`${tl} free dispute${tl===1?'':'s'} left`}
   $('fpPlan').textContent=me.on_trial?'Free trial: '+NAME[p]:lim===undefined?'No plan':NAME[p]+' plan';$('fpUse').textContent=$('spUse').textContent;
   if($('evBox').dataset.k!==String(isPro)){$('evBox').dataset.k=String(isPro);
-    $('evBox').innerHTML=isPro?`<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>`
-      :`<div class="lock"><div class="lockin" aria-hidden="true"><div class="f"><label>Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" type="file" disabled tabindex="-1" style="padding:8px"></div></div><div class="lockov"><b>Pro feature</b><small>Attach call recordings and documents</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div></div>`;
-    $('modeBox').innerHTML=isPro?`<div class="seg" id="lmode"><button type="button" data-m="ai" class="on">AI-written letter</button><button type="button" data-m="template">Template letter</button></div><p class="note" id="lmodeNote" style="margin:8px 0 12px"></p><div class="f" id="modelF"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
-      :`<div class="lock"><div class="lockin" aria-hidden="true"><div class="seg"><button type="button" class="on">AI-written letter</button><button type="button">Template letter</button></div><div class="f" style="margin-top:12px"><label>AI model</label><select disabled tabindex="-1"><option>Gemini 3.5 Flash</option></select></div></div><div class="lockov"><b>Pro feature</b><small>Choose an AI-written or template letter</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div></div>`;
-    if(isPro){lmode='ai';syncMode();document.querySelectorAll('#lmode button').forEach(x=>x.onclick=()=>{lmode=x.dataset.m;syncMode()})}}
+    $('evBox').innerHTML=isPro?`<div class="dz" id="dz"><input id="files" type="file" multiple accept=".mp3,.wav,.pdf" tabindex="-1"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><b>Drop files here or <u>browse</u></b><small>Call recordings or documents &middot; MP3, WAV, PDF &middot; up to 15 MB each</small></div><ul class="fl" id="fl"></ul>`
+      :`<div class="dz lk"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><b>Audio &amp; PDF evidence <span class="pb pb-pro">PRO</span></b><small>Attach call recordings and documents to strengthen your letter</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div>`;
+    $('modeBox').innerHTML=`<div class="seg" id="lmode" style="grid-template-columns:1fr 1fr"><button type="button" data-m="ai" class="on">AI-written letter</button><button type="button" data-m="template">Template letter</button></div><p class="note" id="lmodeNote" style="margin:8px 0 12px"></p>`+(isPro?`<div class="f" id="modelF"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`:'');
+    lmode='ai';syncMode();document.querySelectorAll('#lmode button').forEach(x=>x.onclick=()=>{lmode=x.dataset.m;syncMode()});
+    if(isPro)initDz()}
   renderTeam();
-  document.querySelectorAll('.lock [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
+  document.querySelectorAll('.lock [data-up],.dz [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
   if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
   renderHist()}
+function initDz(){const dz=$('dz'),inp=$('files'),fl=$('fl'),OKX=/\.(mp3|wav|pdf)$/i;
+  const paint=()=>{fl.innerHTML=[...inp.files].map((f,i)=>`<li><span>${esc(f.name)}</span><small>${(f.size/1048576).toFixed(1)} MB</small><button type="button" data-i="${i}" aria-label="Remove ${esc(f.name)}">&times;</button></li>`).join('');
+    fl.querySelectorAll('button').forEach(b=>b.onclick=()=>{const dt=new DataTransfer();[...inp.files].forEach((f,i)=>{if(i!=+b.dataset.i)dt.items.add(f)});inp.files=dt.files;paint()})};
+  const add=list=>{const dt=new DataTransfer();[...inp.files].forEach(f=>dt.items.add(f));let bad=0;
+    [...list].forEach(f=>{if(!OKX.test(f.name)||f.size>15*1048576){bad++;return}if(![...dt.files].some(x=>x.name===f.name&&x.size===f.size))dt.items.add(f)});
+    inp.files=dt.files;paint();if(bad)toast('Only MP3, WAV or PDF files up to 15 MB are accepted.')};
+  inp.onchange=()=>add(inp.files);
+  ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('over')}));
+  ['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('over')}));
+  dz.addEventListener('drop',ev=>add(ev.dataTransfer.files))}
 function showTrialEnd(ended=true){const o=$('trOv'),n=(me&&me.trial_limit)||TRIAL_DISPUTES;o.dataset.force=ended?'1':'';
   $('trT').textContent=ended?'Your free trial has ended':'Start your plan now';
   $('trS').textContent=ended?`You have used your ${n} free disputes. Start your ${NAME[me.plan]||''} plan to keep generating dispute letters.`:`Starting now ends your free trial and takes you to secure checkout. You have ${me.trial_left} free dispute${me.trial_left===1?'':'s'} left.`;
@@ -546,7 +567,7 @@ $('trMng').onclick=async ev=>{ev.preventDefault();try{const d=await api('/api/bi
 $('trOut').onclick=ev=>{ev.preventDefault();$('trOv').dataset.force='';$('trOv').hidden=true;signout()};
 $('spUp').onclick=()=>me&&me.on_trial?showTrialEnd(me.trial_left<=0):openPlans();
 function syncMode(){document.querySelectorAll('#lmode button').forEach(x=>x.classList.toggle('on',x.dataset.m===lmode));const n=$('lmodeNote'),mf=$('modelF');if(!n)return;
-  n.textContent=lmode==='ai'?'The AI reviews your lead against the marketplace policy and writes a tailored letter.':'A standard letter is built directly from your details, without AI.';mf.hidden=lmode!=='ai'}
+  n.textContent=lmode==='ai'?'The AI reviews your lead against the marketplace policy and writes a tailored letter.':'A standard letter is built directly from your details, without AI.';if(mf)mf.hidden=lmode!=='ai'}
 function teamHtml(d){const n=d.members.length;return `<p class="sub" style="margin:0 0 16px">Teammates get Pro access on their own login. Add their Gmail address, then ask them to sign up or sign in with it.</p>
   <div class="tadd"><input class="inp" id="tEm" type="email" placeholder="teammate@gmail.com" autocomplete="off"><button class="btn" id="tAdd">Add teammate</button></div><p class="msg" id="tMsg"></p>
   <div class="seats"><span>${n} of ${d.limit} seats used</span><div class="meter"><i style="width:${Math.min(100,n/d.limit*100)}%"></i></div></div>
@@ -618,7 +639,7 @@ $('go').onclick=async()=>{
   if(me.credits_left===0){toast('You have used all credits this month.');return openPlans()}
   saveAcct(f.account);
   const fd=new FormData();fd.append('platform',plat);fd.append('notes',f.notes);fd.append('cost',f.cost.toFixed(2));fd.append('lead_phone',f.phone);fd.append('lead_email',f.email);fd.append('lead_id',f.lid);fd.append('account',f.account);
-  if(me.plan==='pro'){fd.append('letter_mode',lmode);fd.append('model',$('model').value);[...$('files').files].forEach(x=>fd.append('files',x))}
+  fd.append('letter_mode',lmode);if(me.plan==='pro'){fd.append('model',$('model').value);[...$('files').files].forEach(x=>fd.append('files',x))}
   const btn=$('go'),bar=$('pBar');busy(btn,true);$('prog').style.display='block';$('out').className='empty';$('out').textContent='Analyzing your lead. This can take up to 30 seconds.';
   const msgs=['Reviewing marketplace credit guidelines','Evaluating your lead details','Writing your dispute letter'];let p=0,s=0;
   const iv=setInterval(()=>{s+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'%';$('pStat').textContent=s>12?'Still working. The server is starting up.':msgs[Math.min(2,Math.floor(p/32))]},350);
@@ -648,9 +669,9 @@ $('tutDemo').onclick=()=>{$('lid').value='4821937';$('lp2').value='(555) 019-283
   document.querySelectorAll('.inp,textarea').forEach(i=>i.classList.remove('invalid'));tutCheck();setTimeout(tutCheck,700);setTimeout(tutCheck,1400);toast('Example lead filled in. Enter your own marketplace account to continue.')};
 $('navTut').onclick=()=>{tab('new');startTut()};
 document.addEventListener('input',tutCheck);document.addEventListener('click',e=>{if(e.target.closest('#plat'))T.plat=true;setTimeout(tutCheck,0)});
-$('navAcc').onclick=()=>{const m=me;$('aN').value=m.full_name||'';$('aPh').value=m.phone||'';$('aA').value=m.acc_angi||'';$('aT2').value=m.acc_thumbtack||'';$('aPo').value=m.acc_porch||'';$('aNx').value=m.acc_networx||'';$('aW').value='';$('billBtn').hidden=!m.billing;
+$('navAcc').onclick=()=>{const m=me;$('aN').value=m.full_name||'';$('aPh').value=m.phone||'';$('aA').value=m.acc_angi||'';$('aT2').value=m.acc_thumbtack||'';$('aPo').value=m.acc_porch||'';$('aNx').value=m.acc_networx||'';$('billBtn').hidden=!m.billing;
   $('accP').textContent=`${m.email} | ${LIM[m.plan]===undefined?'No active plan':NAME[m.plan]+' plan'}`;$('accOv').hidden=false};
-$('saveAcc').onclick=async()=>{const pw=$('aW').value;if(pw&&!pwOk(pw))return toast('Password needs 7 to 20 characters and 1 special character.');
+$('saveAcc').onclick=async()=>{const pw='';
   const f={full_name:$('aN').value,phone:$('aPh').value,acc_angi:$('aA').value,acc_thumbtack:$('aT2').value,acc_porch:$('aPo').value,acc_networx:$('aNx').value};
   try{await api('/api/user/profile',{method:'POST',json:{password:pw,...f}});Object.assign(me,f);saveMe();closeOv('accOv');renderPlat();toast('Saved')}catch(e){toast(e.message)}};
 $('billBtn').onclick=async()=>{try{const d=await withWake($('billBtn'),()=>api('/api/billing/portal',{method:'POST'}));location.href=d.url}catch(e){toast(e.message)}};
@@ -691,6 +712,12 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')['authOv','planOv','
 document.querySelectorAll('.ov').forEach(o=>o.addEventListener('mousedown',e=>{if(e.target===o)closeOv(o.id)}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token&&me)refreshMe().catch(()=>{})});
 
+function fmtPhone(v){let d=v.replace(/\D/g,'');if(d.length>10&&d[0]==='1')d=d.slice(1);d=d.slice(0,10);
+  return d.length===0?'':d.length<=3?'('+d:d.length<=6?'('+d.slice(0,3)+') '+d.slice(3):'('+d.slice(0,3)+') '+d.slice(3,6)+'-'+d.slice(6)}
+function autoPhone(id,onlyIfPhone){const el=$(id);if(!el)return;el.addEventListener('input',()=>{const v=el.value;if(onlyIfPhone&&(!/\d/.test(v)||!/^[\d\s().+-]*$/.test(v)))return;if(!onlyIfPhone&&v.startsWith('+'))return;
+  const f=fmtPhone(v);if(f!==v)el.value=f});el.setAttribute('inputmode','tel')}
+autoPhone('lp2');autoPhone('aPh');autoPhone('acct',true);
+$('acct').removeAttribute('inputmode');
 $('yr').textContent=new Date().getFullYear();
 const SEC=[
  ['Payments handled by Stripe','Your card is entered on Stripe\'s secure checkout page. LeadClaw never sees or stores your card number. Stripe is a PCI DSS Level 1 certified payment provider, the highest level of certification in the payments industry.'],
