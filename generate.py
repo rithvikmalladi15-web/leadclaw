@@ -63,6 +63,10 @@ TRIAL_DISPUTES = int(os.environ.get("TRIAL_DISPUTES", "3") or 3)
 STRIPE_TAX = os.environ.get("STRIPE_AUTOMATIC_TAX", "") == "1"  # turn on once Stripe Tax is set up
 TRIAL_NO_CARD = os.environ.get("TRIAL_NO_CARD", "1") == "1"  # 1 = free trial without a card (default)
 CREDITS = {"basic": 7, "standard": 15, "pro": -1}
+# Referral program: when someone you referred makes their first paid purchase, you both get 5% off your next invoice (stackable).
+REFERRAL_PERCENT = 5
+REFERRAL_MAX_PERCENT = int(os.environ.get("REFERRAL_MAX_PERCENT", "50") or 50)  # most referral credit that can be waiting on any one month's bill (50 = half off)
+PLAN_PRICE_CENTS = {"basic": int(os.environ.get("PRICE_BASIC_CENTS", "1900")), "standard": int(os.environ.get("PRICE_STANDARD_CENTS", "3900")), "pro": int(os.environ.get("PRICE_PRO_CENTS", "7900"))}  # keep in sync with your Stripe prices
 
 
 def credits_left(plan, used):
@@ -135,6 +139,13 @@ def init_db():
         c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_sub TEXT DEFAULT ''")
         c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS on_trial INTEGER DEFAULT 0")
         c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS trial_used INTEGER DEFAULT 0")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS ref_code TEXT DEFAULT ''")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS referred_by TEXT DEFAULT ''")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS ref_credits INTEGER DEFAULT 0")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS ref_total INTEGER DEFAULT 0")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS ref_rewarded INTEGER DEFAULT 0")
+        c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS ref_earned INTEGER DEFAULT 0")
+        c.execute("CREATE UNIQUE INDEX IF NOT EXISTS users_ref_code_idx ON users (ref_code) WHERE ref_code <> ''")
         c.execute("UPDATE users SET plan='none' WHERE plan='free'")
         c.execute("UPDATE users SET plan='basic' WHERE plan='solo'")
         c.execute("UPDATE users SET plan='pro' WHERE plan='growth'")
@@ -197,7 +208,7 @@ def current_user(authorization: str = "") -> dict:
 
 
 class RegisterReq(BaseModel):
-    email: str; password: str; full_name: str; business: str; accept_terms: bool = False; supabase_token: str = ""
+    email: str; password: str; full_name: str; business: str; accept_terms: bool = False; supabase_token: str = ""; ref: str = ""
     acc_angi: str = ""; acc_thumbtack: str = ""; acc_porch: str = ""; acc_networx: str = ""
 class LoginReq(BaseModel):
     email: str; password: str
@@ -499,6 +510,11 @@ async def register(req: RegisterReq):
                   (email, hash_pw(req.password), req.business.strip()[:120], req.full_name.strip()[:80],
                    req.acc_angi.strip()[:120], req.acc_thumbtack.strip()[:120], req.acc_porch.strip()[:120], req.acc_networx.strip()[:120]))
         c.execute("DELETE FROM email_verified WHERE email=?", (email,))
+        code = re.sub(r"[^a-z0-9]", "", (req.ref or "").lower())[:16]
+        if code:  # remember who referred this person (ignored if the code is unknown or their own)
+            rr = c.execute("SELECT email FROM users WHERE ref_code=? AND email<>?", (code, email)).fetchone()
+            if rr:
+                c.execute("UPDATE users SET referred_by=? WHERE email=?", (rr[0], email))
     return {"status": "success", "token": new_session(email)}
 
 
@@ -538,6 +554,7 @@ async def me(authorization: str = Header("")):
             "full_name": u["full_name"], "phone": u["phone"], "acc_angi": u["acc_angi"], "acc_thumbtack": u["acc_thumbtack"],
             "acc_porch": u["acc_porch"], "acc_networx": u["acc_networx"], "month_used": used,
             "solo_limit": SOLO_MONTHLY_LIMIT, "billing": bool(u["stripe_customer"]), "disputes": ds,
+            "ref_code": ensure_ref_code(u), "ref_count": u.get("ref_total") or 0, "ref_earned": u.get("ref_earned") or 0, "ref_max_percent": REFERRAL_MAX_PERCENT, "ref_percent": REFERRAL_PERCENT,
             "eligible_total": sum(d["amount"] for d in ds if d["valid"]),
             "recovered_total": sum(d["amount"] for d in ds if d["recovered"])}
 
@@ -626,6 +643,17 @@ async def stripe_call(path, data):
     return r.json()
 
 
+async def stripe_get(path):
+    if not (STRIPE_SECRET and STRIPE_KEY_OK):
+        raise HTTPException(503, "Billing is not configured yet.")
+    async with httpx.AsyncClient(timeout=20) as h:
+        r = await h.get(f"https://api.stripe.com/v1/{path}", auth=(STRIPE_SECRET, ""))
+    if r.status_code >= 400:
+        log.error("stripe GET %s -> %s", path, r.status_code)
+        raise HTTPException(502, f"Payment provider error ({r.status_code}).")
+    return r.json()
+
+
 def stripe_cust(u):
     """Reuse the Stripe customer when one exists so repeat purchases never create duplicates."""
     return {"customer": u["stripe_customer"]} if u.get("stripe_customer") else {"customer_email": u["email"]}
@@ -691,6 +719,78 @@ async def portal(authorization: str = Header("")):
     return {"url": s["url"]}
 
 
+# ---------- referral program ----------
+def ensure_ref_code(u):
+    """Every account gets a short personal referral code the first time it is needed."""
+    if u.get("ref_code"):
+        return u["ref_code"]
+    for _ in range(5):
+        code = secrets.token_hex(4)
+        try:
+            with db() as c:
+                c.execute("UPDATE users SET ref_code=? WHERE email=? AND COALESCE(ref_code,'')=''", (code, u["email"]))
+                row = c.execute("SELECT ref_code FROM users WHERE email=?", (u["email"],)).fetchone()
+            if row and row[0]:
+                return row[0]
+        except psycopg2.Error as e:
+            log.warning("ref code retry: %s", e)
+    return ""
+
+
+_credit_lock = asyncio.Lock()
+
+
+async def push_referral_credits(email):
+    """Turn queued referral credits into a Stripe customer-balance credit that comes off the next invoice.
+    The credit waiting on a bill is never allowed to exceed REFERRAL_MAX_PERCENT of the plan price, so one month's bill is at most that much off."""
+    if not (STRIPE_SECRET and STRIPE_KEY_OK):
+        return
+    with db() as c:
+        row = c.execute("SELECT stripe_customer, plan, ref_credits FROM users WHERE email=?", (email,)).fetchone()
+        n = (row["ref_credits"] or 0) if row else 0
+        if not row or n <= 0 or not row["stripe_customer"] or row["plan"] not in PLAN_PRICE_CENTS:
+            return  # stays queued until they have a paid plan
+        claimed = c.execute("UPDATE users SET ref_credits=ref_credits-? WHERE email=? AND ref_credits>=?", (n, email, n))
+        if claimed.rowcount != 1:
+            return  # another request already took them
+        customer, plan = row["stripe_customer"], row["plan"]
+
+    def requeue():
+        with db() as c2:
+            c2.execute("UPDATE users SET ref_credits=ref_credits+? WHERE email=?", (n, email))
+
+    async with _credit_lock:
+        try:
+            cust = await stripe_get(f"customers/{customer}")
+            waiting = max(0, -int(cust.get("balance") or 0))  # credit already waiting on the next bill (negative balance = credit)
+            room = round(PLAN_PRICE_CENTS[plan] * REFERRAL_MAX_PERCENT / 100) - waiting
+            cents = min(round(PLAN_PRICE_CENTS[plan] * REFERRAL_PERCENT / 100) * n, room)
+            if cents <= 0:
+                log.info("Referral credit for %s skipped: already at the %s%% monthly maximum", email, REFERRAL_MAX_PERCENT)
+                return
+            await stripe_call(f"customers/{customer}/balance_transactions",
+                              {"amount": str(-cents), "currency": "usd", "description": f"LeadClaw referral credit ({n} x {REFERRAL_PERCENT}% off next month)"})
+        except Exception as e:
+            log.error("Referral credit for %s failed, re-queued: %s", email, e)
+            requeue()
+
+
+async def grant_referral(email):
+    """Runs once, on a person's first paid checkout: queues a credit for them and for whoever referred them."""
+    with db() as c:
+        done = c.execute("UPDATE users SET ref_rewarded=1 WHERE email=? AND COALESCE(ref_rewarded,0)=0 AND COALESCE(referred_by,'')<>''", (email,))
+        if done.rowcount != 1:
+            return
+        referrer = c.execute("SELECT referred_by FROM users WHERE email=?", (email,)).fetchone()[0]
+        c.execute("UPDATE users SET ref_credits=COALESCE(ref_credits,0)+1, ref_earned=COALESCE(ref_earned,0)+1 WHERE email=?", (email,))
+        c.execute("UPDATE users SET ref_credits=COALESCE(ref_credits,0)+1, ref_earned=COALESCE(ref_earned,0)+1, ref_total=COALESCE(ref_total,0)+1 WHERE email=?", (referrer,))
+    for who in (email, referrer):
+        try:
+            await push_referral_credits(who)
+        except Exception as e:
+            log.error("Referral push for %s failed: %s", who, e)
+
+
 @app.post("/api/billing/webhook")
 async def webhook(request: Request, stripe_signature: str = Header("")):
     payload = await request.body()
@@ -704,12 +804,14 @@ async def webhook(request: Request, stripe_signature: str = Header("")):
         raise HTTPException(400, "Bad signature.")
     ev = json.loads(payload)
     obj = ev["data"]["object"]
+    post = {"email": "", "paid": False}
     with db() as c:
         if ev["type"] == "checkout.session.completed":
             plan = (obj.get("metadata") or {}).get("plan")
             email = (obj.get("client_reference_id") or "").lower()
             if plan in STRIPE_PRICES and email:
                 c.execute("UPDATE users SET plan=?, stripe_customer=?, stripe_sub=?, on_trial=? WHERE email=?", (plan, obj.get("customer") or "", obj.get("subscription") or "", 1 if obj.get("payment_status") == "no_payment_required" else 0, email))
+                post["email"], post["paid"] = email, obj.get("payment_status") == "paid"
         elif ev["type"] == "customer.subscription.updated":
             status = obj.get("status")
             price = (((obj.get("items") or {}).get("data") or [{}])[0].get("price") or {}).get("id")
@@ -720,6 +822,13 @@ async def webhook(request: Request, stripe_signature: str = Header("")):
                 c.execute("UPDATE users SET plan=?, on_trial=? WHERE stripe_customer=?", (plan, 1 if status == "trialing" else 0, obj.get("customer")))
         elif ev["type"] == "customer.subscription.deleted":
             c.execute("UPDATE users SET plan='none', on_trial=0 WHERE stripe_customer=?", (obj.get("customer"),))
+    if post["email"]:  # after the plan is saved: reward referrals and apply any queued credits; never fail the webhook over it
+        try:
+            if post["paid"]:
+                await grant_referral(post["email"])
+            await push_referral_credits(post["email"])
+        except Exception as e:
+            log.error("Referral processing failed for %s: %s", post["email"], e)
     return {"received": True}
 
 
@@ -751,6 +860,10 @@ async def dispute(platform: str = Form(...), lead_phone: str = Form(""), lead_em
         raise HTTPException(402, f"You have used all {CREDITS[plan]} AI credits this month. Upgrade for more.")
     if not valid_account(account):
         raise HTTPException(400, f"Enter the email or phone number of your {platform} account.")
+    if model not in ("gemini", "groq"):
+        model = "gemini"
+    if model == "groq" and plan != "pro":
+        raise HTTPException(403, "Choosing your AI model is a Pro feature. Upgrade to Pro to use it.")
     if files and plan != "pro":
         raise HTTPException(403, "Audio/PDF evidence is a Pro feature.")
     use_template = letter_mode == "template"
