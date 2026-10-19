@@ -245,6 +245,11 @@ th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 .fl li{display:flex;align-items:center;gap:10px;padding:8px 10px 8px 12px;background:var(--sf);border:1px solid var(--bd);border-radius:8px;font-size:13px}
 .fl li span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.fl li small{color:var(--mu)}
 .fl li button{border:0;background:none;color:var(--mu);font-size:18px;line-height:1;cursor:pointer;padding:2px 6px;border-radius:6px}.fl li button:hover{color:var(--er);background:var(--s2)}
+
+/* loading indicators */
+.btn.sec.busy::after,.btn.sm.sec.busy::after{border-color:var(--bd);border-top-color:var(--ac)}
+.ldb{height:4px;max-width:220px;margin:0 auto 12px;background:var(--s2);border-radius:9px;overflow:hidden;position:relative}
+.ldb i{position:absolute;top:0;bottom:0;left:-40%;width:40%;background:var(--b);border-radius:9px;animation:lb 1.1s ease-in-out infinite}
 </style>
 </head>
 <body>
@@ -457,9 +462,9 @@ async function pick(id,btn,msgEl){
   if(!me){openAuth('signup');return}
   if(testMode){toast('Use the Testing panel to change the plan.');return}
   msgEl.textContent='';
-  try{const d=await withWake(btn,()=>api('/api/billing/checkout',{method:'POST',json:{plan:id}}));
+  busy(btn,true);try{const d=await withWake(btn,()=>api('/api/billing/checkout',{method:'POST',json:{plan:id}}),'Setting up your plan. This can take up to 30 seconds.',600);
     if(d.activated){await refreshMe();$('planOv').dataset.force='';closeOv('authOv');closeOv('planOv');enterApp();toast(me.on_trial?'Free trial started':'Plan activated')}else if(d.url)location.href=d.url}
-  catch(e){msgEl.textContent=e.message}}
+  catch(e){msgEl.textContent=e.message}finally{busy(btn,false)}}
 function renderLandingPlans(){$('lp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,'Get '+p.name)).join('');bindPlans($('lp'),()=>me?openPlans():openAuth('signup'));observe()}
 function openPlans(force){$('planOv').dataset.force=force===true?'1':'';$('pC').textContent=force===true?'Sign out':'Close';$('pC').onclick=force===true?()=>{$('planOv').dataset.force='';$('planOv').hidden=true;signout()}:()=>closeOv('planOv');const nt=!me||me.plan==='none';$('pT').textContent=nt?'Free trial: choose your plan':'Choose your plan';$('pS').textContent=nt?`Your first ${TRIAL_DISPUTES} disputes are free${TRIAL_NO_CARD?', no card required.':'. Card required, charged only after your trial. Cancel anytime.'}`:'Upgrade to unlock more credits and Pro features.';$('mp').innerHTML=PLANS.map(p=>planHtml(p,me&&me.plan===p.id,me&&me.plan!=='none'?'Switch to '+p.name:'Start free trial')).join('');$('mp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('mp'),(id,b)=>pick(id,b,$('mpM')));$('mpM').textContent='';$('planOv').hidden=false}
 function showStep(n){['s1','s2','s3','s4','sl','sOk','sf','sf2'].forEach(x=>$(x).hidden=true);$(n==='l'?'sl':n==='f'?'sf':n==='f2'?'sf2':'s'+n).hidden=false;$('dots').hidden=typeof n==='string';[...$('dots').children].forEach((d,i)=>d.classList.toggle('on',i<n));
@@ -572,20 +577,20 @@ function teamHtml(d){const n=d.members.length;return `<p class="sub" style="marg
   <div class="tadd"><input class="inp" id="tEm" type="email" placeholder="teammate@gmail.com" autocomplete="off"><button class="btn" id="tAdd">Add teammate</button></div><p class="msg" id="tMsg"></p>
   <div class="seats"><span>${n} of ${d.limit} seats used</span><div class="meter"><i style="width:${Math.min(100,n/d.limit*100)}%"></i></div></div>
   ${n?`<div class="tw"><table><thead><tr><th>Teammate</th><th>Name</th><th></th></tr></thead><tbody>${d.members.map(m=>`<tr><td>${esc(m.email)}</td><td>${esc(m.full_name||'Has not signed up yet')}</td><td><button class="btn sm sec" data-rm="${esc(m.email)}">Remove</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No teammates yet.</div>'}`}
-function paintTeam(){$('tTeamBody').innerHTML=teamHtml(teamData);$('tAdd').onclick=addMember;$('tEm').addEventListener('keydown',e=>{if(e.key==='Enter')$('tAdd').click()});document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removeMember(b.dataset.rm))}
+function paintTeam(){$('tTeamBody').innerHTML=teamHtml(teamData);$('tAdd').onclick=addMember;$('tEm').addEventListener('keydown',e=>{if(e.key==='Enter')$('tAdd').click()});document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removeMember(b.dataset.rm,b))}
 async function loadTeam(){try{teamData=await api('/api/team');paintTeam()}catch(x){$('tTeamBody').innerHTML='<div class="empty">'+esc(x.message)+'</div>'}}
 function renderTeam(){const el=$('tTeamBody');if(!me)return;
   if(me.team_owner){el.innerHTML=`<div class="empty" style="margin:0">You have Pro access through <b>${esc(me.team_owner)}</b>'s team.</div>`;return}
   if(me.plan!=='pro'){teamData=null;el.innerHTML=`<div class="lock"><div class="lockin" aria-hidden="true"><p class="sub">Teammates get Pro access on their own login.</p><div class="tadd"><input class="inp" disabled tabindex="-1" placeholder="teammate@gmail.com"><button class="btn" tabindex="-1">Add teammate</button></div><div class="seats"><span>0 of 5 seats used</span><div class="meter"><i style="width:0"></i></div></div></div><div class="lockov"><b>Pro feature</b><small>Add teammates so they can generate disputes with Pro access</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div></div>`;el.querySelectorAll('[data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});return}
-  if(teamData)paintTeam();else{el.innerHTML='<div class="empty">Loading your team...</div>';loadTeam()}}
+  if(teamData)paintTeam();else{el.innerHTML='<div class="empty"><div class="ldb"><i></i></div>Loading your team...</div>';loadTeam()}}
 async function addMember(){const b=$('tAdd'),m=$('tMsg'),e=$('tEm').value.trim().toLowerCase();m.className='msg';m.textContent='';
   if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(e))return m.textContent='Enter a valid @gmail.com address.';
   busy(b,true);try{teamData=await withWake(b,()=>api('/api/team/add',{method:'POST',json:{email:e}}),'Adding teammate...',600);paintTeam();toast('Teammate added')}catch(x){m.textContent=x.message}finally{busy(b,false)}}
-async function removeMember(e){try{teamData=await api('/api/team/remove',{method:'POST',json:{email:e}});paintTeam();toast('Teammate removed')}catch(x){toast(x.message)}}
+async function removeMember(e,b){if(b){if(b.disabled)return;busy(b,true)}try{teamData=await api('/api/team/remove',{method:'POST',json:{email:e}});paintTeam();toast('Teammate removed')}catch(x){toast(x.message)}finally{if(b)busy(b,false)}}
 function renderHist(){const ds=me.disputes;$('hE').hidden=ds.length>0;$('kN').textContent=ds.length;$('kE').textContent='$'+ds.filter(d=>d.valid).reduce((a,d)=>a+d.amount,0).toFixed(0);$('kC').textContent='$'+ds.filter(d=>d.recovered).reduce((a,d)=>a+d.amount,0).toFixed(0);
   $('hb').innerHTML=ds.map(d=>`<tr><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone||d.lead_email)}</td><td>$${(+d.amount).toFixed(2)}</td><td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Not eligible'}</span></td>
-  <td>${d.valid?`<button class="btn sm${d.recovered?'':' sec'}" onclick="mark(${d.id},${!d.recovered})">${d.recovered?'Claimed':'Mark claimed'}</button>`:'-'}</td><td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="view(${d.id})">View</button>`:''}</td></tr>`).join('')}
-async function mark(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as claimed':'Unmarked')}catch(e){toast(e.message)}}
+  <td>${d.valid?`<button class="btn sm${d.recovered?'':' sec'}" onclick="mark(${d.id},${!d.recovered},this)">${d.recovered?'Claimed':'Mark claimed'}</button>`:'-'}</td><td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="view(${d.id})">View</button>`:''}</td></tr>`).join('')}
+async function mark(id,v,b){if(b){if(b.disabled)return;busy(b,true)}try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as claimed':'Unmarked')}catch(e){toast(e.message)}finally{if(b)busy(b,false)}}
 function view(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},d.platform,id);tab('new')}
 function tab(t){document.querySelectorAll('.nv[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('tNew').hidden=t!=='new';$('tHist').hidden=t!=='hist';$('tTeam').hidden=t!=='team';$('ttl').textContent={new:'New dispute',hist:'Dispute history',team:'Team'}[t]}
 document.querySelectorAll('.nv[data-t]').forEach(b=>b.onclick=()=>tab(b.dataset.t));
@@ -625,7 +630,7 @@ function showResult(d,p=plat,id=0){T.gen=true;setTimeout(tutCheck,0);claim=d.cla
   $('out').className='res';$('out').innerHTML=`<div class="verdict ${d.valid?'ok':'er'}">${d.valid?'Eligible for credit':'Not eligible'}</div><p style="color:var(--mu);margin:8px 0 0">${esc(d.reason)}</p>`+(d.valid&&claim?`<div class="claim" id="cl"></div><div class="acts"><button class="btn sec sm" id="cp">Copy letter</button>${isPro?'<button class="btn sm" id="gm">Open in Gmail</button>':'<span class="pro inl" data-up><span class="in">Open in Gmail</span><span class="bg">PRO ONLY</span></span>'}${id?'<button class="btn sec sm" id="cm">Mark as claimed</button>':''}</div>`:'');
   if(d.valid&&claim){typeText($('cl'),claim);$('cp').onclick=async()=>{try{await navigator.clipboard.writeText(claim);toast('Letter copied')}catch(e){toast('Copy failed. Select the text manually.')}};
     if(isPro)$('gm').onclick=()=>{const mm=claim.match(/^Subject:\s*(.+?)\r?\n+/),su=mm?mm[1]:'Lead Credit Request',body=mm?claim.slice(mm[0].length):claim;const w=window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(EM[p]||'')}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`,'_blank');if(w)w.opener=null;else toast('Popup blocked. Allow popups or copy the letter.')};
-    if(id)$('cm').onclick=()=>mark(id,true)}
+    if(id)$('cm').onclick=()=>mark(id,true,$('cm'))}
   document.querySelectorAll('#out [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()})}
 function need(ids){let bad=null;for(const id of ids){const el=$(id),v=el.value.trim(),ok=id==='cost'?(Number.isFinite(parseFloat(v))&&parseFloat(v)>0):!!v;el.classList.toggle('invalid',!ok);if(!ok&&!bad)bad=el}if(bad){bad.focus();toast('Please complete the highlighted fields.');return false}return true}
 document.querySelectorAll('.inp,textarea').forEach(i=>i.addEventListener('input',()=>i.classList.remove('invalid')));
@@ -673,8 +678,8 @@ $('navAcc').onclick=()=>{const m=me;$('aN').value=m.full_name||'';$('aPh').value
   $('accP').textContent=`${m.email} | ${LIM[m.plan]===undefined?'No active plan':NAME[m.plan]+' plan'}`;$('accOv').hidden=false};
 $('saveAcc').onclick=async()=>{const pw='';
   const f={full_name:$('aN').value,phone:$('aPh').value,acc_angi:$('aA').value,acc_thumbtack:$('aT2').value,acc_porch:$('aPo').value,acc_networx:$('aNx').value};
-  try{await api('/api/user/profile',{method:'POST',json:{password:pw,...f}});Object.assign(me,f);saveMe();closeOv('accOv');renderPlat();toast('Saved')}catch(e){toast(e.message)}};
-$('billBtn').onclick=async()=>{try{const d=await withWake($('billBtn'),()=>api('/api/billing/portal',{method:'POST'}));location.href=d.url}catch(e){toast(e.message)}};
+  const sb=$('saveAcc');busy(sb,true);try{await withWake(sb,()=>api('/api/user/profile',{method:'POST',json:{password:pw,...f}}),'Saving your changes...',800);Object.assign(me,f);saveMe();closeOv('accOv');renderPlat();toast('Saved')}catch(e){toast(e.message)}finally{busy(sb,false)}};
+$('billBtn').onclick=async()=>{const bb=$('billBtn');busy(bb,true);try{const d=await withWake(bb,()=>api('/api/billing/portal',{method:'POST'}),'Opening billing. This can take up to 30 seconds.',600);location.href=d.url}catch(e){toast(e.message);busy(bb,false)}};
 let adminKey='',lockUntil=+(ls('lc_adm_lock')||0),lockTimer=null;
 function lockTick(){const l=Math.ceil((lockUntil-Date.now())/1000),b=$('admGo');if(l<=0){clearInterval(lockTimer);lockTimer=null;ls('lc_adm_lock',null);b.disabled=false;$('admM').textContent='';return}b.disabled=true;$('admM').textContent=`Locked. Try again in ${Math.floor(l/60)}:${String(l%60).padStart(2,'0')}.`}
 function startLock(s){lockUntil=Date.now()+s*1000;ls('lc_adm_lock',lockUntil);clearInterval(lockTimer);lockTick();lockTimer=setInterval(lockTick,1000)}
