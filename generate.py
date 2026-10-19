@@ -41,6 +41,7 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "qwen3-4b")
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
+TEST_EMAIL = "tester@leadclaw.test"  # built-in account used by the admin Testing dashboard
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 STRIPE_PRICES = {p: os.environ.get("STRIPE_PRICE_" + p.upper(), "") for p in ("basic", "standard", "pro")}
@@ -50,8 +51,6 @@ SUPABASE_URL = re.sub(r"/(rest|auth)/v1/?$", "", os.environ.get("SUPABASE_URL", 
 SUPABASE_KEY = os.environ.get("SUPABASE_ANON_KEY") or os.environ.get("SUPABASE_SECRET_KEY", "")
 
 TEST_MODE = os.environ.get("TEST_MODE", "") == "1"
-if TEST_MODE:
-    log.warning("TEST_MODE is ON: plans can be activated without payment. Turn it off before launch.")
 TRIAL_DAYS = int(os.environ.get("TRIAL_DAYS", "7") or 0)
 TRIAL_DISPUTES = int(os.environ.get("TRIAL_DISPUTES", "3") or 3)
 STRIPE_TAX = os.environ.get("STRIPE_AUTOMATIC_TAX", "") == "1"  # turn on once Stripe Tax is set up
@@ -281,9 +280,7 @@ def health():
     except Exception as e:
         log.error("Health check DB error: %s", e)
         database = "error: check DATABASE_URL"
-    checks = {"stripe": bool(STRIPE_SECRET and STRIPE_WEBHOOK and all(STRIPE_PRICES.values())),
-              "email": bool(SUPABASE_URL and SUPABASE_KEY), "ai": bool(GEMINI_API_KEY or GROQ_API_KEY), "admin": bool(ADMIN_KEY)}
-    return {"status": "healthy", "service": "LeadClaw API", "database": database, "configured": checks}
+    return {"status": "healthy", "service": "LeadClaw API", "database": database}
 
 
 def gmail(v):
@@ -486,11 +483,6 @@ async def stripe_call(path, data):
     return r.json()
 
 
-def stripe_cust(u):
-    """Reuse the Stripe customer when one exists, so repeat purchases never create duplicate customers."""
-    return {"customer": u["stripe_customer"]} if u.get("stripe_customer") else {"customer_email": u["email"]}
-
-
 @app.post("/api/billing/checkout")
 async def checkout(req: PlanReq, authorization: str = Header("")):
     u = current_user(authorization)
@@ -506,13 +498,9 @@ async def checkout(req: PlanReq, authorization: str = Header("")):
         return {"url": None, "activated": True}
     if not STRIPE_PRICES.get(req.plan):
         raise HTTPException(503, "Billing is not configured yet.")
-    if STRIPE_SECRET and u.get("stripe_sub") and u.get("stripe_customer") and u["plan"] in CREDITS:
-        # already subscribed: change plans in the Stripe billing portal so nobody is billed twice
-        p = await stripe_call("billing_portal/sessions", {"customer": u["stripe_customer"], "return_url": FRONTEND_URL or "http://localhost:8080"})
-        return {"url": p["url"]}
     base = FRONTEND_URL or "http://localhost:8080"
     s = await stripe_call("checkout/sessions", {
-        "mode": "subscription", **stripe_cust(u), "client_reference_id": u["email"],
+        "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
         "line_items[0][price]": STRIPE_PRICES[req.plan], "line_items[0][quantity]": "1",
         "metadata[plan]": req.plan, **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}), **({"subscription_data[trial_period_days]": str(TRIAL_DAYS)} if TRIAL_DAYS > 0 and not TRIAL_NO_CARD else {}), "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
     return {"url": s["url"]}
@@ -526,7 +514,7 @@ async def start_plan(authorization: str = Header("")):
     if TRIAL_NO_CARD and not u.get("stripe_sub") and STRIPE_SECRET and STRIPE_PRICES.get(u["plan"]):
         base = FRONTEND_URL or "http://localhost:8080"
         sess = await stripe_call("checkout/sessions", {
-            "mode": "subscription", **stripe_cust(u), "client_reference_id": u["email"],
+            "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
             "line_items[0][price]": STRIPE_PRICES[u["plan"]], "line_items[0][quantity]": "1", "metadata[plan]": u["plan"],
             **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}),
             "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
@@ -652,70 +640,61 @@ ADMIN_LOCK_SECONDS = 300
 _admin_lock = {"until": 0.0}
 
 
-@app.get("/api/admin/analytics")
-async def analytics(x_admin_key: str = Header("")):
+def admin_guard(key: str):
     now = time.time()
     if _admin_lock["until"] > now:
         raise HTTPException(429, detail={"message": "Admin is locked after a wrong key.", "retry_after": int(_admin_lock["until"] - now) + 1})
-    if not ADMIN_KEY or not hmac.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode()):
+    if not ADMIN_KEY or not hmac.compare_digest(key.encode(), ADMIN_KEY.encode()):
         _admin_lock["until"] = now + ADMIN_LOCK_SECONDS
         raise HTTPException(403, detail={"message": "Incorrect admin key.", "retry_after": ADMIN_LOCK_SECONDS})
+
+
+@app.get("/api/admin/analytics")
+async def analytics(x_admin_key: str = Header("")):
+    admin_guard(x_admin_key)
     with db() as c:
         plans = [dict(r) for r in c.execute("SELECT plan, COUNT(*) AS count FROM users GROUP BY plan")]
         users = [dict(r) for r in c.execute(
-            "SELECT u.email,u.workspace,u.plan,u.trials_left,u.created_at,"
+            "SELECT u.email,u.full_name,u.phone,u.workspace,u.plan,u.on_trial,u.created_at,"
             "(SELECT COUNT(*) FROM disputes d WHERE d.email=u.email) AS disputes FROM users u ORDER BY u.created_at DESC")]
         disputes = [dict(r) for r in c.execute(
             "SELECT id,email,platform,lead_phone,amount,valid,recovered,created_at FROM disputes ORDER BY id DESC LIMIT 300")]
-        u = c.execute("SELECT COUNT(*) n, COALESCE(SUM((plan IN ('basic','standard','pro'))::int),0) paid, COALESCE(SUM((created_at>=NOW()-INTERVAL '7 days')::int),0) new7 FROM users").fetchone()
-        d = c.execute("SELECT COUNT(*) n, COALESCE(SUM(CASE WHEN valid=1 THEN amount END),0) el, COALESCE(SUM(CASE WHEN recovered=1 THEN amount END),0) rec FROM disputes").fetchone()
+        u = c.execute("SELECT COUNT(*) n, COALESCE(SUM((plan IN ('basic','standard','pro'))::int),0) paid, COALESCE(SUM((created_at>=NOW()-INTERVAL '7 days')::int),0) new7 FROM users WHERE email <> ?", (TEST_EMAIL,)).fetchone()
+        d = c.execute("SELECT COUNT(*) n, COALESCE(SUM(CASE WHEN valid=1 THEN amount END),0) el, COALESCE(SUM(CASE WHEN recovered=1 THEN amount END),0) rec FROM disputes WHERE email <> ?", (TEST_EMAIL,)).fetchone()
+    users = [x for x in users if x["email"] != TEST_EMAIL]
+    disputes = [x for x in disputes if x["email"] != TEST_EMAIL]
     return {"summary": {"users": u["n"], "paid": u["paid"], "new_7d": u["new7"], "disputes": d["n"],
                         "eligible_total": d["el"], "recovered_total": d["rec"]},
             "plan_distribution": plans, "users": users, "disputes": disputes}
 
 
+class TestPlanReq(BaseModel):
+    plan: str = "none"
+    on_trial: bool = False
+    reset_disputes: bool = False
+
+
+@app.post("/api/admin/test-session")
+async def admin_test_session(x_admin_key: str = Header("")):
+    admin_guard(x_admin_key)
+    with db() as c:
+        c.execute("INSERT INTO users (email,password,workspace,full_name,plan) VALUES (?,?,?,?,'none') ON CONFLICT (email) DO NOTHING",
+                  (TEST_EMAIL, hash_pw(os.urandom(18).hex()), "Test Workspace", "Test Account"))
+    return {"token": new_session(TEST_EMAIL)}
+
+
+@app.post("/api/admin/test-plan")
+async def admin_test_plan(req: TestPlanReq, x_admin_key: str = Header("")):
+    admin_guard(x_admin_key)
+    if req.plan not in ("none", "basic", "standard", "pro"):
+        raise HTTPException(400, "Unknown plan.")
+    with db() as c:
+        c.execute("UPDATE users SET plan=?, on_trial=? WHERE email=?", (req.plan, 1 if (req.on_trial and req.plan != "none") else 0, TEST_EMAIL))
+        if req.reset_disputes:
+            c.execute("DELETE FROM disputes WHERE email=?", (TEST_EMAIL,))
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
-@app.post("/api/admin/set-plan")
-async def admin_set_plan(req: dict, x_admin_key: str = Header("")):
-    now = time.time()
-    if _admin_lock["until"] > now:
-        raise HTTPException(
-            429,
-            detail={
-                "message": "Admin is locked after a wrong key.",
-              "retry_after": int(_admin_lock["until"] - now) + 1,
-    },
-)
-
-@app.post("/api/admin/set-plan")
-async def admin_set_plan(req: dict, x_admin_key: str = Header("")):
-    now = time.time()
-    if _admin_lock["until"] > now:
-        raise HTTPException(
-            429,
-            detail={
-                "message": "Admin is locked after a wrong key.",
-                "retry_after": int(_admin_lock["until"] - now) + 1,
-            },
-        )
-    if not ADMIN_KEY or not hmac.compare_digest(x_admin_key.encode(), ADMIN_KEY.encode()):
-        _admin_lock["until"] = now + ADMIN_LOCK_SECONDS
-        raise HTTPException(
-            403,
-            detail={
-                "message": "Incorrect admin key. Locked for 5 minutes.",
-                "retry_after": ADMIN_LOCK_SECONDS,
-            },
-        )
-    email = (req.get("email") or "").strip().lower()
-    plan = req.get("plan")
-    if plan not in CREDITS and plan != "none":
-        raise HTTPException(400, "Invalid plan.")
-    with db() as c:
-        user = c.execute("SELECT 1 FROM users WHERE email=?", (email,)).fetchone()
-        if not user:
-            raise HTTPException(404, "User email not found in database.")
-        c.execute("UPDATE users SET plan=?, on_trial=0 WHERE email=?", (plan, email))
-    return {"status": "success"}
