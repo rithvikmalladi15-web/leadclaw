@@ -39,7 +39,7 @@ app.add_middleware(
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "qwen3-4b")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
 TEST_EMAIL = "tester@leadclaw.test"  # built-in account used by the admin Testing dashboard
 STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "").strip()
@@ -302,7 +302,7 @@ def _groq(prompt):
     if not groq_client:
         raise ValueError("GROQ_API_KEY is not configured.")
     err = None
-    for name in _models(GROQ_MODEL, "GROQ_FALLBACK_MODELS", "qwen/qwen3-32b,llama-3.3-70b-versatile"):
+    for name in _models(GROQ_MODEL, "GROQ_FALLBACK_MODELS", "qwen/qwen3-32b,llama-3.1-8b-instant"):
         try:
             r = groq_client.chat.completions.create(model=name, temperature=0.1,
                 messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
