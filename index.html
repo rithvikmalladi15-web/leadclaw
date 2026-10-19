@@ -551,14 +551,21 @@ $('navHelp').onclick=()=>{location.href='mailto:'+SUPPORT_EMAIL+'?subject='+enco
 </html>
 <script>
 window.addEventListener('DOMContentLoaded', () => {
-  // 1. Admin Plan Control Dashboard Injection
   const admData = document.getElementById('admData');
-  if (admData && !document.getElementById('adminPlanDashboard')) {
-    const dashDiv = document.createElement('div');
-    dashDiv.id = 'adminPlanDashboard';
-    dashDiv.style.cssText = 'background:var(--tn);padding:18px;border-radius:12px;margin-bottom:20px;text-align:left;border:1px solid var(--bd);';
-    dashDiv.innerHTML = `
-      <h3 style="margin:0 0 6px;font:700 16px var(--d);color:var(--ac);">Admin Plan Control Dashboard</h3>
+  if (admData && !document.getElementById('adminTestDashboard')) {
+    // 1. Create a Test Mode button at the top of the admin area
+    const testToggleBtn = document.createElement('button');
+    testToggleBtn.className = 'btn sm sec';
+    testToggleBtn.style.cssText = 'margin-bottom: 14px;';
+    testToggleBtn.textContent = '⚡ Open Test Mode & Plan Dashboard';
+    
+    // 2. Create the Test Mode Dashboard Container (hidden by default)
+    const testDash = document.createElement('div');
+    testDash.id = 'adminTestDashboard';
+    testDash.hidden = true;
+    testDash.style.cssText = 'background:var(--tn);padding:18px;border-radius:12px;margin-bottom:20px;text-align:left;border:1px solid var(--bd);';
+    testDash.innerHTML = `
+      <h3 style="margin:0 0 6px;font:700 16px var(--d);color:var(--ac);">Test Mode &amp; Plan Dashboard</h3>
       <p style="margin:0 0 14px;font-size:13.5px;color:var(--mu);">Select a user email below, choose their target plan, and instantly update their account status without needing Stripe checkout.</p>
       <div class="two f">
         <div>
@@ -577,8 +584,18 @@ window.addEventListener('DOMContentLoaded', () => {
       </div>
       <button class="btn sm" id="dashApplyBtn" style="margin-top:6px;">Apply Plan to User</button>
     `;
-    admData.insertBefore(dashDiv, admData.firstChild);
 
+    // Insert button and dashboard right at the top of the opened admin view
+    admData.insertBefore(testDash, admData.firstChild);
+    admData.insertBefore(testToggleBtn, testDash);
+
+    // Toggle test dashboard visibility when clicking the button
+    testToggleBtn.onclick = () => {
+      testDash.hidden = !testDash.hidden;
+      testToggleBtn.textContent = testDash.hidden ? '⚡ Open Test Mode & Plan Dashboard' : '✕ Close Test Mode Dashboard';
+    };
+
+    // Handle plan update request
     document.getElementById('dashApplyBtn').onclick = async () => {
       const email = document.getElementById('dashEmail').value.trim();
       const plan = document.getElementById('dashPlan').value;
@@ -595,22 +612,11 @@ window.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Failed to update user plan.');
         toast(`Success! ${email} is now on the ${plan.toUpperCase()} plan.`);
-        loadAdmin(); 
+        loadAdmin(); // Refresh analytics tables
       } catch (e) {
         toast(e.message);
       }
     };
   }
-
-  // 2. Auto-dismiss Plan Modal when active
-  setInterval(() => {
-    if (typeof me !== 'undefined' && me && me.plan && me.plan !== 'none' && me.plan !== 'free') {
-      const planOv = document.getElementById('planOv');
-      if (planOv && !planOv.hidden && planOv.dataset.force !== '1') {
-        planOv.hidden = true;
-        if (typeof enterApp === 'function') enterApp();
-      }
-    }
-  }, 1000);
 });
 </script>
