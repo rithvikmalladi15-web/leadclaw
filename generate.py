@@ -42,9 +42,16 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "qwen3-4b")
 ADMIN_KEY = os.environ.get("ADMIN_KEY", "")
 TEST_EMAIL = "tester@leadclaw.test"  # built-in account used by the admin Testing dashboard
-STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "")
-STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
-STRIPE_PRICES = {p: os.environ.get("STRIPE_PRICE_" + p.upper(), "") for p in ("basic", "standard", "pro")}
+STRIPE_SECRET = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+STRIPE_WEBHOOK = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
+TEAM_SEATS = int(os.environ.get("TEAM_SEATS", "5"))  # teammates a Pro owner can add
+STRIPE_PRICES = {p: os.environ.get("STRIPE_PRICE_" + p.upper(), "").strip() for p in ("basic", "standard", "pro")}
+STRIPE_KEY_OK = STRIPE_SECRET.startswith(("sk_", "rk_"))
+if STRIPE_SECRET and not STRIPE_KEY_OK:
+    log.error("STRIPE_SECRET_KEY must be a SECRET key starting with sk_ (or rk_), not a publishable pk_ key.")
+for _p, _v in STRIPE_PRICES.items():
+    if _v and not _v.startswith("price_"):
+        log.error("STRIPE_PRICE_%s must be a Price ID starting with price_ (not a product ID).", _p.upper())
 
 # Supabase Auth configuration (handles automated emails for free)
 SUPABASE_URL = re.sub(r"/(rest|auth)/v1/?$", "", os.environ.get("SUPABASE_URL", "").strip().rstrip("/"))
@@ -123,6 +130,7 @@ def init_db():
             recovered INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)""")
         c.execute("CREATE TABLE IF NOT EXISTS sessions (token TEXT PRIMARY KEY, email TEXT, created DOUBLE PRECISION)")
         c.execute("CREATE INDEX IF NOT EXISTS disputes_email_idx ON disputes (email)")
+        c.execute("CREATE TABLE IF NOT EXISTS team_members (member TEXT PRIMARY KEY, owner TEXT NOT NULL, added TIMESTAMP DEFAULT CURRENT_TIMESTAMP)")
         c.execute("CREATE TABLE IF NOT EXISTS email_verified (email TEXT PRIMARY KEY, verified_at DOUBLE PRECISION)")
         c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_sub TEXT DEFAULT ''")
         c.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS on_trial INTEGER DEFAULT 0")
@@ -179,7 +187,13 @@ def current_user(authorization: str = "") -> dict:
                         (tok, time.time() - SESSION_TTL)).fetchone()
     if not row:
         raise HTTPException(401, "Session expired. Please sign in again.")
-    return dict(row)
+    u = dict(row)
+    with db() as c:  # teammates of an active (paid) Pro owner get Pro access
+        t = c.execute("SELECT m.owner FROM team_members m JOIN users o ON o.email=m.owner WHERE m.member=? AND o.plan='pro' AND COALESCE(o.on_trial,0)=0", (u["email"],)).fetchone()
+    u["team_owner"] = t["owner"] if t else None
+    if t:
+        u["plan"], u["on_trial"] = "pro", 0
+    return u
 
 
 class RegisterReq(BaseModel):
@@ -212,7 +226,35 @@ INVALID_SAFETY_RE = re.compile(
     r"project went to|chose (?:another|a different) (?:contractor|company)|competitor|too expensive|"
     r"over (?:our|my) budget|on hold|postponed", re.I)
 
-SYSTEM_PROMPT = """You are an expert compliance auditor for home service lead marketplaces..."""
+SYSTEM_PROMPT = """You are an expert compliance auditor for home service lead marketplaces (Angi, Thumbtack, Porch, Networx).
+Decide whether a lead qualifies for a credit refund under the marketplace's lead credit guidelines.
+
+ELIGIBLE (valid = true) only when the LEAD ITSELF was defective:
+- Permanently disconnected, wrong, or invalid phone number, or a number belonging to a third party with no knowledge of the project
+- Customer is outside the contractor's service area
+- Duplicate lead in the same billing window
+- Spam, bot, or fake submission
+- Wrong trade category
+- Homeowner states they clicked by mistake and never requested the service
+
+NOT ELIGIBLE (valid = false) when the outcome was a consumer or commercial choice:
+- Homeowner hired a competitor, rejected the price, changed their mind, postponed, cancelled or put the project on hold
+- Homeowner was unresponsive after a real initial contact
+
+HARD RULE: if the notes or transcript mention a competitor being hired or a price/quote rejection, valid MUST be false.
+Never invent facts. Use only what is in the notes, transcript and attached evidence.
+
+If valid is true, write the dispute email in EXACTLY this structure, plain text with no markdown:
+Subject: Urgent: Lead Credit Request - Account # <account id> - Lead ID <lead id>
+Dear Partner Support Team,
+One sentence formally requesting a credit/refund for an invalid lead charged to the account.
+LEAD IDENTIFICATION DATA, as bullet lines starting with "- ": Business Name, Platform Account ID, Lead ID Number, Date & Time Received, Lead Cost, Customer Phone, Customer Email.
+REASON FOR DISPUTE (POLICY VIOLATION): state that the lead qualifies for a credit under the platform's credit guarantee guidelines, then ONE bullet naming the single best-matching reason and explaining it with the contractor's exact facts.
+REQUEST: ask for a credit of the exact lead cost, offer to provide more information, and close politely.
+Signature block with the contractor's name, business, phone and email.
+
+If valid is false: "reason" is one or two plain sentences and "claim" is an empty string.
+Respond ONLY with JSON using exactly these keys: {"valid": true or false, "confidence": 0.95, "reason": "...", "claim": "..."}"""
 
 
 def valid_account(v: str) -> bool:
@@ -231,21 +273,44 @@ def extract_json(text: str) -> dict:
     return json.loads(text[s:e + 1])
 
 
+def _models(primary, env, default):
+    out = [primary] + [x.strip() for x in os.environ.get(env, default).split(",") if x.strip()]
+    return list(dict.fromkeys(out))
+
+
+def _checked(d):
+    if not isinstance(d, dict) or "valid" not in d:
+        raise ValueError("AI response was missing the 'valid' field.")
+    return d
+
+
 def _gemini(prompt, parts):
     if not GEMINI_API_KEY:
         raise ValueError("GEMINI_API_KEY is not configured.")
-    m = genai.GenerativeModel(GEMINI_MODEL, system_instruction=SYSTEM_PROMPT,
-                              generation_config={"temperature": 0.1, "response_mime_type": "application/json"})
-    return extract_json(m.generate_content([prompt, *parts]).text)
+    err = None
+    for name in _models(GEMINI_MODEL, "GEMINI_FALLBACK_MODELS", "gemini-2.5-flash,gemini-2.0-flash"):
+        try:
+            m = genai.GenerativeModel(name, system_instruction=SYSTEM_PROMPT,
+                                      generation_config={"temperature": 0.1, "response_mime_type": "application/json"})
+            return _checked(extract_json(m.generate_content([prompt, *parts]).text))
+        except Exception as e:
+            err = e; log.warning("gemini model %s failed: %s", name, e)
+    raise err
 
 
 def _groq(prompt):
     if not groq_client:
         raise ValueError("GROQ_API_KEY is not configured.")
-    r = groq_client.chat.completions.create(model=GROQ_MODEL, temperature=0.1,
-        messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
-        response_format={"type": "json_object"})
-    return extract_json(r.choices[0].message.content)
+    err = None
+    for name in _models(GROQ_MODEL, "GROQ_FALLBACK_MODELS", "qwen/qwen3-32b,llama-3.3-70b-versatile"):
+        try:
+            r = groq_client.chat.completions.create(model=name, temperature=0.1,
+                messages=[{"role": "system", "content": SYSTEM_PROMPT}, {"role": "user", "content": prompt}],
+                response_format={"type": "json_object"})
+            return _checked(extract_json(r.choices[0].message.content))
+        except Exception as e:
+            err = e; log.warning("groq model %s failed: %s", name, e)
+    raise err
 
 
 async def run_ai(prompt, parts, prefer):
@@ -280,7 +345,9 @@ def health():
     except Exception as e:
         log.error("Health check DB error: %s", e)
         database = "error: check DATABASE_URL"
-    return {"status": "healthy", "service": "LeadClaw API", "database": database}
+    checks = {"stripe": bool(STRIPE_KEY_OK and STRIPE_WEBHOOK.startswith("whsec_") and all(v.startswith("price_") for v in STRIPE_PRICES.values())),
+              "email": bool(SUPABASE_URL and SUPABASE_KEY), "ai": bool(GEMINI_API_KEY or GROQ_API_KEY), "admin": bool(ADMIN_KEY)}
+    return {"status": "healthy", "service": "LeadClaw API", "database": database, "configured": checks}
 
 
 def gmail(v):
@@ -443,12 +510,57 @@ async def me(authorization: str = Header("")):
         total = c.execute("SELECT COUNT(*) FROM disputes WHERE email=?", (u["email"],)).fetchone()[0]
     return {"on_trial": bool(u.get("on_trial")), "trial_limit": TRIAL_DISPUTES,
             "trial_left": max(0, TRIAL_DISPUTES - total) if u.get("on_trial") else None,
-            "email": u["email"], "plan": u["plan"], "credits_left": credits_left(u["plan"], used), "credits_limit": CREDITS.get(u["plan"]), "workspace": u["workspace"],
+            "email": u["email"], "plan": u["plan"], "credits_left": credits_left(u["plan"], used), "credits_limit": CREDITS.get(u["plan"]), "team_owner": u.get("team_owner"), "workspace": u["workspace"],
             "full_name": u["full_name"], "phone": u["phone"], "acc_angi": u["acc_angi"], "acc_thumbtack": u["acc_thumbtack"],
             "acc_porch": u["acc_porch"], "acc_networx": u["acc_networx"], "month_used": used,
             "solo_limit": SOLO_MONTHLY_LIMIT, "billing": bool(u["stripe_customer"]), "disputes": ds,
             "eligible_total": sum(d["amount"] for d in ds if d["valid"]),
             "recovered_total": sum(d["amount"] for d in ds if d["recovered"])}
+
+
+class TeamReq(BaseModel):
+    email: str
+
+
+def _team_owner(u):
+    return u["plan"] == "pro" and not u.get("team_owner") and not u.get("on_trial")
+
+
+@app.get("/api/team")
+async def team_list(authorization: str = Header("")):
+    u = current_user(authorization)
+    owner = _team_owner(u)
+    members = []
+    if owner:
+        with db() as c:
+            members = [{"email": r["member"], "full_name": r["full_name"] or ""} for r in c.execute(
+                "SELECT m.member, COALESCE((SELECT x.full_name FROM users x WHERE x.email=m.member),'') AS full_name FROM team_members m WHERE m.owner=? ORDER BY m.added", (u["email"],))]
+    return {"is_owner": owner, "owner": u.get("team_owner"), "limit": TEAM_SEATS, "members": members}
+
+
+@app.post("/api/team/add")
+async def team_add(req: TeamReq, authorization: str = Header("")):
+    u = current_user(authorization)
+    if not _team_owner(u):
+        raise HTTPException(403, "Team seats are available to paid Pro subscribers.")
+    email = gmail(req.email)
+    if email == u["email"]:
+        raise HTTPException(400, "You are already the owner of this workspace.")
+    with db() as c:
+        if c.execute("SELECT COUNT(*) FROM team_members WHERE owner=?", (u["email"],)).fetchone()[0] >= TEAM_SEATS:
+            raise HTTPException(400, f"All {TEAM_SEATS} team seats are in use. Remove a teammate to add another.")
+        if c.execute("SELECT 1 FROM team_members WHERE member=?", (email,)).fetchone():
+            raise HTTPException(409, "That person is already on a team.")
+        c.execute("INSERT INTO team_members (member, owner) VALUES (?,?)", (email, u["email"]))
+    return await team_list(authorization)
+
+
+@app.post("/api/team/remove")
+async def team_remove(req: TeamReq, authorization: str = Header("")):
+    u = current_user(authorization)
+    with db() as c:
+        c.execute("DELETE FROM team_members WHERE member=? AND (owner=? OR member=?)", (req.email.strip().lower(), u["email"], u["email"]))
+    return await team_list(authorization)
 
 
 @app.post("/api/user/profile")
@@ -475,12 +587,27 @@ async def mark_recovered(dispute_id: int, req: RecoveredReq, authorization: str 
 async def stripe_call(path, data):
     if not STRIPE_SECRET:
         raise HTTPException(503, "Billing is not configured yet.")
+    if not STRIPE_KEY_OK:
+        raise HTTPException(503, "Billing is misconfigured: the server needs a Stripe secret key (sk_...), not a publishable key.")
     async with httpx.AsyncClient(timeout=20) as h:
         r = await h.post(f"https://api.stripe.com/v1/{path}", data=data, auth=(STRIPE_SECRET, ""))
     if r.status_code >= 400:
-        log.error("stripe: %s", r.text)
-        raise HTTPException(502, "Payment provider error.")
+        try:
+            err = r.json().get("error", {})
+        except Exception:
+            err = {}
+        code, msg = err.get("code") or err.get("type") or "unknown", err.get("message", "")
+        log.error("stripe %s -> %s %s: %s", path, r.status_code, code, msg)
+        hint = {401: "the Stripe key is invalid or incomplete", 403: "the Stripe key lacks the required permissions"}.get(r.status_code)
+        if code == "resource_missing":
+            hint = "a Stripe price was not found. Check the STRIPE_PRICE_* values and that the key and prices are in the same mode"
+        raise HTTPException(502, f"Billing setup problem: {hint}." if hint else f"Payment provider error ({code}).")
     return r.json()
+
+
+def stripe_cust(u):
+    """Reuse the Stripe customer when one exists so repeat purchases never create duplicates."""
+    return {"customer": u["stripe_customer"]} if u.get("stripe_customer") else {"customer_email": u["email"]}
 
 
 @app.post("/api/billing/checkout")
@@ -498,9 +625,13 @@ async def checkout(req: PlanReq, authorization: str = Header("")):
         return {"url": None, "activated": True}
     if not STRIPE_PRICES.get(req.plan):
         raise HTTPException(503, "Billing is not configured yet.")
+    if STRIPE_SECRET and u.get("stripe_sub") and u.get("stripe_customer") and u["plan"] in CREDITS:
+        # already subscribed: switch plans in the Stripe billing portal so nobody is billed twice
+        p = await stripe_call("billing_portal/sessions", {"customer": u["stripe_customer"], "return_url": FRONTEND_URL or "http://localhost:8080"})
+        return {"url": p["url"]}
     base = FRONTEND_URL or "http://localhost:8080"
     s = await stripe_call("checkout/sessions", {
-        "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
+        "mode": "subscription", "allow_promotion_codes": "true", **stripe_cust(u), "client_reference_id": u["email"],
         "line_items[0][price]": STRIPE_PRICES[req.plan], "line_items[0][quantity]": "1",
         "metadata[plan]": req.plan, **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}), **({"subscription_data[trial_period_days]": str(TRIAL_DAYS)} if TRIAL_DAYS > 0 and not TRIAL_NO_CARD else {}), "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
     return {"url": s["url"]}
@@ -514,7 +645,7 @@ async def start_plan(authorization: str = Header("")):
     if TRIAL_NO_CARD and not u.get("stripe_sub") and STRIPE_SECRET and STRIPE_PRICES.get(u["plan"]):
         base = FRONTEND_URL or "http://localhost:8080"
         sess = await stripe_call("checkout/sessions", {
-            "mode": "subscription", "customer_email": u["email"], "client_reference_id": u["email"],
+            "mode": "subscription", "allow_promotion_codes": "true", **stripe_cust(u), "client_reference_id": u["email"],
             "line_items[0][price]": STRIPE_PRICES[u["plan"]], "line_items[0][quantity]": "1", "metadata[plan]": u["plan"],
             **({"automatic_tax[enabled]": "true", "billing_address_collection": "required"} if STRIPE_TAX else {}),
             "success_url": f"{base}/?checkout=success", "cancel_url": f"{base}/?checkout=cancel"})
@@ -647,6 +778,21 @@ def admin_guard(key: str):
     if not ADMIN_KEY or not hmac.compare_digest(key.encode(), ADMIN_KEY.encode()):
         _admin_lock["until"] = now + ADMIN_LOCK_SECONDS
         raise HTTPException(403, detail={"message": "Incorrect admin key.", "retry_after": ADMIN_LOCK_SECONDS})
+
+
+@app.get("/api/admin/ai-test")
+async def ai_test(x_admin_key: str = Header("")):
+    admin_guard(x_admin_key)
+    probe = "Marketplace Platform: Angi\nLead Cost: $75.00\nContractor Call Notes:\nPermanently disconnected phone number. Called twice with no answer."
+    out = {}
+    for name, fn in (("gemini", lambda: _gemini(probe, [])), ("groq", lambda: _groq(probe))):
+        t = time.time()
+        try:
+            d = await asyncio.to_thread(fn)
+            out[name] = {"ok": True, "valid": d.get("valid"), "seconds": round(time.time() - t, 1)}
+        except Exception as e:
+            out[name] = {"ok": False, "error": str(e)[:240], "seconds": round(time.time() - t, 1)}
+    return out
 
 
 @app.get("/api/admin/analytics")
