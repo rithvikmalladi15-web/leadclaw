@@ -651,7 +651,7 @@ $('go').onclick=async()=>{
   try{const d=await api('/api/dispute',{method:'POST',body:fd});clearInterval(iv);bar.style.width='100%';$('pPct').textContent='100%';$('pStat').textContent='Complete';showResult(d,plat,d.dispute_id);await refreshMe();if(me.on_trial&&me.trial_left===0)toast('That was your last free dispute. Start your plan from the sidebar to keep going.')}
   catch(e){clearInterval(iv);
     if(e.status===402||e.status===403){$('out').textContent=e.message;toast(e.message);/trial has ended/i.test(e.message)?showTrialEnd(true):openPlans()}
-    else if(e.status===400){$('out').textContent=e.message}
+    else if(e.status===400||e.status===413){$('out').textContent=e.message;toast(e.message)}
     else{showResult(fallback(f),plat,0);toast('AI is unavailable. A standard template was generated instead.')}}
   finally{busy(btn,false);setTimeout(()=>{$('prog').style.display='none';bar.style.width='0'},900)}};
 let T={plat:false,gen:false},tutDone=[];
