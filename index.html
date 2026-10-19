@@ -161,6 +161,58 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 .cbox{display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;border:1px solid var(--bd);background:var(--sf);border-radius:16px;padding:28px 32px}
 .cbox .lead{max-width:560px}
 @media(max-width:700px){#tpanel{left:12px;right:12px;width:auto}.atop,.abody{padding-left:16px;padding-right:16px}.cbox{padding:22px}}
+/* ===== professional polish: motion, locks, team, admin ===== */
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.97) translateY(6px)}to{opacity:1;transform:none}}
+@keyframes ovin{from{opacity:0}to{opacity:1}}
+.ov:not([hidden]){animation:ovin .2s ease}.ov:not([hidden]) .modal{animation:pop .28s cubic-bezier(.2,.7,.2,1)}
+.main .panel{animation:fadeUp .45s cubic-bezier(.2,.7,.2,1) both}.cols>div .panel{animation-delay:.06s}
+.res,.claim{animation:fadeUp .4s cubic-bezier(.2,.7,.2,1) both}
+.nv{transition:background .2s,color .2s,transform .2s}.nv:hover{transform:translateX(2px)}
+.btn{transition:transform .15s,box-shadow .2s,background .2s,border-color .2s}.btn:hover:not(:disabled){transform:translateY(-1px)}
+.meter i,#spBar{transition:width .7s cubic-bezier(.2,.7,.2,1)}
+.kp div{transition:transform .2s,box-shadow .2s}.kp div:hover{transform:translateY(-2px)}
+tbody tr{transition:background .15s}tbody tr:hover td{background:var(--tn)}
+.main .panel{padding:30px}.main .panel>h2{font-size:19px;letter-spacing:-.015em}
+.step{margin-top:26px}.step.first{margin-top:18px}
+.lock{position:relative;border-radius:12px;overflow:hidden;margin-bottom:14px}
+.lockin{filter:blur(3.5px);opacity:.55;pointer-events:none;user-select:none;padding:2px}
+.lockov{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;text-align:center;padding:10px;background:color-mix(in srgb,var(--bg) 45%,transparent)}
+.lockov b{font:700 14px var(--d)}.lockov small{color:var(--mu);font-size:12.5px;margin-bottom:4px}
+.tadd{display:flex;gap:10px;flex-wrap:wrap}.tadd .inp{flex:1;min-width:200px}
+.seats{display:flex;align-items:center;gap:14px;margin:16px 0;color:var(--mu);font-size:13px}.seats .meter{flex:1;max-width:240px}
+.dfoot .cbox{flex:1 1 100%;min-width:0;box-sizing:border-box;box-shadow:none}
+.abody .kp{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:0 0 6px}
+.abody .kp div{background:var(--sf);border:1px solid var(--bd);border-radius:14px;padding:18px 20px}
+.abody .kp span{display:block;font-size:12.5px;color:var(--mu);font-weight:600}
+.abody .kp b{font:800 28px var(--d);letter-spacing:-.02em}
+.abody .tw{background:var(--sf);border:1px solid var(--bd);border-radius:14px;overflow:auto;max-height:520px}
+.abody table{width:100%;border-collapse:collapse;font-size:13.5px}
+.abody th{position:sticky;top:0;z-index:1;background:var(--bg2);text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);padding:12px 16px;border-bottom:1px solid var(--bd)}
+.abody td{padding:12px 16px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.abody tbody tr:last-child td{border-bottom:0}
+.nm b{display:block;font-weight:600}.nm small{color:var(--mu);font-size:12.5px}
+.pb{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background:var(--s2);color:var(--mu)}
+.pb-basic{background:rgba(37,99,235,.12);color:var(--ac)}.pb-standard{background:rgba(124,58,237,.13);color:#7c3aed}
+.pb-pro{background:rgba(34,197,94,.15);color:var(--ok)}.pb-trial{background:rgba(245,158,11,.16);color:#d97706}
+html[data-theme=dark] .pb-standard{color:#a78bfa}
+/* ===== enterprise finish (keeps the original look) ===== */
+body{-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+h1,h2,h3{letter-spacing:-.02em}
+nav{box-shadow:0 1px 0 var(--bd)}.side{box-shadow:1px 0 0 var(--bd)}.top{box-shadow:0 1px 0 var(--bd)}
+.panel{box-shadow:0 1px 2px rgba(16,24,40,.04),0 10px 28px -14px rgba(16,24,40,.10)}
+.plan{box-shadow:0 1px 2px rgba(16,24,40,.04);transition:transform .25s,box-shadow .25s}
+.plan:hover{transform:translateY(-3px);box-shadow:0 20px 44px -20px rgba(16,24,40,.28)}
+.plan.rec{box-shadow:0 0 0 1.5px var(--b),0 26px 50px -22px rgba(37,99,235,.45)}
+.fc{transition:transform .25s,box-shadow .25s,border-color .25s}.fc:hover{transform:translateY(-2px);box-shadow:0 14px 34px -18px rgba(16,24,40,.22)}
+.btn{font-weight:600;letter-spacing:.005em}
+.inp,textarea,select{transition:border-color .2s,box-shadow .2s}
+.inp:focus,textarea:focus,select:focus{box-shadow:0 0 0 4px var(--tn)}
+.nv.on{box-shadow:inset 3px 0 0 var(--b)}
+.sideplan{border:1px solid var(--bd);box-shadow:0 1px 2px rgba(16,24,40,.05)}
+th{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
+.bad{font-weight:600}
+.dfoot{margin-top:28px;padding-top:16px}
 </style>
 </head>
 <body>
@@ -203,7 +255,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
 <div id="app" class="shell" hidden>
   <aside class="side">
     <div class="logo"><span class="lm"><svg viewBox="0 0 100 100" fill="none"><path d="M32 26C36 44 38 62 31 76M50 26C54 44 56 62 49 76M68 26C72 44 74 62 67 76" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg></span>LeadClaw</div>
-    <button class="nv on" data-t="new">New dispute</button><button class="nv" data-t="hist">History</button>
+    <button class="nv on" data-t="new">New dispute</button><button class="nv" data-t="hist">History</button><button class="nv" data-t="team">Team</button>
     <div class="nvsep"></div><button class="nv" id="navAcc">Account</button><button class="nv" id="navTut">Quick-start guide</button><button class="nv" id="navOut">Sign out</button>
     <div class="sideplan"><b id="spName">No active plan</b><span id="spUse">Choose a plan to begin</span><div class="meter"><i id="spBar"></i></div><button class="btn sm full" id="spUp">Choose a plan</button></div>
   </aside>
@@ -213,29 +265,33 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
       <div id="tNew">
         <div class="tut" id="tut" hidden><div style="flex:1;min-width:240px"><b id="tutH">Quick start</b><p id="tutP"></p></div><div class="acts"><button class="btn sm sec" id="tutB">Back</button><button class="btn sm" id="tutN">Next</button><button class="btn sm sec" id="tutX">Dismiss</button></div></div>
         <div class="cols">
-          <section class="panel"><h2>Lead dispute details</h2><p class="sub" style="margin:0 0 6px">Required fields are marked with *. Each AI dispute uses one credit.</p>
+          <section class="panel"><h2>Lead dispute details</h2><p class="sub" style="margin:0 0 6px">Fields marked * are required. Each dispute uses one credit.</p>
             <div class="step first"><span>1</span>Marketplace</div>
             <div class="f" id="gPlat"><div class="seg" id="plat"></div></div>
             <div class="f"><label for="acct" id="acctL">Your account (email or phone) *</label><input class="inp" id="acct" placeholder="pro@gmail.com or (555) 123-4567" autocomplete="off"></div>
             <div class="step"><span>2</span>Lead details</div>
-            <div class="two f"><div><label for="lp2">Lead phone *</label><input class="inp" id="lp2" placeholder="(555) 019-2834"></div><div><label for="le">Lead email *</label><input class="inp" id="le" type="email" placeholder="client@gmail.com"></div></div>
+            <div class="two f"><div><label for="lp2">Lead phone</label><input class="inp" id="lp2" placeholder="(555) 019-2834"></div><div><label for="le">Lead email</label><input class="inp" id="le" type="email" placeholder="client@gmail.com"></div></div>
+            <p class="note" style="margin:-6px 0 14px">Enter at least one: the lead's phone number or email.</p>
             <div class="two f"><div><label for="lid">Lead ID / reference # *</label><input class="inp" id="lid" placeholder="e.g. 4821937"></div><div id="gCost"><label for="cost">Lead cost (USD) *</label><input class="inp" id="cost" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="75.00"></div></div>
             <div class="f" id="gNotes"><label for="notes">Call notes &amp; issue *</label><div class="chips" id="chips"></div><textarea id="notes" placeholder="Select a quick reason or describe what went wrong."></textarea></div>
             <div class="step"><span>3</span>Evidence</div>
             <div id="evBox"></div>
+            <div class="step"><span>4</span>Letter style</div>
+            <div id="modeBox"></div>
             <button class="btn full" id="go">Generate dispute letter</button>
             <div class="prog" id="prog"><div class="t"><span id="pStat"></span><span id="pPct">0%</span></div><div class="bar"><i id="pBar"></i></div></div>
           </section>
           <div>
             <section class="panel"><h2>Dispute letter</h2><div id="out" class="empty">Your eligibility result and dispute letter will appear here.</div></section>
-            <div id="teamBox"></div>
+            
           </div>
         </div>
       </div>
       <section class="panel" id="tHist" hidden><h2>Dispute history</h2><p class="sub">Mark each dispute as claimed once you have submitted it to the marketplace.</p>
         <div class="kp"><div><span>Disputes</span><b id="kN">0</b></div><div><span>Eligible value</span><b id="kE">$0</b></div><div><span>Claimed</span><b id="kC">$0</b></div></div>
         <div class="tw"><table><thead><tr><th>Date</th><th>Platform</th><th>Lead</th><th>Amount</th><th>Result</th><th>Claimed</th><th></th></tr></thead><tbody id="hb"></tbody></table></div><div class="empty" id="hE">No disputes yet.</div></section>
-      <div class="dfoot"><div class="dplan"><span>Current plan</span><b id="fpPlan">-</b><span id="fpUse"></span></div><div class="dlinks"><a href="mailto:leadclawai@gmail.com">Contact us</a><a onclick="document.getElementById('secOv').hidden=false">Security</a><a onclick="openTerms()">Terms</a></div><div class="cbox" style="flex-basis:100%;padding:16px 22px;border-radius:12px"><div><b style="color:var(--tx)">Need help or have feedback?</b><br>Made and operated by Rixz. Contact us any time.</div><a class="btn sm" href="mailto:leadclawai@gmail.com?subject=LeadClaw%20help%20or%20feedback">Contact us</a></div></div>
+      <section class="panel" id="tTeam" hidden><h2>Team</h2><div id="tTeamBody"></div></section>
+      <div class="dfoot"><div class="dplan"><span>Current plan</span><b id="fpPlan">-</b><span id="fpUse"></span></div></div>
     </div>
   </div>
 </div>
@@ -298,7 +354,7 @@ textarea{height:auto;min-height:96px;padding:11px 13px;resize:vertical}
   <div class="atop"><div class="logo">LeadClaw <span class="pill">Admin</span></div><div class="aact"><button class="btn sm" id="aTest">Testing</button><button class="btn sec sm" id="aOut">Exit admin</button></div></div>
   <div class="abody"><div class="kp" id="aK"></div>
     <h3>Users</h3><input class="inp srch" id="aQ" placeholder="Search name, email or business" autocomplete="off">
-    <div class="tw"><table><thead><tr><th>Name</th><th>Email</th><th>Business</th><th>Phone</th><th>Plan</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div>
+    <div class="tw"><table><thead><tr><th>User</th><th>Business</th><th>Phone</th><th>Plan</th><th>Disputes</th><th>Joined</th></tr></thead><tbody id="aU"></tbody></table></div>
     <h3>Latest disputes</h3><div class="tw"><table><thead><tr><th>Date</th><th>User</th><th>Platform</th><th>Amount</th><th>Result</th><th>Claimed</th></tr></thead><tbody id="aD"></tbody></table></div></div></div>
 <div id="tpanel" hidden><h4>TESTING MODE</h4><p>This is a test account. Plan changes skip Stripe and only affect this account.</p>
   <label for="tPlan">Plan</label><select class="inp" id="tPlan"><option value="none">No plan</option><option value="basic">Basic</option><option value="standard">Standard</option><option value="pro">Pro</option></select>
@@ -329,7 +385,7 @@ const PLANS=[
 const CHIPS={'Disconnected phone':'Permanently disconnected phone number. Called twice with no answer.','Outside service area':'Customer is outside our service area and zip codes.','Duplicate lead':'Duplicate lead received within the same billing window.','Spam or bot':'Spam or bot submission with fake contact information.','Wrong trade':'Wrong trade category. The requested service does not match our trade.','Customer mistake':'Homeowner stated they clicked by mistake and did not request this service.'};
 const NOT='Pricing objections, competitor hiring, project postponements and other customer choices are not eligible for credit under marketplace guidelines.';
 const BAD=/hired (another|a|an|someone|a different)|went (with|to) (a |another |the )?(competitor|contractor)|project went to|chose (another|a different)|competitor|too expensive|over (our|my) budget|on hold|postponed/i;
-let token=ls('lc_token'),me=null,plat='Angi',reg={},claim='',curId=0,tut=0,testMode=false,adminUsers=[];
+let token=ls('lc_token'),me=null,plat='Angi',reg={},claim='',curId=0,tut=0,testMode=false,adminUsers=[],lmode='ai',teamData=null;
 try{me=JSON.parse(ls('lc_me')||'null')}catch(e){}if(!token)me=null;
 const saveMe=()=>{if(!testMode)ls('lc_me',JSON.stringify(me))};
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('show'),3200)}
@@ -395,7 +451,7 @@ $('b2').onclick=async()=>{const m=$('m2'),b=$('b2');m.className='msg';m.textCont
 $('rC').addEventListener('keydown',e=>{if(e.key==='Enter')$('b2').click()});
 $('b3').onclick=async()=>{const m=$('m3'),b=$('b3'),biz=$('rB').value.trim();m.textContent='';if(!biz)return m.textContent='Enter your business name.';
   busy(b,true);try{const d=await withWake(b,()=>api('/api/auth/register',{method:'POST',json:{email:reg.email,password:reg.password,full_name:reg.name,business:biz,accept_terms:true,acc_angi:$('hA').value,acc_thumbtack:$('hT').value,acc_porch:$('hP').value,acc_networx:$('hN').value}}),'Creating your workspace. This can take up to 30 seconds.',600);
-    token=d.token;ls('lc_token',token);reg.password='';await refreshMe();showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Start free trial')).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
+    token=d.token;ls('lc_token',token);reg.password='';await refreshMe();if(me.team_owner){closeOv('authOv');enterApp();toast('Welcome! Your team gives you Pro access.');return}showStep(4);$('rp').innerHTML=PLANS.map(p=>planHtml(p,false,'Start free trial')).join('');$('rp').querySelectorAll('.rv').forEach(x=>x.classList.add('in'));bindPlans($('rp'),(id,bt)=>pick(id,bt,$('m4')))}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
 
 $('bl').onclick=async()=>{const m=$('ml'),b=$('bl'),email=$('lE').value.trim().toLowerCase(),password=$('lP').value;m.className='msg';m.textContent='';if(!email||!password)return m.textContent='Enter your email and password.';
@@ -427,7 +483,7 @@ $('bf2').onclick=async()=>{const m=$('mf2'),b=$('bf2'),c=$('fC').value.trim(),p=
     const ok=$('sOk'),t=ok.querySelector('p'),sp=ok.querySelector('span');t.textContent='Password updated';sp.textContent='Taking you to sign in...';$('sf2').hidden=true;ok.hidden=false;
     setTimeout(()=>{if(!ok.hidden){t.textContent='Email verified';sp.textContent='Setting up your workspace...';showStep('l');$('lE').value=fr.email;$('lP').value='';const ml=$('ml');ml.className='msg good';ml.textContent='Password updated. Sign in with your new password.';$('lP').focus()}},1800)}
   catch(x){m.textContent=x.message}finally{busy(b,false)}};
-function signout(silent){if(testMode){exitTesting();return}if(token&&!silent){busyBar(1);fetch(API+'/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{}).finally(()=>busyBar(-1))}token=null;me=null;ls('lc_token',null);ls('lc_me',null);$('app').hidden=true;$('landing').hidden=false;renderLandingPlans();!silent&&toast('Signed out')}
+function signout(silent){teamData=null;if(testMode){exitTesting();return}if(token&&!silent){busyBar(1);fetch(API+'/api/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+token}}).catch(()=>{}).finally(()=>busyBar(-1))}token=null;me=null;ls('lc_token',null);ls('lc_me',null);$('app').hidden=true;$('landing').hidden=false;renderLandingPlans();!silent&&toast('Signed out')}
 $('navOut').onclick=()=>signout();
 async function refreshMe(){me=await api('/api/me');saveMe();render()}
 function enterApp(){$('landing').hidden=true;$('app').hidden=false;scrollTo(0,0);render();renderPlat();if(!testMode&&!(me.plan in LIM)&&!/checkout=success/.test(location.search))openPlans(true);else if(!ls('lc_tut_done'))startTut()}
@@ -439,11 +495,14 @@ function render(){
   $('leftPill').textContent=lim===undefined?'No active plan':isPro?'Unlimited leads':`${left} lead${left===1?'':'s'} left`;
   if(me.on_trial){const tl=me.trial_left,tn=me.trial_limit||TRIAL_DISPUTES;$('spName').textContent='Free trial: '+NAME[p];$('spUse').textContent=`${tl} of ${tn} free disputes left`;$('spBar').style.width=(tl/tn*100)+'%';$('spUp').textContent='Start plan now';$('leftPill').textContent=`${tl} free dispute${tl===1?'':'s'} left`}
   $('fpPlan').textContent=me.on_trial?'Free trial: '+NAME[p]:lim===undefined?'No plan':NAME[p]+' plan';$('fpUse').textContent=$('spUse').textContent;
-  if($('evBox').dataset.k!==String(isPro)){$('evBox').dataset.k=String(isPro);$('evBox').innerHTML=isPro?`<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div><div class="f"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
-   :`<div class="pro" data-up><span class="in"><b>Audio &amp; PDF evidence upload</b><small>Attach call recordings and documents for the AI to cite</small></span><span class="bg">PRO ONLY</span></div>`}
-  $('teamBox').innerHTML=isPro?`<div class="panel"><h2>Team seats</h2><p class="sub" style="margin:0">Priority multi-user seats are included in your plan. Contact the LeadClaw team to add teammates.</p></div>`
-   :'';
-  document.querySelectorAll('#evBox [data-up],#teamBox [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
+  if($('evBox').dataset.k!==String(isPro)){$('evBox').dataset.k=String(isPro);
+    $('evBox').innerHTML=isPro?`<div class="f"><label for="files">Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" id="files" type="file" multiple accept=".mp3,.wav,.pdf" style="padding:8px"></div>`
+      :`<div class="lock"><div class="lockin" aria-hidden="true"><div class="f"><label>Audio / PDF evidence (.mp3 .wav .pdf)</label><input class="inp" type="file" disabled tabindex="-1" style="padding:8px"></div></div><div class="lockov"><b>Pro feature</b><small>Attach call recordings and documents</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div></div>`;
+    $('modeBox').innerHTML=isPro?`<div class="seg" id="lmode"><button type="button" data-m="ai" class="on">AI-written letter</button><button type="button" data-m="template">Template letter</button></div><p class="note" id="lmodeNote" style="margin:8px 0 12px"></p><div class="f" id="modelF"><label for="model">AI model</label><select id="model"><option value="gemini">Gemini 3.5 Flash</option><option value="groq">Groq Qwen3 4B</option></select></div>`
+      :`<div class="lock"><div class="lockin" aria-hidden="true"><div class="seg"><button type="button" class="on">AI-written letter</button><button type="button">Template letter</button></div><div class="f" style="margin-top:12px"><label>AI model</label><select disabled tabindex="-1"><option>Gemini 3.5 Flash</option></select></div></div><div class="lockov"><b>Pro feature</b><small>Choose an AI-written or template letter</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div></div>`;
+    if(isPro){lmode='ai';syncMode();document.querySelectorAll('#lmode button').forEach(x=>x.onclick=()=>{lmode=x.dataset.m;syncMode()})}}
+  renderTeam();
+  document.querySelectorAll('.lock [data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});
   if(!$('acct').value)$('acct').value=me['acc_'+plat.toLowerCase()]||'';
   renderHist()}
 function showTrialEnd(ended=true){const o=$('trOv'),n=(me&&me.trial_limit)||TRIAL_DISPUTES;o.dataset.force=ended?'1':'';
@@ -457,12 +516,28 @@ $('trNo').onclick=()=>{$('trOv').dataset.force='';$('trOv').hidden=true};
 $('trMng').onclick=async ev=>{ev.preventDefault();try{const d=await api('/api/billing/portal',{method:'POST'});location.href=d.url}catch(e){$('trM').textContent=e.message}};
 $('trOut').onclick=ev=>{ev.preventDefault();$('trOv').dataset.force='';$('trOv').hidden=true;signout()};
 $('spUp').onclick=()=>me&&me.on_trial?showTrialEnd(me.trial_left<=0):openPlans();
+function syncMode(){document.querySelectorAll('#lmode button').forEach(x=>x.classList.toggle('on',x.dataset.m===lmode));const n=$('lmodeNote'),mf=$('modelF');if(!n)return;
+  n.textContent=lmode==='ai'?'The AI reviews your lead against the marketplace policy and writes a tailored letter.':'A standard letter is built directly from your details, without AI.';mf.hidden=lmode!=='ai'}
+function teamHtml(d){const n=d.members.length;return `<p class="sub" style="margin:0 0 16px">Teammates get Pro access on their own login. Add their Gmail address, then ask them to sign up or sign in with it.</p>
+  <div class="tadd"><input class="inp" id="tEm" type="email" placeholder="teammate@gmail.com" autocomplete="off"><button class="btn" id="tAdd">Add teammate</button></div><p class="msg" id="tMsg"></p>
+  <div class="seats"><span>${n} of ${d.limit} seats used</span><div class="meter"><i style="width:${Math.min(100,n/d.limit*100)}%"></i></div></div>
+  ${n?`<div class="tw"><table><thead><tr><th>Teammate</th><th>Name</th><th></th></tr></thead><tbody>${d.members.map(m=>`<tr><td>${esc(m.email)}</td><td>${esc(m.full_name||'Has not signed up yet')}</td><td><button class="btn sm sec" data-rm="${esc(m.email)}">Remove</button></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No teammates yet.</div>'}`}
+function paintTeam(){$('tTeamBody').innerHTML=teamHtml(teamData);$('tAdd').onclick=addMember;$('tEm').addEventListener('keydown',e=>{if(e.key==='Enter')$('tAdd').click()});document.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>removeMember(b.dataset.rm))}
+async function loadTeam(){try{teamData=await api('/api/team');paintTeam()}catch(x){$('tTeamBody').innerHTML='<div class="empty">'+esc(x.message)+'</div>'}}
+function renderTeam(){const el=$('tTeamBody');if(!me)return;
+  if(me.team_owner){el.innerHTML=`<div class="empty" style="margin:0">You have Pro access through <b>${esc(me.team_owner)}</b>'s team.</div>`;return}
+  if(me.plan!=='pro'){teamData=null;el.innerHTML=`<div class="lock"><div class="lockin" aria-hidden="true"><p class="sub">Teammates get Pro access on their own login.</p><div class="tadd"><input class="inp" disabled tabindex="-1" placeholder="teammate@gmail.com"><button class="btn" tabindex="-1">Add teammate</button></div><div class="seats"><span>0 of 5 seats used</span><div class="meter"><i style="width:0"></i></div></div></div><div class="lockov"><b>Pro feature</b><small>Add teammates so they can generate disputes with Pro access</small><button class="btn sm" type="button" data-up>Upgrade to Pro</button></div></div>`;el.querySelectorAll('[data-up]').forEach(e=>e.onclick=()=>{toast('This is a Pro feature.');openPlans()});return}
+  if(teamData)paintTeam();else{el.innerHTML='<div class="empty">Loading your team...</div>';loadTeam()}}
+async function addMember(){const b=$('tAdd'),m=$('tMsg'),e=$('tEm').value.trim().toLowerCase();m.className='msg';m.textContent='';
+  if(!/^[a-z0-9._%+-]+@gmail\.com$/.test(e))return m.textContent='Enter a valid @gmail.com address.';
+  busy(b,true);try{teamData=await withWake(b,()=>api('/api/team/add',{method:'POST',json:{email:e}}),'Adding teammate...',600);paintTeam();toast('Teammate added')}catch(x){m.textContent=x.message}finally{busy(b,false)}}
+async function removeMember(e){try{teamData=await api('/api/team/remove',{method:'POST',json:{email:e}});paintTeam();toast('Teammate removed')}catch(x){toast(x.message)}}
 function renderHist(){const ds=me.disputes;$('hE').hidden=ds.length>0;$('kN').textContent=ds.length;$('kE').textContent='$'+ds.filter(d=>d.valid).reduce((a,d)=>a+d.amount,0).toFixed(0);$('kC').textContent='$'+ds.filter(d=>d.recovered).reduce((a,d)=>a+d.amount,0).toFixed(0);
-  $('hb').innerHTML=ds.map(d=>`<tr><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone)}</td><td>$${(+d.amount).toFixed(2)}</td><td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Not eligible'}</span></td>
+  $('hb').innerHTML=ds.map(d=>`<tr><td>${esc((d.created_at||'').slice(0,10))}</td><td>${esc(d.platform)}</td><td>${esc(d.lead_phone||d.lead_email)}</td><td>$${(+d.amount).toFixed(2)}</td><td><span class="bad ${d.valid?'y':'n'}">${d.valid?'Eligible':'Not eligible'}</span></td>
   <td>${d.valid?`<button class="btn sm${d.recovered?'':' sec'}" onclick="mark(${d.id},${!d.recovered})">${d.recovered?'Claimed':'Mark claimed'}</button>`:'-'}</td><td>${d.valid&&d.claim?`<button class="btn sm sec" onclick="view(${d.id})">View</button>`:''}</td></tr>`).join('')}
 async function mark(id,v){try{await api(`/api/disputes/${id}/recovered`,{method:'POST',json:{recovered:v}});await refreshMe();toast(v?'Marked as claimed':'Unmarked')}catch(e){toast(e.message)}}
 function view(id){const d=me.disputes.find(x=>x.id===id);showResult({valid:true,reason:d.reason||'Eligible for credit.',claim:d.claim},d.platform,id);tab('new')}
-function tab(t){document.querySelectorAll('.nv[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('tNew').hidden=t!=='new';$('tHist').hidden=t!=='hist';$('ttl').textContent=t==='new'?'New dispute':'Dispute history'}
+function tab(t){document.querySelectorAll('.nv[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$('tNew').hidden=t!=='new';$('tHist').hidden=t!=='hist';$('tTeam').hidden=t!=='team';$('ttl').textContent={new:'New dispute',hist:'Dispute history',team:'Team'}[t]}
 document.querySelectorAll('.nv[data-t]').forEach(b=>b.onclick=()=>tab(b.dataset.t));
 function renderPlat(){$('plat').innerHTML=['Angi','Thumbtack','Porch','Networx'].map(p=>`<button type="button" class="${p===plat?'on':''}">${p}</button>`).join('');$('acctL').textContent=`Your ${plat} account (email or phone) *`;$('acct').value=(me&&me['acc_'+plat.toLowerCase()])||'';
   [...$('plat').children].forEach(b=>b.onclick=()=>{plat=b.textContent;renderPlat()})}
@@ -481,8 +556,8 @@ LEAD IDENTIFICATION DATA
 - Platform Account ID: ${f.account}
 - Lead ID Number: ${f.lid}
 - Lead Cost: ${amt}
-- Customer Phone: ${f.phone}
-- Customer Email: ${f.email}
+- Customer Phone: ${f.phone||'Not provided'}
+- Customer Email: ${f.email||'Not provided'}
 
 REASON FOR DISPUTE
 This lead qualifies for a credit under your platform's credit guarantee guidelines for the following reason:
@@ -504,7 +579,8 @@ function showResult(d,p=plat,id=0){claim=d.claim||'';curId=id;const isPro=me.pla
 function need(ids){let bad=null;for(const id of ids){const el=$(id),v=el.value.trim(),ok=id==='cost'?(Number.isFinite(parseFloat(v))&&parseFloat(v)>0):!!v;el.classList.toggle('invalid',!ok);if(!ok&&!bad)bad=el}if(bad){bad.focus();toast('Please complete the highlighted fields.');return false}return true}
 document.querySelectorAll('.inp,textarea').forEach(i=>i.addEventListener('input',()=>i.classList.remove('invalid')));
 $('go').onclick=async()=>{
-  if(!need(['acct','lp2','le','lid','cost','notes']))return;
+  if(!need(['acct','lid','cost','notes']))return;
+  if(!$('lp2').value.trim()&&!$('le').value.trim()){$('lp2').classList.add('invalid');$('le').classList.add('invalid');$('lp2').focus();return toast("Enter the lead's phone number or email.")}
   const f={account:$('acct').value.trim(),phone:$('lp2').value.trim(),email:$('le').value.trim(),lid:$('lid').value.trim(),cost:parseFloat($('cost').value),notes:$('notes').value.trim()};
   if(!(isEmail(f.account)||isPhone(f.account))){$('acct').classList.add('invalid');$('acct').focus();return toast('Enter the email or phone number of your '+plat+' account.')}
   if(!(me.plan in LIM)){toast('Choose a plan to generate dispute letters.');return openPlans(true)}
@@ -512,7 +588,7 @@ $('go').onclick=async()=>{
   if(me.credits_left===0){toast('You have used all credits this month.');return openPlans()}
   saveAcct(f.account);
   const fd=new FormData();fd.append('platform',plat);fd.append('notes',f.notes);fd.append('cost',f.cost.toFixed(2));fd.append('lead_phone',f.phone);fd.append('lead_email',f.email);fd.append('lead_id',f.lid);fd.append('account',f.account);
-  if(me.plan==='pro'){fd.append('model',$('model').value);[...$('files').files].forEach(x=>fd.append('files',x))}
+  if(me.plan==='pro'){fd.append('letter_mode',lmode);fd.append('model',$('model').value);[...$('files').files].forEach(x=>fd.append('files',x))}
   const btn=$('go'),bar=$('pBar');busy(btn,true);$('prog').style.display='block';$('out').className='empty';$('out').textContent='Analyzing your lead. This can take up to 30 seconds.';
   const msgs=['Reviewing marketplace credit guidelines','Evaluating your lead details','Writing your dispute letter'];let p=0,s=0;
   const iv=setInterval(()=>{s+=.35;p=Math.min(92,p+(p<60?5:1));bar.style.width=p+'%';$('pPct').textContent=p+'%';$('pStat').textContent=s>12?'Still working. The server is starting up.':msgs[Math.min(2,Math.floor(p/32))]},350);
@@ -542,7 +618,7 @@ async function loadAdmin(){let r;busyBar(1);try{r=await rfetch(API+'/api/admin/a
   if(!r.ok)throw new Error(typeof d.detail==='string'?d.detail:'Could not load admin data.');
   const s=d.summary;$('aK').innerHTML=[['Users',s.users],['Paid users',s.paid],['New this week',s.new_7d],['Disputes',s.disputes],['Eligible value','$'+(+s.eligible_total||0).toFixed(2)]].map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('');
   adminUsers=d.users;renderAdminUsers();
-  $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>$${(+x.amount).toFixed(2)}</td><td>${x.valid?'Eligible':'Not eligible'}</td><td>${x.recovered?'Yes':'No'}</td></tr>`).join('');
+  $('aD').innerHTML=d.disputes.map(x=>`<tr><td>${esc((x.created_at||'').slice(0,10))}</td><td>${esc(x.email)}</td><td>${esc(x.platform)}</td><td>$${(+x.amount).toFixed(2)}</td><td><span class="bad ${x.valid?'y':'n'}">${x.valid?'Eligible':'Not eligible'}</span></td><td>${x.recovered?'Yes':'No'}</td></tr>`).join('');
   $('admK').value='';closeOv('admOv');$('landing').hidden=true;$('app').hidden=true;$('adm').hidden=false;scrollTo(0,0)}
 function openAdmin(){$('admOv').hidden=false;if(Date.now()<lockUntil){if(!lockTimer)lockTimer=setInterval(lockTick,1000);lockTick()}}
 $('admL').onclick=openAdmin;
@@ -551,11 +627,11 @@ $('admGo').onclick=async()=>{if(Date.now()<lockUntil)return lockTick();const k=$
 $('admK').addEventListener('keydown',e=>{if(e.key==='Enter')$('admGo').click()});
 function renderAdminUsers(){const q=($('aQ').value||'').toLowerCase();
   const rows=adminUsers.filter(u=>!q||[u.full_name,u.email,u.workspace].some(v=>(v||'').toLowerCase().includes(q)));
-  $('aU').innerHTML=rows.map(u=>`<tr><td>${esc(u.full_name||'-')}</td><td>${esc(u.email)}</td><td>${esc(u.workspace||'-')}</td><td>${esc(u.phone||'-')}</td><td>${esc(u.plan)}${u.on_trial?' (trial)':''}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="7">No users found.</td></tr>'}
+  $('aU').innerHTML=rows.map(u=>`<tr><td><div class="nm"><b>${esc(u.full_name||'No name')}</b><small>${esc(u.email)}</small></div></td><td>${esc(u.workspace||'-')}</td><td>${esc(u.phone||'-')}</td><td><span class="pb pb-${esc(u.plan)}">${esc(NAME[u.plan]||'No plan')}</span>${u.on_trial?' <span class="pb pb-trial">Trial</span>':''}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="6">No users found.</td></tr>'}
 $('aQ').addEventListener('input',renderAdminUsers);
 $('aOut').onclick=()=>{adminKey='';adminUsers=[];$('adm').hidden=true;$('landing').hidden=false;scrollTo(0,0)};
 function syncTestPanel(){if(!me)return;$('tPlan').value=me.plan in LIM?me.plan:'none';$('tTrial').checked=!!me.on_trial}
-function exitTesting(){testMode=false;token=null;me=null;$('tpanel').hidden=true;$('app').hidden=true;$('adm').hidden=false;scrollTo(0,0)}
+function exitTesting(){teamData=null;testMode=false;token=null;me=null;$('tpanel').hidden=true;$('app').hidden=true;$('adm').hidden=false;scrollTo(0,0)}
 $('aTest').onclick=async()=>{const b=$('aTest');busy(b,true);
   try{let r;busyBar(1);try{r=await withWake(b,()=>rfetch(API+'/api/admin/test-session',{method:'POST',headers:{'X-Admin-Key':adminKey}}),'Opening the testing dashboard...',600)}finally{busyBar(-1)}
     const d=await r.json().catch(()=>({}));if(!r.ok||!d.token)throw new Error('Could not open testing mode. Please try again.');
