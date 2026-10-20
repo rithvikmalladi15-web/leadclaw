@@ -728,9 +728,10 @@ $('admL').onclick=openAdmin;
 $('admGo').onclick=async()=>{if(Date.now()<lockUntil)return lockTick();const k=$('admK').value.trim();if(!k)return $('admM').textContent='Enter the admin key.';const b=$('admGo');adminKey=k;busy(b,true);$('admM').textContent='';
   try{await withWake(b,loadAdmin)}catch(e){adminKey='';if(Date.now()>=lockUntil)$('admM').textContent=e.message}finally{busy(b,false);b.disabled=Date.now()<lockUntil}};
 $('admK').addEventListener('keydown',e=>{if(e.key==='Enter')$('admGo').click()});
+function fmtSignup(v){if(!v)return '-';let t=String(v).trim().replace(' ','T');if(!/(Z|[+-]\d{2}:?\d{2})$/.test(t))t+='Z';const d=new Date(t);if(isNaN(d))return String(v);return d.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit',hour12:true,timeZoneName:'short'})}
 function renderAdminUsers(){const q=($('aQ').value||'').toLowerCase();
   const rows=adminUsers.filter(u=>!q||[u.full_name,u.email,u.workspace].some(v=>(v||'').toLowerCase().includes(q)));
-  $('aU').innerHTML=rows.map(u=>`<tr><td><div class="nm"><b>${esc(u.full_name||'No name')}</b><small>${esc(u.email)}</small></div></td><td>${esc(u.workspace||'-')}</td><td>${esc(u.phone||'-')}</td><td><span class="pb pb-${esc(u.plan)}">${esc(NAME[u.plan]||'No plan')}</span>${u.on_trial?' <span class="pb pb-trial">Trial</span>':''}</td><td>${u.disputes}</td><td>${esc((u.created_at||'').slice(0,10))}</td></tr>`).join('')||'<tr><td colspan="6">No users found.</td></tr>'}
+  $('aU').innerHTML=rows.map(u=>`<tr><td><div class="nm"><b>${esc(u.full_name||'No name')}</b><small>${esc(u.email)}</small></div></td><td>${esc(u.workspace||'-')}</td><td>${esc(u.phone||'-')}</td><td><span class="pb pb-${esc(u.plan)}">${esc(NAME[u.plan]||'No plan')}</span>${u.on_trial?' <span class="pb pb-trial">Trial</span>':''}</td><td>${u.disputes}</td><td style="white-space:nowrap">${esc(fmtSignup(u.created_at))}</td></tr>`).join('')||'<tr><td colspan="6">No users found.</td></tr>'}
 $('aQ').addEventListener('input',renderAdminUsers);
 $('aOut').onclick=()=>{adminKey='';adminUsers=[];$('adm').hidden=true;$('landing').hidden=false;scrollTo(0,0)};
 function syncTestPanel(){if(!me)return;$('tPlan').value=me.plan in LIM?me.plan:'none';$('tTrial').checked=!!me.on_trial}
